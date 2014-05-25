@@ -54,20 +54,19 @@ type
     procedure InitCpu(EntryPoint: Word);    //Инициализация процессора
     procedure Run;                          //Запустить выполнение
     procedure ShowRegisters;                //Отобразить содержимое регистров на экране
-    function DataRegisterNameByTextName(Value: String): TDataRegistersNames;                  //Имя регистра по текстовому имени
     procedure SetDataRegister(DataRegisterName: TDataRegistersNames; Value: Byte);            //Установить значение регистра
     function GetDataRegister(DataRegisterName: TDataRegistersNames): Byte;                    //Получить значение регистра
     procedure SetDataRegisterPair(DataRegisterPairName: TDataRegistersNames; Value: Word);    //Установить значение регистровой пары
     function GetDataRegisterPair(DataRegisterPairName: TDataRegistersNames): Word;            //Получить значение регистровой пары
-    //procedure GetRegisterAddresationValue(
+    function DataRegisterNameByTextName(Value: String): TDataRegistersNames;                  //Имя регистра по текстовому имени
+    procedure SetRegisterAddresationValue(Operand: String; Value: Byte);                      //Получить значение по регистровой адресации
+    function GetRegisterAddresationValue(Operand: String): Byte;                              //Установить значение по регистровой адресации
     function GetStackPointer: Word;                                                           //Получить значение указателя стека
     function GetProgramCounter: Word;                                                         //Получить значение счетчика команд
     function GetInstructionRegister: Byte;                                                    //Получить значение регистра команд
     procedure SetFlag(FlagName: TFlagsNames; Value: Boolean);                                 //Установить флаг
-    function GetFlag(FlagName: TFlagsNames): Boolean;                                         //Проверить состояние флага
+    function GetFlag(FlagName: TFlagsNames): Boolean;                                         //Получить состояние флага
   end;
-
-  TAddresationType = (ATREG, ATMEM, ATADDR, ATD8, ATD16);
 
   TCommand = class                          //Команда (базовый класс)
   private
@@ -77,7 +76,6 @@ type
     FlagsCheck: TFlagsRegister;             //Проверяемые флаги
     FlagsSet: TFlagsRegister;               //Устанавливаемые флаги
     CommandCode: String;                    //Двоичный код команды
-    function CaseAddresationType(Op: String): TAddresationType;                 //Выбор типа адресации из мнемоники оператора
   public
     constructor Create(Name: String; Op1, Op2: String);
     function ShowSummary: String;
@@ -144,6 +142,19 @@ begin
   for CurReg := Low(TDataRegistersNames) to High(TDataRegistersNames) do
     if 'R' + Value = GetEnumName(TypeInfo(TDataRegistersNames), Ord(CurReg)) then
       Result := CurReg;
+end;
+
+procedure TProcessor.SetRegisterAddresationValue;
+begin
+  if Operand = 'M' then             //Косвенная адресация памяти
+    Memory.WriteMemory(GetDataRegisterPair(RH), Value)
+  else                              //Регистровая адресация
+    SetDataRegister(DataRegisterNameByTextName(Operand), Value);
+end;
+
+function TProcessor.GetRegisterAddresationValue;
+begin
+
 end;
 
 procedure TProcessor.SetDataRegister;
@@ -289,14 +300,6 @@ begin
   Result := Address + CommandSize;
 end;
 
-function TCommand.CaseAddresationType(Op: String): TAddresationType;
-begin
-  if Op = 'M' then          //Indirect memory addresation
-    Result := ATMEM
-  else                      //Registry addresation
-    Result := ATREG;
-end;
-
 procedure TCommand.Execute;
 begin
   //
@@ -395,10 +398,7 @@ procedure TDataCommand.Execute(Processor: TProcessor);
 begin
   if Name = 'MVI' then
   begin
-    if CaseAddresationType(Op1) = ATMEM then
-      Processor.Memory.WriteMemory(Processor.GetDataRegisterPair(RH), StrToInt(Op2))
-    else if CaseAddresationType(Op1) = ATREG then
-      Processor.SetDataRegister(Processor.DataRegisterNameByTextName(Op1), StrToInt(Op2));
+    Processor.SetRegisterAddresationValue(Op1, StrToInt(Op2));
   end;
   {if Name = 'MOV' then
   begin
