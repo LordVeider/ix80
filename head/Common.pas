@@ -8,6 +8,27 @@ interface
 uses
   Math, SysUtils;
 
+type
+  TOperandClass = (OPREG, OPMEM, OPD10, OPD2, OPD16);
+  TOperand = class
+  private
+    OpClass: TOperandClass;
+    OpData: String;
+  public
+    constructor Create(Value: String);
+    function AsString: String;
+  end;
+  TNumericOperand = class(TOperand)
+  public
+    function AsDec: String;
+    function AsHex: String;
+    function AsBin: String;
+  end;
+  TRegisterOperand = class(TOperand)
+  public
+    //function AsDataReg
+  end;
+
 function ByteToBinString(Value: Byte): String;                                  //ѕреобразовать байт в двоичную строку из 0 и 1
 function BinStringToByte(Value: String): Byte;                                  //ѕреобразовать двоичную строку из 0 и 1 в байт
 function WordToBinString(Value: Word): String;                                  //ѕреобразовать Word в двоичную строку из 0 и 1
@@ -103,6 +124,38 @@ begin
     Result := WordToBinString(StrToInt(Value))
   else
     Result := ByteToBinString(StrToInt(Value));
+end;
+
+{ TOperand }
+
+constructor TOperand.Create;
+begin
+  //if OpData[OpData.Length] = 'B'
+end;
+
+function TOperand.AsString;
+begin
+
+end;
+
+{ TNumericOperand }
+
+function TNumericOperand.AsBin;
+begin
+  {if OpClass = OPD10 then
+    Result :=
+  if OpClass = OPD2 then
+    Result := Copy(OpData, 1, OpData.Length - 1)}
+end;
+
+function TNumericOperand.AsDec;
+begin
+
+end;
+
+function TNumericOperand.AsHex;
+begin
+
 end;
 
 end.
