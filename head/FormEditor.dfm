@@ -171,6 +171,7 @@ object frmEditor: TfrmEditor
       Hint = #1042#1099#1075#1088#1091#1079#1080#1090#1100' '#1087#1088#1086#1075#1088#1072#1084#1084#1091' '#1074' '#1087#1072#1084#1103#1090#1100
       Caption = 'btnMemUnload'
       ImageIndex = 16
+      OnClick = btnMemUnloadClick
     end
     object btn7: TToolButton
       Left = 331

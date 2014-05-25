@@ -65,6 +65,7 @@ type
     procedure btn6Click(Sender: TObject);
     procedure miHelpAboutClick(Sender: TObject);
     procedure btnMemClearClick(Sender: TObject);
+    procedure btnMemUnloadClick(Sender: TObject);
   private
     { Private declarations }
   public
@@ -104,28 +105,17 @@ begin
   end;
 end;
 
-procedure TfrmEditor.btnOpenClick(Sender: TObject);
-begin
-  if dlgOpenMain.Execute() then
-  begin
-    //
-  end;
-end;
-
-procedure TfrmEditor.btnRunRealClick(Sender: TObject);
+procedure TfrmEditor.btnMemUnloadClick(Sender: TObject);
 var
-  par1: TCommandParser;
   i: integer;
+  par1: TCommandParser;
   tempc: TCommand;
-  CmdList: TList;
-  ad: word;
+  ad: Word;
 begin
   ad := 5;
-  MEM := TMemory.Create;
-  CPU := TProcessor.Create(MEM);
-  CPU.InitCpu(ad);
+  if not Assigned(MEM) then
+    MEM := TMemory.Create;
   redtMsg.Lines.Clear;
-  CmdList := TList.Create;
   par1 := TCommandParser.Create;
   for i := 0 to redtCode.Lines.Count-1 do
   begin
@@ -137,9 +127,28 @@ begin
     else
       redtMsg.Lines.Add('error parsing command');
   end;
-  CPU.Run;
-  CPU.ShowRegisters;
   MEM.ShowNewMem;
+end;
+
+procedure TfrmEditor.btnOpenClick(Sender: TObject);
+begin
+  if dlgOpenMain.Execute() then
+  begin
+    //
+  end;
+end;
+
+procedure TfrmEditor.btnRunRealClick(Sender: TObject);
+begin
+  if Assigned(MEM) then
+  begin
+    if not Assigned(CPU) then
+      CPU := TProcessor.Create(MEM);
+    CPU.InitCpu(5);
+    CPU.Run;
+    CPU.ShowRegisters;
+    MEM.ShowNewMem;
+  end;
 end;
 
 procedure TfrmEditor.btnShowMemoryClick(Sender: TObject);
