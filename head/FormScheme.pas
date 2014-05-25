@@ -44,16 +44,14 @@ implementation
 procedure TfrmScheme.DrawMemory(Memory: TMemory);
 var
   i: Integer;
-  mc: TMemoryCell;
 begin
   for i := 0 to 99 do
   begin
     grdNewMem.Cells[0, i] := WordToHexString(i) + 'H';
     if Assigned(Memory) then
     begin
-      mc := Memory.ReadMemory(i);
-      grdNewMem.Cells[1, i] := WordToHexString(mc.Numeric);
-      grdNewMem.Cells[2, i] := ByteToBinString(mc.Numeric);
+      grdNewMem.Cells[1, i] := WordToHexString(Memory.ReadMemory(i));
+      grdNewMem.Cells[2, i] := ByteToBinString(Memory.ReadMemory(i));
     end
     else
     begin
