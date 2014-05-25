@@ -1,31 +1,35 @@
 unit Logic;
 
+//ix80 Intel 8080 CPU Emulator & Demonstration Model
+//Основная программная логика
+//Процессор, память, система команд
+
 interface
 
 uses
   Common;
 
 const
-  CPU_STACK_SIZE    = 255;
+  CPU_STACK_SIZE    = 255;                  //Глубина стека ЦП
   CMD_DATA          = '#MOV#MVI#LXI#LDA#STA#LDAX#STAX#LHLD#SHLD#XCHG#SPHL#PUSH#POP#XTHL#';
   CMD_MATH          = '#ADD#ADC#ADI#ACI#INR#DAD#INX#DAA#SUB#SBB#SUI#SBI#DCR#DCX#CMP#CPI#ANA#ORA#XRA#ANI#ORI#XRI#CMA#RAL#RAR#RLC#RRC#';
   CMD_CTRL          = '#JMP#CALL#RET#PCHL#RST#JNC#JC#JNZ#JZ#JP#JM#JO#JPE#CNC#CC#CNZ#CZ#CP#CM#CO#CPE#RNC#RC#RNZ#RZ#RP#RM#RO#RPE#NOP#HLT#CTS#CMC#';
 
 type
   TMemoryCell = record
-    Command: Pointer;
-    Numeric: Byte;
+    Command: Pointer;                       //Объект "команда" (для ячеек, содержащих команды)
+    Numeric: Byte;                          //Цифровое содержимое ячейки памяти
   end;
   TMemoryCells = array [Word] of TMemoryCell;
   TMemory = class
   private
-    Cells: TMemoryCells;
+    Cells: TMemoryCells;                    //Массив данных
   public
-    procedure ShowNewMem;
-    procedure WriteMemoryObject(Address: Word; Value: TMemoryCell);
-    function ReadMemoryObject(Address: Word): TMemoryCell;
-    procedure WriteMemory(Address: Word; Value: Byte);
-    function ReadMemory(Address: Word): Byte;
+    procedure ShowNewMem;                                                       //Отобразить содержимое памяти на экране
+    procedure WriteMemoryObject(Address: Word; Value: TMemoryCell);             //Записать в память ячейку
+    function ReadMemoryObject(Address: Word): TMemoryCell;                      //Считать из памяти ячейку
+    procedure WriteMemory(Address: Word; Value: Byte);                          //Записать в память цифровое значение
+    function ReadMemory(Address: Word): Byte;                                   //Считать из памяти цифровое значение
   end;
 
   TFlagsNames = (FS, FZ, FAC, FP, FC);
@@ -33,73 +37,77 @@ type
   TDataRegistersNames = (RA, RB, RC, RD, RE, RH, RL, RW, RZ);
   TDataRegisters = array [TDataRegistersNames] of Byte;
   TRegisters = record
-    DataRegisters: TDataRegisters;    //Data registers (8 bit)
-    SP: Word;                         //Stack pointer (16 bit)
-    PC: Word;                         //Program counter (16 bit)
-    PSW: TFlagsRegister;              //Processor status word (8 bit)
-    IR: Byte;                         //Instruction register (8 bit)
+    DataRegisters: TDataRegisters;          //Регистры данных (8 bit)
+    SP: Word;                               //Указатель стека (16 bit)
+    PC: Word;                               //Счетчик команд (16 bit)
+    PSW: TFlagsRegister;                    //Регистр признаков (8 bit)
+    IR: Byte;                               //Регистр команд (8 bit)
   end;
 
   TProcessor = class
   private
-    Memory: TMemory;
-    Registers: TRegisters;            //Processor registers
-    procedure InitDataRegisters;
+    Memory: TMemory;                        //Память
+    Registers: TRegisters;                  //Регистры
+    procedure InitDataRegisters;            //Инициализация регистров
   public
     constructor Create(Memory: TMemory);
-    procedure InitCpu(EntryPoint: Word);
-    procedure Run;
-    procedure ShowRegisters;
-    procedure SetDataRegister(DataRegisterName: TDataRegistersNames; Value: Byte);
-    function GetDataRegister(DataRegisterName: TDataRegistersNames): Byte;
-    function GetStackPointer: Word;
-    function GetProgramCounter: Word;
-    function GetInstructionRegister: Byte;
-    procedure SetFlag(FlagName: TFlagsNames; Value: Boolean);
-    function GetFlag(FlagName: TFlagsNames): Boolean;
+    procedure InitCpu(EntryPoint: Word);    //Инициализация процессора
+    procedure Run;                          //Запустить выполнение
+    procedure ShowRegisters;                //Отобразить содержимое регистров на экране
+    function DataRegisterNameByTextName(Value: String): TDataRegistersNames;                  //Имя регистра по текстовому имени
+    procedure SetDataRegister(DataRegisterName: TDataRegistersNames; Value: Byte);            //Установить значение регистра
+    function GetDataRegister(DataRegisterName: TDataRegistersNames): Byte;                    //Получить значение регистра
+    procedure SetDataRegisterPair(DataRegisterPairName: TDataRegistersNames; Value: Word);    //Установить значение регистровой пары
+    function GetDataRegisterPair(DataRegisterPairName: TDataRegistersNames): Word;            //Получить значение регистровой пары
+    //procedure GetRegisterAddresationValue(
+    function GetStackPointer: Word;                                                           //Получить значение указателя стека
+    function GetProgramCounter: Word;                                                         //Получить значение счетчика команд
+    function GetInstructionRegister: Byte;                                                    //Получить значение регистра команд
+    procedure SetFlag(FlagName: TFlagsNames; Value: Boolean);                                 //Установить флаг
+    function GetFlag(FlagName: TFlagsNames): Boolean;                                         //Проверить состояние флага
   end;
 
   TAddresationType = (ATREG, ATMEM, ATADDR, ATD8, ATD16);
 
-  TCommand = class
+  TCommand = class                          //Команда (базовый класс)
   private
-    Name: String;                     //Text name
-    Op1, Op2: String;                 //Text operands
-    Description: String;              //Text description
-    FlagsCheck: TFlagsRegister;       //Checking flags
-    FlagsSet: TFlagsRegister;         //Setting flags
-    CommandCode: String;              //Binary command code
-    function CaseAddresationType(Op: String): TAddresationType;
+    Name: String;                           //Текстовое имя команды
+    Op1, Op2: String;                       //Операнды в текстовом виде
+    Description: String;                    //Краткое текстовое описание команды (для визуализации)
+    FlagsCheck: TFlagsRegister;             //Проверяемые флаги
+    FlagsSet: TFlagsRegister;               //Устанавливаемые флаги
+    CommandCode: String;                    //Двоичный код команды
+    function CaseAddresationType(Op: String): TAddresationType;                 //Выбор типа адресации из мнемоники оператора
   public
     constructor Create(Name: String; Op1, Op2: String);
     function ShowSummary: String;
-    function Size: Integer;
-    function WriteToMemory(Memory: TMemory; Address: Word): Word;
-    procedure Execute(Processor: TProcessor);
+    function Size: Integer;                                                     //Размер двоичного кода команды в байтах
+    function WriteToMemory(Memory: TMemory; Address: Word): Word;               //Записать команду в память
+    procedure Execute(Processor: TProcessor);                                   //Выполнить команду на процессоре
   end;
 
-  TMathCommand = class(TCommand)
+  TMathCommand = class(TCommand)            //Команды арифметики и логики
   public
     constructor Create(Name: String; Op1, Op2: String);
   end;
-  TDataCommand = class(TCommand)
+  TDataCommand = class(TCommand)            //Команды пересылки данных
   public
     constructor Create(Name: String; Op1, Op2: String);
     procedure Execute(Processor: TProcessor);
   end;
-  TCtrlCommand = class(TCommand)
+  TCtrlCommand = class(TCommand)            //Команды переходов и управления
   public
     constructor Create(Name: String; Op1, Op2: String);
   end;
-  TCommandParser = class
+  TCommandParser = class                    //Анализатор исходного кода
   public
-    function ParseCommand(TextLine: String; var Command: TCommand): Boolean;
+    function ParseCommand(TextLine: String; var Command: TCommand): Boolean;    //Разбор текста команды
   end;
 
 implementation
 
 uses
-  SysUtils, Dialogs, FormScheme;
+  SysUtils, Dialogs, TypInfo, FormScheme;
 
 { TProcessor }
 
@@ -128,6 +136,16 @@ begin
   end;
 end;
 
+function TProcessor.DataRegisterNameByTextName;
+var
+  CurReg: TDataRegistersNames;
+begin
+  //Преобразуем текстовое обозначение регистра в его обозначение из TDataRegistersNames
+  for CurReg := Low(TDataRegistersNames) to High(TDataRegistersNames) do
+    if 'R' + Value = GetEnumName(TypeInfo(TDataRegistersNames), Ord(CurReg)) then
+      Result := CurReg;
+end;
+
 procedure TProcessor.SetDataRegister;
 begin
   Registers.DataRegisters[DataRegisterName] := Value;
@@ -136,6 +154,35 @@ end;
 function TProcessor.GetDataRegister;
 begin
   Result := Registers.DataRegisters[DataRegisterName];
+end;
+
+procedure TProcessor.SetDataRegisterPair;
+begin
+  //Определяем регистровую пару и записываем отдельно старший и младший байты
+  case DataRegisterPairName of
+    RB: begin
+         SetDataRegister(RB, Hi(Value));
+         SetDataRegister(RC, Lo(Value));
+       end;
+    RD: begin
+         SetDataRegister(RD, Hi(Value));
+         SetDataRegister(RE, Lo(Value));
+       end;
+    RH: begin
+         SetDataRegister(RH, Hi(Value));
+         SetDataRegister(RL, Lo(Value));
+       end;
+  end;
+end;
+
+function TProcessor.GetDataRegisterPair;
+begin
+  //Определяем регистровую пару и преобразуем два байта в Word
+  case DataRegisterPairName of
+    RB: Result := GetDataRegister(RC) + (GetDataRegister(RB) shl 8);
+    RD: Result := GetDataRegister(RE) + (GetDataRegister(RD) shl 8);
+    RH: Result := GetDataRegister(RL) + (GetDataRegister(RH) shl 8);
+  end;
 end;
 
 function TProcessor.GetStackPointer: Word;
@@ -165,8 +212,8 @@ end;
 
 procedure TProcessor.InitCpu(EntryPoint: Word);
 begin
-  InitDataRegisters;
-  Registers.PC := EntryPoint;
+  InitDataRegisters;                //Инициализируем регистры данных
+  Registers.PC := EntryPoint;       //Инициализируем счетчик команд на указанную точку входа
 end;
 
 procedure TProcessor.Run;
@@ -230,12 +277,15 @@ var
   CommandSize: Integer;
 begin
   CommandSize := 0;
+  //Записываем в память объект
   CurrentCell.Command := Self;
+  Memory.WriteMemoryObject(Address, CurrentCell);
+  //Записываем в память двоичный код команды
   repeat
-    CurrentCell.Numeric := BinStringToByte(Copy(CommandCode, CommandSize*8 + 1, 8));
-    Memory.WriteMemoryObject(Address + CommandSize, CurrentCell);
+    Memory.WriteMemory(Address + CommandSize, BinStringToByte(Copy(CommandCode, CommandSize*8 + 1, 8)));
     Inc(CommandSize);
   until CommandSize = Size;
+  //Возвращаем следующий свободный адрес памяти
   Result := Address + CommandSize;
 end;
 
@@ -267,7 +317,7 @@ end;
 constructor TMathCommand.Create(Name, Op1, Op2: String);
 begin
   inherited;
-  //Add
+  //Сложение
   if Name = 'ADD' then
     CommandCode := '10000' + AddresationCode(Op1)
   else if Name = 'ADI' then
@@ -276,7 +326,7 @@ begin
     CommandCode := '10001' + AddresationCode(Op1)
   else if Name = 'ACI' then
     CommandCode := '11001110'
-  //Substract
+  //Вычитание
   else if Name = 'SUB' then
     CommandCode := '10010' + AddresationCode(Op1)
   else if Name = 'SUI' then
@@ -285,7 +335,7 @@ begin
     CommandCode := '10011' + AddresationCode(Op1)
   else if Name = 'SBI' then
     CommandCode := '11011110'
-  //Logic
+  //Логические операции
   else if Name = 'ANA' then
     CommandCode := '10100' + AddresationCode(Op1)
   else if Name = 'ANI' then
@@ -298,12 +348,12 @@ begin
     CommandCode := '10110' + AddresationCode(Op1)
   else if Name = 'ORI' then
     CommandCode := '11110110'
-  //Compare
+  //Сравнение
   else if Name = 'CMP' then
     CommandCode := '10111' + AddresationCode(Op1)
   else if Name = 'CPI' then
     CommandCode := '11111110'
-  //Indecrement
+  //Инкремент/декремент
   else if Name = 'INR' then
     CommandCode := '00' + AddresationCode(Op1) + '100'
   else if Name = 'INX' then
@@ -342,15 +392,21 @@ begin
 end;
 
 procedure TDataCommand.Execute(Processor: TProcessor);
-var
-  Op1AddrType, Op2AddrType: TAddresationType;
 begin
   if Name = 'MVI' then
   begin
-    //if CaseAddresationType(Op1) = ATMEM then
-      //Processor.Memory.WriteMemory();
-    Processor.SetDataRegister(RA, 92);
+    if CaseAddresationType(Op1) = ATMEM then
+      Processor.Memory.WriteMemory(Processor.GetDataRegisterPair(RH), StrToInt(Op2))
+    else if CaseAddresationType(Op1) = ATREG then
+      Processor.SetDataRegister(Processor.DataRegisterNameByTextName(Op1), StrToInt(Op2));
   end;
+  {if Name = 'MOV' then
+  begin
+    if CaseAddresationType(Op1) = ATMEM then
+      Processor.Memory.WriteMemory(Processor.GetDataRegisterPair(RH), StrToInt(Op2))
+    else if CaseAddresationType(Op1) = ATREG then
+      Processor.SetDataRegister(Processor.DataRegisterNameByTextName(Op1), StrToInt(Op2));
+  end}
   Processor.Registers.PC := Processor.Registers.PC + Size;
 end;
 
@@ -372,35 +428,35 @@ var
 begin
   try
     Result := True;
-    //Syntax analysis
-    NextDelimeter := Pos(#32, TextLine);    //Find space
-    if NextDelimeter = 0 then               //Command without operands
+    //Синтаксический анализ
+    NextDelimeter := Pos(#32, TextLine);    //Ищем пробел в строке
+    if NextDelimeter = 0 then               //Операндов нет
       Cmd := TextLine
-    else                                    //Command with operands
+    else                                    //Операнды есть
     begin
       Cmd := Copy(TextLine, 1, NextDelimeter - 1);
       Delete(TextLine, 1, NextDelimeter);
-      NextDelimeter := Pos(#44, TextLine);  //Find comma
-      if NextDelimeter = 0 then             //Command with single operand
+      NextDelimeter := Pos(#44, TextLine);  //Ищем запятую в строке
+      if NextDelimeter = 0 then             //Операнд один
         Op1 := TextLine
-      else                                  //Command with two operands
+      else                                  //Операндов два
       begin
         Op1 := Copy(TextLine, 1, NextDelimeter - 1);
         Delete(TextLine, 1, NextDelimeter + 1);
         Op2 := TextLine;
       end;
     end;
-    //Semantic analysis
-    if Pos(Cmd, CMD_DATA) > 0 then
+    //Семантический анализ
+    if Pos(Cmd, CMD_DATA) > 0 then          //Команда пересылки
       Command := TDataCommand.Create(Cmd, Op1, Op2)
-    else if Pos(Cmd, CMD_MATH) > 0 then
+    else if Pos(Cmd, CMD_MATH) > 0 then     //Команда арифметики-логики
       Command := TMathCommand.Create(Cmd, Op1, Op2)
-    else if Pos(Cmd, CMD_CTRL) > 0 then
+    else if Pos(Cmd, CMD_CTRL) > 0 then     //Команда перехода или управления
       Command := TCtrlCommand.Create(Cmd, Op1, Op2)
     else
-      Result := False;                      //Code error
+      Result := False;                      //Ошибка в коде команды
    except
-    Result := False;                        //Syntax error
+    Result := False;                        //Синтаксическая ошибка
   end;
 end;
 
