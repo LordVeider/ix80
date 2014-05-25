@@ -54,18 +54,18 @@ type
     procedure InitCpu(EntryPoint: Word);    //Инициализация процессора
     procedure Run;                          //Запустить выполнение
     procedure ShowRegisters;                //Отобразить содержимое регистров на экране
-    procedure SetDataRegister(DataRegisterName: TDataRegistersNames; Value: Byte);            //Установить значение регистра
-    function GetDataRegister(DataRegisterName: TDataRegistersNames): Byte;                    //Получить значение регистра
-    procedure SetDataRegisterPair(DataRegisterPairName: TDataRegistersNames; Value: Word);    //Установить значение регистровой пары
-    function GetDataRegisterPair(DataRegisterPairName: TDataRegistersNames): Word;            //Получить значение регистровой пары
-    function DataRegisterNameByTextName(Value: String): TDataRegistersNames;                  //Имя регистра по текстовому имени
-    procedure SetRegisterAddresationValue(Operand: String; Value: Byte);                      //Получить значение по регистровой адресации
-    function GetRegisterAddresationValue(Operand: String): Byte;                              //Установить значение по регистровой адресации
-    function GetStackPointer: Word;                                                           //Получить значение указателя стека
-    function GetProgramCounter: Word;                                                         //Получить значение счетчика команд
-    function GetInstructionRegister: Byte;                                                    //Получить значение регистра команд
-    procedure SetFlag(FlagName: TFlagsNames; Value: Boolean);                                 //Установить флаг
-    function GetFlag(FlagName: TFlagsNames): Boolean;                                         //Получить состояние флага
+    procedure SetDataReg(DataRegName: TDataRegistersNames; Value: Byte);        //Установить значение регистра
+    function GetDataReg(DataRegName: TDataRegistersNames): Byte;                //Получить значение регистра
+    procedure SetDataRP(DataRPName: TDataRegistersNames; Value: Word);          //Установить значение регистровой пары
+    function GetDataRP(DataRPName: TDataRegistersNames): Word;                  //Получить значение регистровой пары
+    function DataRegNameByTextName(TextName: String): TDataRegistersNames;      //Имя регистра по текстовому имени
+    procedure SetRegAddrValue(Operand: String; Value: Byte);                    //Получить значение по регистровой адресации
+    function GetRegAddrValue(Operand: String): Byte;                            //Установить значение по регистровой адресации
+    function GetStackPointer: Word;                                             //Получить значение указателя стека
+    function GetProgramCounter: Word;                                           //Получить значение счетчика команд
+    function GetInstRegister: Byte;                                             //Получить значение регистра команд
+    procedure SetFlag(FlagName: TFlagsNames; Value: Boolean);                   //Установить флаг
+    function GetFlag(FlagName: TFlagsNames): Boolean;                           //Получить состояние флага
   end;
 
   TCommand = class                          //Команда (базовый класс)
@@ -134,65 +134,65 @@ begin
   end;
 end;
 
-function TProcessor.DataRegisterNameByTextName;
+function TProcessor.DataRegNameByTextName;
 var
   CurReg: TDataRegistersNames;
 begin
   //Преобразуем текстовое обозначение регистра в его обозначение из TDataRegistersNames
   for CurReg := Low(TDataRegistersNames) to High(TDataRegistersNames) do
-    if 'R' + Value = GetEnumName(TypeInfo(TDataRegistersNames), Ord(CurReg)) then
+    if 'R' + TextName = GetEnumName(TypeInfo(TDataRegistersNames), Ord(CurReg)) then
       Result := CurReg;
 end;
 
-procedure TProcessor.SetRegisterAddresationValue;
+procedure TProcessor.SetRegAddrValue;
 begin
   if Operand = 'M' then             //Косвенная адресация памяти
-    Memory.WriteMemory(GetDataRegisterPair(RH), Value)
+    Memory.WriteMemory(GetDataRP(RH), Value)
   else                              //Регистровая адресация
-    SetDataRegister(DataRegisterNameByTextName(Operand), Value);
+    SetDataReg(DataRegNameByTextName(Operand), Value);
 end;
 
-function TProcessor.GetRegisterAddresationValue;
+function TProcessor.GetRegAddrValue;
 begin
 
 end;
 
-procedure TProcessor.SetDataRegister;
+procedure TProcessor.SetDataReg;
 begin
-  Registers.DataRegisters[DataRegisterName] := Value;
+  Registers.DataRegisters[DataRegName] := Value;
 end;
 
-function TProcessor.GetDataRegister;
+function TProcessor.GetDataReg;
 begin
-  Result := Registers.DataRegisters[DataRegisterName];
+  Result := Registers.DataRegisters[DataRegName];
 end;
 
-procedure TProcessor.SetDataRegisterPair;
+procedure TProcessor.SetDataRP;
 begin
   //Определяем регистровую пару и записываем отдельно старший и младший байты
-  case DataRegisterPairName of
+  case DataRPName of
     RB: begin
-         SetDataRegister(RB, Hi(Value));
-         SetDataRegister(RC, Lo(Value));
+         SetDataReg(RB, Hi(Value));
+         SetDataReg(RC, Lo(Value));
        end;
     RD: begin
-         SetDataRegister(RD, Hi(Value));
-         SetDataRegister(RE, Lo(Value));
+         SetDataReg(RD, Hi(Value));
+         SetDataReg(RE, Lo(Value));
        end;
     RH: begin
-         SetDataRegister(RH, Hi(Value));
-         SetDataRegister(RL, Lo(Value));
+         SetDataReg(RH, Hi(Value));
+         SetDataReg(RL, Lo(Value));
        end;
   end;
 end;
 
-function TProcessor.GetDataRegisterPair;
+function TProcessor.GetDataRP;
 begin
   //Определяем регистровую пару и преобразуем два байта в Word
-  case DataRegisterPairName of
-    RB: Result := GetDataRegister(RC) + (GetDataRegister(RB) shl 8);
-    RD: Result := GetDataRegister(RE) + (GetDataRegister(RD) shl 8);
-    RH: Result := GetDataRegister(RL) + (GetDataRegister(RH) shl 8);
+  case DataRPName of
+    RB: Result := GetDataReg(RC) + (GetDataReg(RB) shl 8);
+    RD: Result := GetDataReg(RE) + (GetDataReg(RD) shl 8);
+    RH: Result := GetDataReg(RL) + (GetDataReg(RH) shl 8);
   end;
 end;
 
@@ -206,7 +206,7 @@ begin
   Result := Registers.PC;
 end;
 
-function TProcessor.GetInstructionRegister: Byte;
+function TProcessor.GetInstRegister: Byte;
 begin
   Result := Registers.IR;
 end;
@@ -322,49 +322,49 @@ begin
   inherited;
   //Сложение
   if Name = 'ADD' then
-    CommandCode := '10000' + AddresationCode(Op1)
+    CommandCode := '10000' + FormatAddrCode(Op1)
   else if Name = 'ADI' then
     CommandCode := '11000110'
   else if Name = 'ADC' then
-    CommandCode := '10001' + AddresationCode(Op1)
+    CommandCode := '10001' + FormatAddrCode(Op1)
   else if Name = 'ACI' then
     CommandCode := '11001110'
   //Вычитание
   else if Name = 'SUB' then
-    CommandCode := '10010' + AddresationCode(Op1)
+    CommandCode := '10010' + FormatAddrCode(Op1)
   else if Name = 'SUI' then
     CommandCode := '11010110'
   else if Name = 'SBB' then
-    CommandCode := '10011' + AddresationCode(Op1)
+    CommandCode := '10011' + FormatAddrCode(Op1)
   else if Name = 'SBI' then
     CommandCode := '11011110'
   //Логические операции
   else if Name = 'ANA' then
-    CommandCode := '10100' + AddresationCode(Op1)
+    CommandCode := '10100' + FormatAddrCode(Op1)
   else if Name = 'ANI' then
     CommandCode := '11100110'
   else if Name = 'XRA' then
-    CommandCode := '10101' + AddresationCode(Op1)
+    CommandCode := '10101' + FormatAddrCode(Op1)
   else if Name = 'XRI' then
     CommandCode := '11101110'
   else if Name = 'ORA' then
-    CommandCode := '10110' + AddresationCode(Op1)
+    CommandCode := '10110' + FormatAddrCode(Op1)
   else if Name = 'ORI' then
     CommandCode := '11110110'
   //Сравнение
   else if Name = 'CMP' then
-    CommandCode := '10111' + AddresationCode(Op1)
+    CommandCode := '10111' + FormatAddrCode(Op1)
   else if Name = 'CPI' then
     CommandCode := '11111110'
   //Инкремент/декремент
   else if Name = 'INR' then
-    CommandCode := '00' + AddresationCode(Op1) + '100'
+    CommandCode := '00' + FormatAddrCode(Op1) + '100'
   else if Name = 'INX' then
-    CommandCode := '00' + AddresationCode(Op1, True) + '0011'
+    CommandCode := '00' + FormatAddrCode(Op1, True) + '0011'
   else if Name = 'DCR' then
-    CommandCode := '00' + AddresationCode(Op1) + '101'
+    CommandCode := '00' + FormatAddrCode(Op1) + '101'
   else if Name = 'DCX' then
-    CommandCode := '00' + AddresationCode(Op1, True) + '1011';
+    CommandCode := '00' + FormatAddrCode(Op1, True) + '1011';
 end;
 
 { TDataCommand }
@@ -373,25 +373,25 @@ constructor TDataCommand.Create;
 begin
   inherited;
   if Name = 'MOV' then
-    CommandCode := '01' + AddresationCode(Op1) + AddresationCode(Op2)
+    CommandCode := '01' + FormatAddrCode(Op1) + FormatAddrCode(Op2)
   else if Name = 'MVI' then
-    CommandCode := '00' + AddresationCode(Op1) + '110' + DirectData(Op2)
+    CommandCode := '00' + FormatAddrCode(Op1) + '110' + FormatOperandByte(Op2, SBIN)
   else if Name = 'LXI' then
-    CommandCode := '00' + AddresationCode(Op1, True) + '0001' + DirectData(Op2, True)
+    CommandCode := '00' + FormatAddrCode(Op1, True) + '0001' + FormatOperandWord(Op2, SBIN)
   else if Name = 'LDA' then
-    CommandCode := '00111010' + MemoryPointer(Op1)
+    CommandCode := '00111010' + FormatOperandWord(Op1, SBIN)
   else if Name = 'LHLD' then
-    CommandCode := '00101010' + MemoryPointer(Op1)
+    CommandCode := '00101010' + FormatOperandWord(Op1, SBIN)
   else if Name = 'LDAX' then
-    CommandCode := '00' + AddresationCode(Op1, True) + '1010'
+    CommandCode := '00' + FormatAddrCode(Op1, True) + '1010'
   else if Name = 'XCHG' then
     CommandCode := '11101011'
   else if Name = 'STA' then
-    CommandCode := '00110010' + MemoryPointer(Op1)
+    CommandCode := '00110010' + FormatOperandWord(Op1, SBIN)
   else if Name = 'SHLD' then
-    CommandCode := '00100010' + MemoryPointer(Op1)
+    CommandCode := '00100010' + FormatOperandWord(Op1, SBIN)
   else if Name = 'STAX' then
-    CommandCode := '00' + AddresationCode(Op1, True) + '0010';
+    CommandCode := '00' + FormatAddrCode(Op1, True) + '0010';
 end;
 
 procedure TDataCommand.Execute(Processor: TProcessor);
@@ -399,11 +399,12 @@ begin
   with Processor do
   begin
     if Name = 'MVI' then
-      SetRegisterAddresationValue(Op1, StrToInt(Op2))
+      SetRegAddrValue(Op1, StrToInt(FormatOperandByte(Op2, SDEC)))
     else if Name = 'MOV' then
-      SetRegisterAddresationValue(Op1, GetRegisterAddresationValue(Op2))
+      SetRegAddrValue(Op1, GetRegAddrValue(Op2))
     else if Name = 'LXI' then
-      SetDataRegisterPair(DataRegisterNameByTextName(Op1), HexStringToWord(Copy(Op2, 1, Op2.Length - 1)));
+      //SetDataRP(DataRegNameByTextName(Op1), HexStringToWord(Copy(Op2, 1, Op2.Length - 1)));
+      SetDataRP(DataRegNameByTextName(Op1), StrToInt(FormatOperandWord(Op2, SDEC)));
   end;
   {if Name = 'MOV' then
   begin
