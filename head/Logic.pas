@@ -32,7 +32,7 @@ type
     function ReadMemory(Address: Word): Byte;                                   //Считать из памяти цифровое значение
   end;
 
-  TFlagsNames = (FS, FZ, FAC, FP, FC);
+  TFlagsNames = (FS, FZ, FAC, FP, FCY);
   TFlagsRegister = array [TFlagsNames] of Boolean;
   TDataRegistersNames = (RA, RB, RC, RD, RE, RH, RL, RW, RZ);
   TDataRegisters = array [TDataRegistersNames] of Byte;
@@ -62,6 +62,7 @@ type
     function DataRegNameByTextName(TextName: String): TDataRegistersNames;      //Имя регистра по текстовому имени
     procedure SetRegAddrValue(Operand: String; Value: Byte);                    //Получить значение по регистровой адресации
     function GetRegAddrValue(Operand: String): Byte;                            //Установить значение по регистровой адресации
+    procedure SetStackPointer(Value: Word);                                      //Установить значение указателя стека
     function GetStackPointer: Word;                                             //Получить значение указателя стека
     function GetProgramCounter: Word;                                           //Получить значение счетчика команд
     function GetInstRegister: Byte;                                             //Получить значение регистра команд
@@ -177,21 +178,21 @@ begin
   //Определяем регистровую пару и записываем отдельно старший и младший байты
   case DataRPName of
     RB: begin
-         SetDataReg(RB, Hi(Value));
-         SetDataReg(RC, Lo(Value));
-       end;
+          SetDataReg(RB, Hi(Value));
+          SetDataReg(RC, Lo(Value));
+        end;
     RD: begin
-         SetDataReg(RD, Hi(Value));
-         SetDataReg(RE, Lo(Value));
-       end;
+          SetDataReg(RD, Hi(Value));
+          SetDataReg(RE, Lo(Value));
+        end;
     RH: begin
-         SetDataReg(RH, Hi(Value));
-         SetDataReg(RL, Lo(Value));
-       end;
+          SetDataReg(RH, Hi(Value));
+          SetDataReg(RL, Lo(Value));
+        end;
     RW: begin
-         SetDataReg(RW, Hi(Value));
-         SetDataReg(RZ, Lo(Value));
-       end;
+          SetDataReg(RW, Hi(Value));
+          SetDataReg(RZ, Lo(Value));
+        end;
   end;
 end;
 
@@ -204,6 +205,11 @@ begin
     RH: Result := GetDataReg(RL) + (GetDataReg(RH) shl 8);
     RW: Result := GetDataReg(RZ) + (GetDataReg(RW) shl 8);
   end;
+end;
+
+procedure TProcessor.SetStackPointer(Value: Word);
+begin
+  Registers.SP := Value;
 end;
 
 function TProcessor.GetStackPointer: Word;
@@ -319,7 +325,7 @@ end;
 
 procedure TCommand.Execute;
 begin
-  //
+  Processor.Registers.PC := Processor.Registers.PC + Size;
 end;
 
 function TCommand.Size: Integer;
@@ -408,53 +414,71 @@ begin
   else if Name = 'SHLD' then
     CommandCode := '00100010' + FormatOperandWord(Op1, SBIN)
   else if Name = 'STAX' then
-    CommandCode := '00' + FormatAddrCode(Op1, True) + '0010';
+    CommandCode := '00' + FormatAddrCode(Op1, True) + '0010'
+  else if Name = 'SPHL' then
+    CommandCode := '11111001'
+  else if Name = 'XTHL' then
+    CommandCode := '11100011';
 end;
 
-procedure TDataCommand.Execute(Processor: TProcessor);
+procedure TDataCommand.Execute;
 begin
   with Processor do
   begin
-    if Name = 'MVI' then
-      SetRegAddrValue(Op1, StrToInt(FormatOperandByte(Op2, SDEC)))
-    else if Name = 'MOV' then
+    if Name = 'MOV' then
       SetRegAddrValue(Op1, GetRegAddrValue(Op2))
+    else if Name = 'MVI' then
+      SetRegAddrValue(Op1, StrToInt(FormatOperandByte(Op2, SDEC)))
     else if Name = 'LXI' then
       SetDataRP(DataRegNameByTextName(Op1), StrToInt(FormatOperandWord(Op2, SDEC)))
     else if Name = 'LDA' then
-      SetDataReg(RA, Memory.ReadMemory(StrToInt(FormatOperandWord(Op2, SDEC))))
+      SetDataReg(RA, Memory.ReadMemory(StrToInt(FormatOperandWord(Op1, SDEC))))
+    else if Name = 'LDAX' then
+      SetDataReg(RA, Memory.ReadMemory(GetDataRP(DataRegNameByTextName(Op1))))
+    else if Name = 'STA' then
+      Memory.WriteMemory(StrToInt(FormatOperandWord(Op1, SDEC)), GetDataReg(RA))
+    else if Name = 'STAX' then
+      Memory.WriteMemory(GetDataRP(DataRegNameByTextName(Op1)), GetDataReg(RA))
     else if Name = 'LHLD' then
     begin
       SetDataReg(RL, Memory.ReadMemory(StrToInt(FormatOperandWord(Op1, SDEC))));
       SetDataReg(RH, Memory.ReadMemory(StrToInt(FormatOperandWord(Op1, SDEC))+1));
+    end
+    else if Name = 'SHLD' then
+    begin
+      Memory.WriteMemory(StrToInt(FormatOperandWord(Op1, SDEC)), GetDataReg(RL));
+      Memory.WriteMemory(StrToInt(FormatOperandWord(Op1, SDEC))+1, GetDataReg(RH));
     end
     else if Name = 'XCHG' then
     begin
       SetDataRP(RW, GetDataRP(RH));
       SetDataRP(RH, GetDataRP(RD));
       SetDataRP(RD, GetDataRP(RW));
-    end;
+    end
+    else if Name = 'SPHL' then
+      SetStackPointer(GetDataRP(RH))
+    else if Name = 'XTHL' then
+    begin
+      SetDataRP(RW, GetDataRP(RH));
+      SetDataReg(RH, Memory.ReadMemory(GetStackPointer));
+      SetDataReg(RL, Memory.ReadMemory(GetStackPointer + 1));
+      Memory.WriteMemory(GetStackPointer, GetDataReg(RW));
+      Memory.WriteMemory(GetStackPointer + 1, GetDataReg(RZ));
+     end;
   end;
-  {if Name = 'MOV' then
-  begin
-    if CaseAddresationType(Op1) = ATMEM then
-      Processor.Memory.WriteMemory(Processor.GetDataRegisterPair(RH), StrToInt(Op2))
-    else if CaseAddresationType(Op1) = ATREG then
-      Processor.SetDataRegister(Processor.DataRegisterNameByTextName(Op1), StrToInt(Op2));
-  end}
-  Processor.Registers.PC := Processor.Registers.PC + Size;
+  inherited;
 end;
 
 { TCtrlCommand }
 
-constructor TCtrlCommand.Create(Name, Op1, Op2: String);
+constructor TCtrlCommand.Create;
 begin
   inherited;
   if Name = 'HLT' then
     CommandCode := '01110110';
 end;
 
-procedure TCtrlCommand.Execute(Processor: TProcessor);
+procedure TCtrlCommand.Execute;
 begin
   if Name = 'HLT' then
     Processor.HltState := True;
