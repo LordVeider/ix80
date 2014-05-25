@@ -97,7 +97,7 @@ begin
       Cells[4,1] := '0';
       Cells[5,1] := GetFlag(FP).ToString;
       Cells[6,1] := '1';
-      Cells[7,1] := GetFlag(FC).ToString;
+      Cells[7,1] := GetFlag(FCY).ToString;
     end;
   end;
 end;
