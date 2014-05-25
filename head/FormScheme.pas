@@ -68,18 +68,18 @@ procedure TfrmScheme.DrawProcessor(Processor: TProcessor);
 begin
   with Processor do
   begin
-    edtA.Text := GetDataRegister(RA).ToString;
-    edtB.Text := GetDataRegister(RB).ToString;
-    edtC.Text := GetDataRegister(RC).ToString;
-    edtD.Text := GetDataRegister(RD).ToString;
-    edtE.Text := GetDataRegister(RE).ToString;
-    edtH.Text := GetDataRegister(RH).ToString;
-    edtL.Text := GetDataRegister(RL).ToString;
-    edtW.Text := GetDataRegister(RW).ToString;
-    edtZ.Text := GetDataRegister(RZ).ToString;
+    edtA.Text := GetDataReg(RA).ToString;
+    edtB.Text := GetDataReg(RB).ToString;
+    edtC.Text := GetDataReg(RC).ToString;
+    edtD.Text := GetDataReg(RD).ToString;
+    edtE.Text := GetDataReg(RE).ToString;
+    edtH.Text := GetDataReg(RH).ToString;
+    edtL.Text := GetDataReg(RL).ToString;
+    edtW.Text := GetDataReg(RW).ToString;
+    edtZ.Text := GetDataReg(RZ).ToString;
     edtSP.Text := WordToHexString(GetStackPointer) + 'H';
     edtPC.Text := WordToHexString(GetProgramCounter) + 'H';
-    edtIR.Text := GetInstructionRegister.ToString;
+    edtIR.Text := GetInstRegister.ToString;
     with grdPSW do
     begin
       Cells[0,0] := 'S';

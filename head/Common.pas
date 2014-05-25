@@ -9,35 +9,21 @@ uses
   Math, SysUtils;
 
 type
-  TOperandClass = (OPREG, OPMEM, OPD10, OPD2, OPD16);
-  TOperand = class
-  private
-    OpClass: TOperandClass;
-    OpData: String;
-  public
-    constructor Create(Value: String);
-    function AsString: String;
-  end;
-  TNumericOperand = class(TOperand)
-  public
-    function AsDec: String;
-    function AsHex: String;
-    function AsBin: String;
-  end;
-  TRegisterOperand = class(TOperand)
-  public
-    //function AsDataReg
-  end;
+  TNumeralSystems = (SBIN, SDEC, SOCT, SHEX);
 
-function ByteToBinString(Value: Byte): String;                                  //ѕреобразовать байт в двоичную строку из 0 и 1
-function BinStringToByte(Value: String): Byte;                                  //ѕреобразовать двоичную строку из 0 и 1 в байт
-function WordToBinString(Value: Word): String;                                  //ѕреобразовать Word в двоичную строку из 0 и 1
-function WordToHexString(Value: Word): String;                                  //ѕреобразовать Word в шестнадцатеричную строку
-function HexStringToWord(Value: String): Word;                                  //ѕреобразовать шестнадцатеричную строку в Word
+  function ByteToBinString(Value: Byte): String;                                  //ѕреобразовать байт в двоичную строку из 0 и 1
+  function BinStringToByte(Value: String): Byte;                                  //ѕреобразовать двоичную строку из 0 и 1 в байт
+  function WordToBinString(Value: Word): String;                                  //ѕреобразовать Word в двоичную строку из 0 и 1
+  function BinStringToWord(Value: String): Word;                                  //ѕреобразовать двоичную строку из 0 и 1 в Word
+  function ByteToHexString(Value: Byte): String;                                  //ѕреобразовать байт в шестнадцатеричную строку
+  function HexStringToByte(Value: String): Byte;                                  //ѕреобразовать шестнадцатеричную строку в байт
+  function WordToHexString(Value: Word): String;                                  //ѕреобразовать Word в шестнадцатеричную строку
+  function HexStringToWord(Value: String): Word;                                  //ѕреобразовать шестнадцатеричную строку в Word
 
-function AddresationCode(Value: String; RP: Boolean = False): String;           //ѕолучить двоичную строку (код регистра или пары)
-function MemoryPointer(Value: String): String;                                  //ѕолучить двоичную строку (€чейчка пам€ти)
-function DirectData(Value: String; X: Boolean = False): String;                 //ѕолучить двоичную строку (число)
+  function FormatAddrCode(Value: String; RP: Boolean = False): String;            //ѕолучить двоичную строку (код регистра или пары)
+
+  function FormatOperandByte(Op: String; Sys: TNumeralSystems): String;           //ѕривести 8бит операнд к нужной системе счислени€
+  function FormatOperandWord(Op: String; Sys: TNumeralSystems): String;           //ѕривести 16бит операнд к нужной системе счислени€
 
 implementation
 
@@ -60,6 +46,8 @@ var
   i: Integer;
 begin
   Result := 0;
+  while Value.Length < 8 do
+    Value := '0' + Value;
   for i := 1 to 8 do
   begin
     Result := Result shl 1;
@@ -82,6 +70,31 @@ begin
   end;
 end;
 
+function BinStringToWord;
+var
+  i: Integer;
+begin
+  Result := 0;
+  while Value.Length < 16 do
+    Value := '0' + Value;
+  for i := 1 to 16 do
+  begin
+    Result := Result shl 1;
+    if Value[i] = '1' then
+      Result := Result or 1;
+  end;
+end;
+
+function ByteToHexString;
+begin
+  Result := IntToHex(Value, 2);
+end;
+
+function HexStringToByte;
+begin
+  Result := StrToInt('$' + Value);
+end;
+
 function WordToHexString;
 begin
   Result := IntToHex(Value, 4);
@@ -92,7 +105,7 @@ begin
   Result := StrToInt('$' + Value);
 end;
 
-function AddresationCode;
+function FormatAddrCode;
 begin
   if RP then
     case Value[1] of
@@ -113,49 +126,40 @@ begin
     end;
 end;
 
-function MemoryPointer;
+function FormatOperandByte;
+var
+  Value: Byte;
 begin
-  Result := WordToBinString(HexStringToWord(Copy(Value, 1, Value.Length - 1)));
-end;
-
-function DirectData;
-begin
-  if X then
-    Result := WordToBinString(StrToInt(Value))
+  if Op[Op.Length] = 'B' then
+    Value := BinStringToByte(Copy(Op, 1, Op.Length - 1))
+  else if Op[Op.Length] = 'H' then
+    Value := HexStringToByte(Copy(Op, 1, Op.Length - 1))
   else
-    Result := ByteToBinString(StrToInt(Value));
+    Value := StrToInt(Op);
+  if Sys = SBIN then
+    Result := ByteToBinString(Value)
+  else if Sys = SHEX then
+    Result := ByteToHexString(Value)
+  else
+    Result := IntToStr(Value);
 end;
 
-{ TOperand }
-
-constructor TOperand.Create;
+function FormatOperandWord;
+var
+  Value: Word;
 begin
-  //if OpData[OpData.Length] = 'B'
-end;
-
-function TOperand.AsString;
-begin
-
-end;
-
-{ TNumericOperand }
-
-function TNumericOperand.AsBin;
-begin
-  {if OpClass = OPD10 then
-    Result :=
-  if OpClass = OPD2 then
-    Result := Copy(OpData, 1, OpData.Length - 1)}
-end;
-
-function TNumericOperand.AsDec;
-begin
-
-end;
-
-function TNumericOperand.AsHex;
-begin
-
+  if Op[Op.Length] = 'B' then
+    Value := BinStringToWord(Copy(Op, 1, Op.Length - 1))
+  else if Op[Op.Length] = 'H' then
+    Value := HexStringToWord(Copy(Op, 1, Op.Length - 1))
+  else
+    Value := StrToInt(Op);
+  if Sys = SBIN then
+    Result := WordToBinString(Value)
+  else if Sys = SHEX then
+    Result := WordToHexString(Value)
+  else
+    Result := IntToStr(Value);
 end;
 
 end.

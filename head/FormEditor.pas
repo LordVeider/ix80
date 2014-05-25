@@ -86,9 +86,12 @@ procedure TfrmEditor.btn6Click(Sender: TObject);
 var
   resbin, resdec, reshexsex: string;
 begin
-  resdec := inttostr(BinStringToByte(edtbin.Text));
-  resbin := ByteToBinString(strtoint(edtdec.text));
-  reshexsex := MemoryPointer(edthexsex.Text);
+  //resdec := inttostr(BinStringToByte(edtbin.Text));
+  //resbin := ByteToBinString(strtoint(edtdec.text));
+  //reshexsex := FormatOperandWord(edthexsex.Text, SHEX);
+  resbin := FormatOperandWord(edtdec.Text, SBIN);
+  resdec := FormatOperandWord(edtbin.Text, SDEC);
+  reshexsex := '';
   showmessage(resbin + #13#10 + resdec + #13#10 + reshexsex);
 end;
 

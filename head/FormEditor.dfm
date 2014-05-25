@@ -247,7 +247,7 @@ object frmEditor: TfrmEditor
       'LHLD 9119H'
       'MVI A, 37'
       'MVI B, 40'
-      'MVI L, 24'
+      'MVI L, 35'
       'MVI M, 75'
       'INX D'
       'ADD B'
@@ -302,7 +302,7 @@ object frmEditor: TfrmEditor
     Width = 121
     Height = 21
     TabOrder = 5
-    Text = '11011110'
+    Text = '11011110B'
     Visible = False
   end
   object btn6: TButton
