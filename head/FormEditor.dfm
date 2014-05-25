@@ -243,6 +243,7 @@ object frmEditor: TfrmEditor
     Font.Style = []
     HideScrollBars = False
     Lines.Strings = (
+      'LXI D, 27654'
       'LHLD 9119H'
       'MVI A, 37'
       'MVI B, 40'
