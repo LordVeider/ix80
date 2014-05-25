@@ -1,19 +1,22 @@
 unit Common;
 
+//ix80 Intel 8080 CPU Emulator & Demonstration Model
+//Функции общего назначения
+
 interface
 
 uses
   Math, SysUtils;
 
-function ByteToBinString(Value: Byte): String;
-function BinStringToByte(Value: String): Byte;
-function WordToBinString(Value: Word): String;
-function WordToHexString(Value: Word): String;
-function HexStringToWord(Value: String): Word;
+function ByteToBinString(Value: Byte): String;                                  //Преобразовать байт в двоичную строку из 0 и 1
+function BinStringToByte(Value: String): Byte;                                  //Преобразовать двоичную строку из 0 и 1 в байт
+function WordToBinString(Value: Word): String;                                  //Преобразовать Word в двоичную строку из 0 и 1
+function WordToHexString(Value: Word): String;                                  //Преобразовать Word в шестнадцатеричную строку
+function HexStringToWord(Value: String): Word;                                  //Преобразовать шестнадцатеричную строку в Word
 
-function AddresationCode(Value: String; RP: Boolean = False): String;
-function MemoryPointer(Value: String): String;
-function DirectData(Value: String; X: Boolean = False): String;
+function AddresationCode(Value: String; RP: Boolean = False): String;           //Получить двоичную строку (код регистра или пары)
+function MemoryPointer(Value: String): String;                                  //Получить двоичную строку (ячейчка памяти)
+function DirectData(Value: String; X: Boolean = False): String;                 //Получить двоичную строку (число)
 
 implementation
 

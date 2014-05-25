@@ -1,5 +1,8 @@
 unit FormEditor;
 
+//ix80 Intel 8080 CPU Emulator & Demonstration Model
+//Главное окно программы и редактор кода
+
 interface
 
 uses
