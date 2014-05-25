@@ -115,9 +115,9 @@ var
   ad: word;
 begin
   ad := 5;
-  CPU := TProcessor.Create;
-  CPU.InitCpu(ad);
   MEM := TMemory.Create;
+  CPU := TProcessor.Create(MEM);
+  CPU.InitCpu(ad);
   redtMsg.Lines.Clear;
   CmdList := TList.Create;
   par1 := TCommandParser.Create;
@@ -131,7 +131,7 @@ begin
     else
       redtMsg.Lines.Add('error parsing command');
   end;
-  CPU.Run(MEM);
+  CPU.Run;
   CPU.ShowRegisters;
   MEM.ShowNewMem;
 end;

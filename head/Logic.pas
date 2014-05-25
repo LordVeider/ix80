@@ -22,8 +22,10 @@ type
     Cells: TMemoryCells;
   public
     procedure ShowNewMem;
-    procedure WriteMemory(Address: Word; Value: TMemoryCell);
-    function ReadMemory(Address: Word): TMemoryCell;
+    procedure WriteMemoryObject(Address: Word; Value: TMemoryCell);
+    function ReadMemoryObject(Address: Word): TMemoryCell;
+    procedure WriteMemory(Address: Word; Value: Byte);
+    function ReadMemory(Address: Word): Byte;
   end;
 
   TFlagsNames = (FS, FZ, FAC, FP, FC);
@@ -40,11 +42,13 @@ type
 
   TProcessor = class
   private
+    Memory: TMemory;
     Registers: TRegisters;            //Processor registers
     procedure InitDataRegisters;
   public
+    constructor Create(Memory: TMemory);
     procedure InitCpu(EntryPoint: Word);
-    procedure Run(Memory: TMemory);
+    procedure Run;
     procedure ShowRegisters;
     procedure SetDataRegister(DataRegisterName: TDataRegistersNames; Value: Byte);
     function GetDataRegister(DataRegisterName: TDataRegistersNames): Byte;
@@ -55,6 +59,8 @@ type
     function GetFlag(FlagName: TFlagsNames): Boolean;
   end;
 
+  TAddresationType = (ATREG, ATMEM, ATADDR, ATD8, ATD16);
+
   TCommand = class
   private
     Name: String;                     //Text name
@@ -63,6 +69,7 @@ type
     FlagsCheck: TFlagsRegister;       //Checking flags
     FlagsSet: TFlagsRegister;         //Setting flags
     CommandCode: String;              //Binary command code
+    function CaseAddresationType(Op: String): TAddresationType;
   public
     constructor Create(Name: String; Op1, Op2: String);
     function ShowSummary: String;
@@ -95,6 +102,11 @@ uses
   SysUtils, Dialogs, FormScheme;
 
 { TProcessor }
+
+constructor TProcessor.Create(Memory: TMemory);
+begin
+  Self.Memory := Memory;
+end;
 
 procedure TProcessor.InitDataRegisters;
 var
@@ -183,14 +195,24 @@ begin
   frmScheme.DrawMemory(Self);
 end;
 
-procedure TMemory.WriteMemory;
+procedure TMemory.WriteMemoryObject;
 begin
   Cells[Address] := Value;
 end;
 
-function TMemory.ReadMemory;
+function TMemory.ReadMemoryObject;
 begin
   Result := Cells[Address];
+end;
+
+procedure TMemory.WriteMemory(Address: Word; Value: Byte);
+begin
+  Cells[Address].Numeric := Value;
+end;
+
+function TMemory.ReadMemory(Address: Word): Byte;
+begin
+  Result := Cells[Address].Numeric;
 end;
 
 { TCommand }
@@ -211,10 +233,18 @@ begin
   CurrentCell.Command := Self;
   repeat
     CurrentCell.Numeric := BinStringToByte(Copy(CommandCode, CommandSize*8 + 1, 8));
-    Memory.WriteMemory(Address + CommandSize, CurrentCell);
+    Memory.WriteMemoryObject(Address + CommandSize, CurrentCell);
     Inc(CommandSize);
   until CommandSize = Size;
   Result := Address + CommandSize;
+end;
+
+function TCommand.CaseAddresationType(Op: String): TAddresationType;
+begin
+  if Op = 'M' then          //Indirect memory addresation
+    Result := ATMEM
+  else                      //Registry addresation
+    Result := ATREG;
 end;
 
 procedure TCommand.Execute;
@@ -312,9 +342,13 @@ begin
 end;
 
 procedure TDataCommand.Execute(Processor: TProcessor);
+var
+  Op1AddrType, Op2AddrType: TAddresationType;
 begin
   if Name = 'MVI' then
   begin
+    //if CaseAddresationType(Op1) = ATMEM then
+      //Processor.Memory.WriteMemory();
     Processor.SetDataRegister(RA, 92);
   end;
   Processor.Registers.PC := Processor.Registers.PC + Size;
