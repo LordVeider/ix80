@@ -396,9 +396,14 @@ end;
 
 procedure TDataCommand.Execute(Processor: TProcessor);
 begin
-  if Name = 'MVI' then
+  with Processor do
   begin
-    Processor.SetRegisterAddresationValue(Op1, StrToInt(Op2));
+    if Name = 'MVI' then
+      SetRegisterAddresationValue(Op1, StrToInt(Op2))
+    else if Name = 'MOV' then
+      SetRegisterAddresationValue(Op1, GetRegisterAddresationValue(Op2))
+    else if Name = 'LXI' then
+      SetDataRegisterPair(DataRegisterNameByTextName(Op1), HexStringToWord(Copy(Op2, 1, Op2.Length - 1)));
   end;
   {if Name = 'MOV' then
   begin
