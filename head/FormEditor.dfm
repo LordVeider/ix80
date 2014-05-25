@@ -244,14 +244,11 @@ object frmEditor: TfrmEditor
     HideScrollBars = False
     Lines.Strings = (
       'LXI D, 27654'
-      'LHLD 9119H'
       'MVI A, 37'
       'MVI B, 40'
       'MVI L, 35'
       'MVI M, 75'
-      'INX D'
-      'ADD B'
-      'STA 21H'
+      'LHLD 0023H'
       'HLT')
     ParentFont = False
     ScrollBars = ssVertical

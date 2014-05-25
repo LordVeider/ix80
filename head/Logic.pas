@@ -46,6 +46,7 @@ type
 
   TProcessor = class
   private
+    HltState: Boolean;
     Memory: TMemory;                        //Память
     Registers: TRegisters;                  //Регистры
     procedure InitDataRegisters;            //Инициализация регистров
@@ -96,6 +97,7 @@ type
   TCtrlCommand = class(TCommand)            //Команды переходов и управления
   public
     constructor Create(Name: String; Op1, Op2: String);
+    procedure Execute(Processor: TProcessor);
   end;
   TCommandParser = class                    //Анализатор исходного кода
   public
@@ -154,7 +156,10 @@ end;
 
 function TProcessor.GetRegAddrValue;
 begin
-
+  if Operand = 'M' then             //Косвенная адресация памяти
+    Result := Memory.ReadMemory(GetDataRP(RH))
+  else                              //Регистровая адресация
+    Result := GetDataReg(DataRegNameByTextName(Operand));
 end;
 
 procedure TProcessor.SetDataReg;
@@ -183,6 +188,10 @@ begin
          SetDataReg(RH, Hi(Value));
          SetDataReg(RL, Lo(Value));
        end;
+    RW: begin
+         SetDataReg(RW, Hi(Value));
+         SetDataReg(RZ, Lo(Value));
+       end;
   end;
 end;
 
@@ -193,6 +202,7 @@ begin
     RB: Result := GetDataReg(RC) + (GetDataReg(RB) shl 8);
     RD: Result := GetDataReg(RE) + (GetDataReg(RD) shl 8);
     RH: Result := GetDataReg(RL) + (GetDataReg(RH) shl 8);
+    RW: Result := GetDataReg(RZ) + (GetDataReg(RW) shl 8);
   end;
 end;
 
@@ -225,20 +235,27 @@ procedure TProcessor.InitCpu(EntryPoint: Word);
 begin
   InitDataRegisters;                //Инициализируем регистры данных
   Registers.PC := EntryPoint;       //Инициализируем счетчик команд на указанную точку входа
+  HltState := False;
 end;
 
 procedure TProcessor.Run;
 var
-  bri: integer;
+  s: string;
+  c: integer;
 begin
-  bri := 0;
   repeat
     if Assigned(Memory.Cells[Registers.PC].Command) then
+    begin
+      c := Registers.PC;
+      s := TCommand(Memory.Cells[Registers.PC].Command).ShowSummary;
       if TCommand(Memory.Cells[Registers.PC].Command) is TDataCommand then
-        TDataCommand(Memory.Cells[Registers.PC].Command).Execute(Self);
-    inc(bri);
-  until (Memory.Cells[Registers.PC].Numeric = 0) or (bri > 50);
-
+        TDataCommand(Memory.Cells[Registers.PC].Command).Execute(Self)
+      else if TCommand(Memory.Cells[Registers.PC].Command) is TMathCommand then
+        TMathCommand(Memory.Cells[Registers.PC].Command).Execute(Self)
+      else if TCommand(Memory.Cells[Registers.PC].Command) is TCtrlCommand then
+        TCtrlCommand(Memory.Cells[Registers.PC].Command).Execute(Self)
+    end;
+  until HltState;
 end;
 
 procedure TProcessor.ShowRegisters;
@@ -403,8 +420,20 @@ begin
     else if Name = 'MOV' then
       SetRegAddrValue(Op1, GetRegAddrValue(Op2))
     else if Name = 'LXI' then
-      //SetDataRP(DataRegNameByTextName(Op1), HexStringToWord(Copy(Op2, 1, Op2.Length - 1)));
-      SetDataRP(DataRegNameByTextName(Op1), StrToInt(FormatOperandWord(Op2, SDEC)));
+      SetDataRP(DataRegNameByTextName(Op1), StrToInt(FormatOperandWord(Op2, SDEC)))
+    else if Name = 'LDA' then
+      SetDataReg(RA, Memory.ReadMemory(StrToInt(FormatOperandWord(Op2, SDEC))))
+    else if Name = 'LHLD' then
+    begin
+      SetDataReg(RL, Memory.ReadMemory(StrToInt(FormatOperandWord(Op1, SDEC))));
+      SetDataReg(RH, Memory.ReadMemory(StrToInt(FormatOperandWord(Op1, SDEC))+1));
+    end
+    else if Name = 'XCHG' then
+    begin
+      SetDataRP(RW, GetDataRP(RH));
+      SetDataRP(RH, GetDataRP(RD));
+      SetDataRP(RD, GetDataRP(RW));
+    end;
   end;
   {if Name = 'MOV' then
   begin
@@ -423,6 +452,12 @@ begin
   inherited;
   if Name = 'HLT' then
     CommandCode := '01110110';
+end;
+
+procedure TCtrlCommand.Execute(Processor: TProcessor);
+begin
+  if Name = 'HLT' then
+    Processor.HltState := True;
 end;
 
 { TCommandParser }
