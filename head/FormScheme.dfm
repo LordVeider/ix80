@@ -1648,18 +1648,18 @@ object frmScheme: TfrmScheme
       A2476D57F1CB0000000049454E44AE426082}
   end
   object edtA: TEdit
-    Left = 331
+    Left = 315
     Top = 224
     Width = 68
-    Height = 18
+    Height = 21
     ReadOnly = True
     TabOrder = 0
   end
   object edtIR: TEdit
-    Left = 739
+    Left = 723
     Top = 240
     Width = 68
-    Height = 18
+    Height = 21
     ReadOnly = True
     TabOrder = 1
   end
@@ -1667,7 +1667,7 @@ object frmScheme: TfrmScheme
     Left = 885
     Top = 328
     Width = 68
-    Height = 18
+    Height = 21
     ReadOnly = True
     TabOrder = 2
   end
@@ -1675,7 +1675,7 @@ object frmScheme: TfrmScheme
     Left = 957
     Top = 328
     Width = 68
-    Height = 18
+    Height = 21
     ReadOnly = True
     TabOrder = 3
   end
@@ -1683,7 +1683,7 @@ object frmScheme: TfrmScheme
     Left = 885
     Top = 360
     Width = 68
-    Height = 18
+    Height = 21
     ReadOnly = True
     TabOrder = 4
   end
@@ -1691,7 +1691,7 @@ object frmScheme: TfrmScheme
     Left = 957
     Top = 360
     Width = 68
-    Height = 18
+    Height = 21
     ReadOnly = True
     TabOrder = 5
   end
@@ -1699,7 +1699,7 @@ object frmScheme: TfrmScheme
     Left = 885
     Top = 392
     Width = 68
-    Height = 18
+    Height = 21
     ReadOnly = True
     TabOrder = 6
   end
@@ -1707,7 +1707,7 @@ object frmScheme: TfrmScheme
     Left = 957
     Top = 392
     Width = 68
-    Height = 18
+    Height = 21
     ReadOnly = True
     TabOrder = 7
   end
@@ -1715,7 +1715,7 @@ object frmScheme: TfrmScheme
     Left = 885
     Top = 424
     Width = 68
-    Height = 18
+    Height = 21
     ReadOnly = True
     TabOrder = 8
   end
@@ -1723,7 +1723,7 @@ object frmScheme: TfrmScheme
     Left = 957
     Top = 424
     Width = 68
-    Height = 18
+    Height = 21
     ReadOnly = True
     TabOrder = 9
   end
@@ -1731,7 +1731,7 @@ object frmScheme: TfrmScheme
     Left = 925
     Top = 461
     Width = 68
-    Height = 18
+    Height = 21
     ReadOnly = True
     TabOrder = 10
   end
@@ -1739,14 +1739,14 @@ object frmScheme: TfrmScheme
     Left = 925
     Top = 488
     Width = 68
-    Height = 18
+    Height = 21
     ReadOnly = True
     TabOrder = 11
   end
   object grdPSW: TStringGrid
-    Left = 539
-    Top = 296
-    Width = 154
+    Left = 491
+    Top = 304
+    Width = 166
     Height = 39
     ColCount = 8
     DefaultColWidth = 18
@@ -1770,5 +1770,6 @@ object frmScheme: TfrmScheme
     FixedRows = 0
     ScrollBars = ssVertical
     TabOrder = 13
+    OnDblClick = grdNewMemDblClick
   end
 end
