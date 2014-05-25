@@ -54,6 +54,7 @@ type
     procedure InitCpu(EntryPoint: Word);    //Инициализация процессора
     procedure Run;                          //Запустить выполнение
     procedure ShowRegisters;                //Отобразить содержимое регистров на экране
+    procedure PerformALU(Value: Byte);      //Выполнить операцию на АЛУ
     procedure SetDataReg(DataRegName: TDataRegistersNames; Value: Byte);        //Установить значение регистра
     function GetDataReg(DataRegName: TDataRegistersNames): Byte;                //Получить значение регистра
     procedure SetDataRP(DataRPName: TDataRegistersNames; Value: Word);          //Установить значение регистровой пары
@@ -65,7 +66,7 @@ type
     function GetStackPointer: Word;                                             //Получить значение указателя стека
     function GetProgramCounter: Word;                                           //Получить значение счетчика команд
     function GetInstRegister: Byte;                                             //Получить значение регистра команд
-    procedure SetFlag(FlagName: TFlagsNames; Value: Boolean);                   //Установить флаг
+    procedure SetFlag(FlagName: TFlagsNames; Value: Boolean = True);            //Установить флаг
     function GetFlag(FlagName: TFlagsNames): Boolean;                           //Получить состояние флага
   end;
 
@@ -88,6 +89,7 @@ type
   TMathCommand = class(TCommand)            //Команды арифметики и логики
   public
     constructor Create(Name: String; Op1, Op2: String);
+    procedure Execute(Processor: TProcessor);
   end;
   TDataCommand = class(TCommand)            //Команды пересылки данных
   public
@@ -134,6 +136,47 @@ begin
     for i := 1 to 9 do
       DataRegisters[TDataRegistersNames(i)] := 0;
   end;
+end;
+
+procedure TProcessor.PerformALU;
+var
+  Op1, Op2, Op3: String;
+  i: Integer;
+  NewBit: Byte;
+  Carry, Parity: Byte;
+begin
+  Op1 := ByteToBinString(GetDataReg(RA));
+  Op2 := ByteToBinString(Value);
+  Op3 := '';
+  Carry := 0;
+  Parity := 0;
+  for i := 8 downto 1 do
+  begin
+    //Считаем бит
+    NewBit := StrToInt(Op1[i]) + StrToInt(Op2[i]) + Carry;
+    //Если получили 2 - переносим
+    if NewBit = 2 then
+    begin
+      Carry := 1;
+      NewBit := 0;
+    end
+    else
+      Carry := 0;
+    //Считаем количество единиц
+    if NewBit = 1 then
+      Inc(Parity);
+    //Конечный результат
+    Op3 := IntToStr(NewBit) + Op3;
+  end;
+  //Выставляем флаги
+  if Parity = 0 then                    //Нулевой результат
+    SetFlag(FZ)
+  else if Parity mod 2 = 0 then         //Четное количество единиц
+    SetFlag(FP);
+  if Carry = 1 then                     //Перенос из старшего разряда
+    SetFlag(FCY);
+  //Обновляем аккумулятор
+  SetDataReg(RA,BinStringToByte(Op3));
 end;
 
 function TProcessor.DataRegNameByTextName;
@@ -389,6 +432,18 @@ begin
     CommandCode := '00' + FormatAddrCode(Op1, True) + '1011';
 end;
 
+procedure TMathCommand.Execute(Processor: TProcessor);
+begin
+  with Processor do
+  begin
+    if Name = 'ADD' then
+    begin
+      PerformALU(GetRegAddrValue(Op1));
+    end;
+  end;
+  inherited;
+end;
+
 { TDataCommand }
 
 constructor TDataCommand.Create;
@@ -481,6 +536,7 @@ procedure TCtrlCommand.Execute;
 begin
   if Name = 'HLT' then
     Processor.HltState := True;
+  inherited;
 end;
 
 { TCommandParser }

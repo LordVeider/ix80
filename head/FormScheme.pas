@@ -27,6 +27,7 @@ type
     edtPC: TEdit;
     grdPSW: TStringGrid;
     grdNewMem: TStringGrid;
+    procedure grdNewMemDblClick(Sender: TObject);
   private
     { Private declarations }
   public
@@ -41,6 +42,9 @@ var
 implementation
 
 {$R *.dfm}
+
+uses
+  FormEditor;
 
 { TfrmScheme }
 
@@ -82,6 +86,8 @@ begin
     edtIR.Text := GetInstRegister.ToString;
     with grdPSW do
     begin
+      ColWidths[3] := 24;
+      ColWidths[7] := 24;
       Cells[0,0] := 'S';
       Cells[1,0] := 'Z';
       Cells[2,0] := '0';
@@ -89,7 +95,7 @@ begin
       Cells[4,0] := '0';
       Cells[5,0] := 'P';
       Cells[6,0] := '1';
-      Cells[7,0] := 'C';
+      Cells[7,0] := 'CY';
       Cells[0,1] := GetFlag(FS).ToString;
       Cells[1,1] := GetFlag(FZ).ToString;
       Cells[2,1] := '0';
@@ -100,6 +106,13 @@ begin
       Cells[7,1] := GetFlag(FCY).ToString;
     end;
   end;
+end;
+
+procedure TfrmScheme.grdNewMemDblClick(Sender: TObject);
+begin
+  {with grdNewMem do
+    if Assigned(MEM) then
+      ShowMessage(MEM.ReadMemory(Row).ToString()); }
 end;
 
 end.
