@@ -102,7 +102,7 @@ procedure TfrmEditor.btnOpenClick(Sender: TObject);
 begin
   if dlgOpenMain.Execute() then
   begin
-    ////////
+    //////////
   end;
 end;
 
