@@ -49,10 +49,6 @@ type
     dlgSaveMain: TSaveDialog;
     dlgOpenMain: TOpenDialog;
     sbarMain: TStatusBar;
-    edtdec: TEdit;
-    edtbin: TEdit;
-    btn6: TButton;
-    edthexsex: TEdit;
     btnMemUnload: TToolButton;
     btnMemClear: TToolButton;
     btn7: TToolButton;
@@ -62,7 +58,6 @@ type
     procedure btnOpenClick(Sender: TObject);
     procedure btnRunRealClick(Sender: TObject);
     procedure FormShow(Sender: TObject);
-    procedure btn6Click(Sender: TObject);
     procedure miHelpAboutClick(Sender: TObject);
     procedure btnMemClearClick(Sender: TObject);
     procedure btnMemUnloadClick(Sender: TObject);
@@ -82,19 +77,6 @@ implementation
 {$R *.dfm}
 
 uses FormAbout;
-
-procedure TfrmEditor.btn6Click(Sender: TObject);
-var
-  resbin, resdec, reshexsex: string;
-begin
-  //resdec := inttostr(BinStringToByte(edtbin.Text));
-  //resbin := ByteToBinString(strtoint(edtdec.text));
-  //reshexsex := FormatOperandWord(edthexsex.Text, SHEX);
-  resbin := FormatOperandWord(edtdec.Text, SBIN);
-  resdec := FormatOperandWord(edtbin.Text, SDEC);
-  reshexsex := '';
-  showmessage(resbin + #13#10 + resdec + #13#10 + reshexsex);
-end;
 
 procedure TfrmEditor.btnMemClearClick(Sender: TObject);
 begin

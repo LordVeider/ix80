@@ -155,20 +155,25 @@ begin
     //Считаем бит
     NewBit := StrToInt(Op1[i]) + StrToInt(Op2[i]) + Carry;
     //Если получили 2 - переносим
-    if NewBit = 2 then
+    if NewBit > 1 then
     begin
       Carry := 1;
-      NewBit := 0;
+      NewBit := NewBit mod 2;
     end
     else
       Carry := 0;
     //Считаем количество единиц
     if NewBit = 1 then
       Inc(Parity);
+    //Выставляем флаг вспомогательного переноса
+    if (i = 5) and (Carry = 1) then
+      SetFlag(FAC);
     //Конечный результат
     Op3 := IntToStr(NewBit) + Op3;
   end;
   //Выставляем флаги
+  if NewBit = 1 then                    //Отрицательный результат
+    SetFlag(FS);
   if Parity = 0 then                    //Нулевой результат
     SetFlag(FZ)
   else if Parity mod 2 = 0 then         //Четное количество единиц
@@ -434,6 +439,7 @@ end;
 
 procedure TMathCommand.Execute(Processor: TProcessor);
 begin
+  inherited;
   with Processor do
   begin
     if Name = 'ADD' then
@@ -441,7 +447,6 @@ begin
       PerformALU(GetRegAddrValue(Op1));
     end;
   end;
-  inherited;
 end;
 
 { TDataCommand }
@@ -477,6 +482,7 @@ end;
 
 procedure TDataCommand.Execute;
 begin
+  inherited;
   with Processor do
   begin
     if Name = 'MOV' then
@@ -520,7 +526,6 @@ begin
       Memory.WriteMemory(GetStackPointer + 1, GetDataReg(RZ));
      end;
   end;
-  inherited;
 end;
 
 { TCtrlCommand }
@@ -534,9 +539,9 @@ end;
 
 procedure TCtrlCommand.Execute;
 begin
+  inherited;
   if Name = 'HLT' then
     Processor.HltState := True;
-  inherited;
 end;
 
 { TCommandParser }
