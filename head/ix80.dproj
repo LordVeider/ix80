@@ -69,10 +69,9 @@
         <Icon_MainIcon>ix80_Icon.ico</Icon_MainIcon>
         <VerInfo_PreRelease>true</VerInfo_PreRelease>
         <VerInfo_MajorVer>0</VerInfo_MajorVer>
-        <VerInfo_Build>24</VerInfo_Build>
+        <VerInfo_Build>25</VerInfo_Build>
         <VerInfo_Locale>1033</VerInfo_Locale>
-        <VerInfo_AutoIncVersion>true</VerInfo_AutoIncVersion>
-        <VerInfo_Keys>CompanyName=;FileDescription=;FileVersion=0.1.0.24;InternalName=;LegalCopyright=;LegalTrademarks=;OriginalFilename=;ProductName=;ProductVersion=1.0.0.0;Comments=</VerInfo_Keys>
+        <VerInfo_Keys>CompanyName=;FileDescription=;FileVersion=0.1.0.25;InternalName=;LegalCopyright=;LegalTrademarks=;OriginalFilename=;ProductName=;ProductVersion=1.0.0.0;Comments=</VerInfo_Keys>
         <VerInfo_IncludeVerInfo>true</VerInfo_IncludeVerInfo>
         <VerInfo_MinorVer>1</VerInfo_MinorVer>
         <VerInfo_Debug>true</VerInfo_Debug>

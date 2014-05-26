@@ -250,6 +250,7 @@ object frmEditor: TfrmEditor
       'MVI L, 35'
       'MVI M, 75'
       'LHLD 0023H'
+      'ADD B'
       'HLT')
     ParentFont = False
     ScrollBars = ssVertical
@@ -284,43 +285,6 @@ object frmEditor: TfrmEditor
         Text = #1043#1086#1090#1086#1074
         Width = 50
       end>
-  end
-  object edtdec: TEdit
-    Left = 509
-    Top = 360
-    Width = 121
-    Height = 21
-    TabOrder = 4
-    Text = '194'
-    Visible = False
-  end
-  object edtbin: TEdit
-    Left = 509
-    Top = 387
-    Width = 121
-    Height = 21
-    TabOrder = 5
-    Text = '11011110B'
-    Visible = False
-  end
-  object btn6: TButton
-    Left = 509
-    Top = 441
-    Width = 75
-    Height = 25
-    Caption = 'btn6'
-    TabOrder = 6
-    Visible = False
-    OnClick = btn6Click
-  end
-  object edthexsex: TEdit
-    Left = 509
-    Top = 414
-    Width = 121
-    Height = 21
-    TabOrder = 7
-    Text = '9119H'
-    Visible = False
   end
   object menuMain: TMainMenu
     Left = 8
