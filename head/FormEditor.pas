@@ -83,7 +83,7 @@ begin
   if Assigned(MEM) then
   begin
     FreeAndNil(MEM);
-    frmScheme.DrawMemory(MEM);
+    frmMemory.DrawMemory(MEM);
   end;
 end;
 
@@ -135,6 +135,8 @@ end;
 
 procedure TfrmEditor.btnShowMemoryClick(Sender: TObject);
 begin
+  frmMemory.Hide;
+  frmMemory.TrueMem := not frmMemory.TrueMem;
   frmMemory.Show;
 end;
 
@@ -146,6 +148,8 @@ end;
 procedure TfrmEditor.FormShow(Sender: TObject);
 begin
   frmScheme.Show;
+  frmMemory.TrueMem := True;
+  frmMemory.Show;
 end;
 
 procedure TfrmEditor.miHelpAboutClick(Sender: TObject);

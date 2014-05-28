@@ -1,9 +1,9 @@
 object frmMemory: TfrmMemory
-  Left = 0
-  Top = 0
+  Left = 1562
+  Top = 25
   Caption = #1055#1072#1084#1103#1090#1100
-  ClientHeight = 155
-  ClientWidth = 581
+  ClientHeight = 861
+  ClientWidth = 278
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
   Font.Color = clWindowText
@@ -11,22 +11,41 @@ object frmMemory: TfrmMemory
   Font.Name = 'Tahoma'
   Font.Style = []
   OldCreateOrder = False
+  Position = poDesigned
   OnShow = FormShow
   PixelsPerInch = 96
   TextHeight = 13
   object grdMemory: TStringGrid
     Left = 0
     Top = 0
-    Width = 581
-    Height = 155
+    Width = 278
+    Height = 861
     Align = alClient
     ColCount = 17
     DefaultColWidth = 32
     DefaultRowHeight = 16
-    RowCount = 9
+    RowCount = 100
     ScrollBars = ssVertical
     TabOrder = 0
-    ExplicitWidth = 635
-    ExplicitHeight = 156
+    ExplicitWidth = 582
+    ExplicitHeight = 472
+  end
+  object grdNewMem: TStringGrid
+    Left = 0
+    Top = 0
+    Width = 278
+    Height = 861
+    Align = alClient
+    ColCount = 3
+    DefaultColWidth = 85
+    DefaultRowHeight = 18
+    FixedCols = 0
+    RowCount = 100
+    FixedRows = 0
+    ScrollBars = ssVertical
+    TabOrder = 1
+    ExplicitLeft = 51
+    ExplicitTop = -179
+    ExplicitHeight = 703
   end
 end

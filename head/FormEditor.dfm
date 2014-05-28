@@ -1,6 +1,6 @@
 object frmEditor: TfrmEditor
-  Left = 50
-  Top = 50
+  Left = 25
+  Top = 25
   Caption = 'ix80 - '#1056#1077#1076#1072#1082#1090#1086#1088
   ClientHeight = 533
   ClientWidth = 654
@@ -218,7 +218,6 @@ object frmEditor: TfrmEditor
       Top = 0
       Hint = #1055#1086#1082#1072#1079#1072#1090#1100' '#1089#1086#1076#1077#1088#1078#1080#1084#1086#1077' '#1087#1072#1084#1103#1090#1080
       Caption = 'btnShowMemory'
-      Enabled = False
       ImageIndex = 14
       OnClick = btnShowMemoryClick
     end
