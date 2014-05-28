@@ -8,7 +8,7 @@ interface
 uses
   Winapi.Windows, Winapi.Messages, System.SysUtils, System.Variants, System.Classes, Vcl.Graphics,
   Vcl.Controls, Vcl.Forms, Vcl.Dialogs, Vcl.Menus, Vcl.ToolWin, Vcl.ComCtrls,
-  Vcl.ImgList, Vcl.StdCtrls, FormMemory, FormScheme, Common, Logic;
+  Vcl.ImgList, Vcl.StdCtrls, FormMemory, FormScheme, Common, Logic, Vcl.Grids;
 
 type
   TfrmEditor = class(TForm)
@@ -23,9 +23,8 @@ type
     miN1: TMenuItem;
     miFileExit: TMenuItem;
     btnNew: TToolButton;
-    btnOpen: TToolButton;
-    btnSave: TToolButton;
-    btnSaveAs: TToolButton;
+    btnTextOpen: TToolButton;
+    btnTextSave: TToolButton;
     btn1: TToolButton;
     btnCut: TToolButton;
     btnCopy: TToolButton;
@@ -53,9 +52,15 @@ type
     btnMemClear: TToolButton;
     btn7: TToolButton;
     miHelpAbout: TMenuItem;
+    btnDumpLoad: TToolButton;
+    btnDumpSave: TToolButton;
+    miHelpUserGuide: TMenuItem;
+    miHelpCommands: TMenuItem;
+    miN2: TMenuItem;
+    grdLines: TStringGrid;
     procedure btnShowMemoryClick(Sender: TObject);
     procedure btnShowSchemeClick(Sender: TObject);
-    procedure btnOpenClick(Sender: TObject);
+    procedure btnTextOpenClick(Sender: TObject);
     procedure btnRunRealClick(Sender: TObject);
     procedure FormShow(Sender: TObject);
     procedure miHelpAboutClick(Sender: TObject);
@@ -112,7 +117,7 @@ begin
   MEM.ShowNewMem;
 end;
 
-procedure TfrmEditor.btnOpenClick(Sender: TObject);
+procedure TfrmEditor.btnTextOpenClick(Sender: TObject);
 begin
   if dlgOpenMain.Execute() then
   begin
@@ -146,7 +151,14 @@ begin
 end;
 
 procedure TfrmEditor.FormShow(Sender: TObject);
+var
+  i: integer;
 begin
+  with grdLines do
+  begin
+    for i := 0 to 99 do
+      Cells[0, i] := IntToStr(i+1);
+  end;
   frmScheme.Show;
   frmMemory.TrueMem := True;
   frmMemory.Show;

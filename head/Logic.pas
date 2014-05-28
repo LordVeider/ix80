@@ -554,6 +554,9 @@ begin
   try
     Result := True;
     //Синтаксический анализ
+    NextDelimeter := Pos(#59, TextLine);    //Ищем точку с запятой в строке
+    if NextDelimeter > 0 then               //Есть комментарий
+      Delete(TextLine, Pos(#59, TextLine) - 1, TextLine.Length - Pos(#59, TextLine) + 2);
     NextDelimeter := Pos(#32, TextLine);    //Ищем пробел в строке
     if NextDelimeter = 0 then               //Операндов нет
       Cmd := TextLine

@@ -1,7 +1,7 @@
 object frmEditor: TfrmEditor
   Left = 25
   Top = 25
-  Caption = 'ix80 - '#1056#1077#1076#1072#1082#1090#1086#1088
+  Caption = 'ix80'
   ClientHeight = 533
   ClientWidth = 654
   Color = clWindow
@@ -29,38 +29,30 @@ object frmEditor: TfrmEditor
     object btnNew: TToolButton
       Left = 0
       Top = 0
-      Hint = #1057#1086#1079#1076#1072#1090#1100' '#1085#1086#1074#1099#1081' '#1087#1088#1086#1077#1082#1090
+      Hint = #1054#1095#1080#1089#1090#1080#1090#1100' '#1080#1089#1093#1086#1076#1085#1099#1081' '#1082#1086#1076
       Caption = 'btnNew'
       Enabled = False
       ImageIndex = 0
     end
-    object btnOpen: TToolButton
+    object btnTextOpen: TToolButton
       Left = 23
       Top = 0
-      Hint = #1054#1090#1082#1088#1099#1090#1100' '#1089#1091#1097#1077#1089#1090#1074#1091#1102#1097#1080#1081' '#1087#1088#1086#1077#1082#1090
-      Caption = 'btnOpen'
+      Hint = #1054#1090#1082#1088#1099#1090#1100' '#1092#1072#1081#1083' '#1089' '#1080#1089#1093#1086#1076#1085#1099#1084' '#1082#1086#1076#1086#1084
+      Caption = 'btnTextOpen'
       Enabled = False
       ImageIndex = 1
-      OnClick = btnOpenClick
+      OnClick = btnTextOpenClick
     end
-    object btnSave: TToolButton
+    object btnTextSave: TToolButton
       Left = 46
       Top = 0
-      Hint = #1057#1086#1093#1088#1072#1085#1080#1090#1100' '#1087#1088#1086#1077#1082#1090
-      Caption = 'btnSave'
+      Hint = #1057#1086#1093#1088#1072#1085#1080#1090#1100' '#1080#1089#1093#1086#1076#1085#1099#1081' '#1082#1086#1076' '#1074' '#1092#1072#1081#1083
+      Caption = 'btnTextSave'
       Enabled = False
       ImageIndex = 2
     end
-    object btnSaveAs: TToolButton
-      Left = 69
-      Top = 0
-      Hint = #1057#1086#1093#1088#1072#1085#1080#1090#1100' '#1087#1088#1086#1077#1082#1090' '#1082#1072#1082
-      Caption = 'btnSaveAs'
-      Enabled = False
-      ImageIndex = 3
-    end
     object btn1: TToolButton
-      Left = 92
+      Left = 69
       Top = 0
       Width = 8
       Caption = 'btn1'
@@ -69,7 +61,7 @@ object frmEditor: TfrmEditor
       Visible = False
     end
     object btnCut: TToolButton
-      Left = 100
+      Left = 77
       Top = 0
       Hint = #1042#1099#1088#1077#1079#1072#1090#1100
       Caption = 'btnCut'
@@ -78,7 +70,7 @@ object frmEditor: TfrmEditor
       Visible = False
     end
     object btnCopy: TToolButton
-      Left = 123
+      Left = 100
       Top = 0
       Hint = #1050#1086#1087#1080#1088#1086#1074#1072#1090#1100
       Caption = 'btnCopy'
@@ -87,7 +79,7 @@ object frmEditor: TfrmEditor
       Visible = False
     end
     object btnPaste: TToolButton
-      Left = 146
+      Left = 123
       Top = 0
       Hint = #1042#1089#1090#1072#1074#1080#1090#1100
       Caption = 'btnPaste'
@@ -96,7 +88,7 @@ object frmEditor: TfrmEditor
       Visible = False
     end
     object btn2: TToolButton
-      Left = 169
+      Left = 146
       Top = 0
       Width = 8
       Caption = 'btn2'
@@ -105,7 +97,7 @@ object frmEditor: TfrmEditor
       Visible = False
     end
     object btnUndo: TToolButton
-      Left = 177
+      Left = 154
       Top = 0
       Hint = #1054#1090#1084#1077#1085#1080#1090#1100
       Caption = 'btnUndo'
@@ -114,7 +106,7 @@ object frmEditor: TfrmEditor
       Visible = False
     end
     object btnRedo: TToolButton
-      Left = 200
+      Left = 177
       Top = 0
       Hint = #1055#1086#1074#1090#1086#1088#1080#1090#1100
       Caption = 'btnRedo'
@@ -123,7 +115,7 @@ object frmEditor: TfrmEditor
       Visible = False
     end
     object btn3: TToolButton
-      Left = 223
+      Left = 200
       Top = 0
       Width = 8
       Caption = 'btn3'
@@ -132,7 +124,7 @@ object frmEditor: TfrmEditor
       Visible = False
     end
     object btnFind: TToolButton
-      Left = 231
+      Left = 208
       Top = 0
       Hint = #1053#1072#1081#1090#1080
       Caption = 'btnFind'
@@ -141,7 +133,7 @@ object frmEditor: TfrmEditor
       Visible = False
     end
     object btnReplace: TToolButton
-      Left = 254
+      Left = 231
       Top = 0
       Hint = #1047#1072#1084#1077#1085#1080#1090#1100
       Caption = 'btnReplace'
@@ -150,15 +142,31 @@ object frmEditor: TfrmEditor
       Visible = False
     end
     object btn4: TToolButton
-      Left = 277
+      Left = 254
       Top = 0
       Width = 8
       Caption = 'btn4'
       ImageIndex = 11
       Style = tbsDivider
     end
-    object btnMemClear: TToolButton
+    object btnDumpLoad: TToolButton
+      Left = 262
+      Top = 0
+      Hint = #1047#1072#1075#1088#1091#1079#1080#1090#1100' '#1076#1072#1084#1087' '#1087#1072#1084#1103#1090#1080' '#1080#1079' '#1092#1072#1081#1083#1072
+      Caption = 'btnDumpLoad'
+      Enabled = False
+      ImageIndex = 1
+    end
+    object btnDumpSave: TToolButton
       Left = 285
+      Top = 0
+      Hint = #1057#1086#1093#1088#1072#1085#1080#1090#1100' '#1076#1072#1084#1087' '#1087#1072#1084#1103#1090#1080' '#1074' '#1092#1072#1081#1083
+      Caption = 'btnDumpSave'
+      Enabled = False
+      ImageIndex = 2
+    end
+    object btnMemClear: TToolButton
+      Left = 308
       Top = 0
       Hint = #1054#1095#1080#1089#1090#1080#1090#1100' '#1087#1072#1084#1103#1090#1100
       Caption = 'btnMemClear'
@@ -166,7 +174,7 @@ object frmEditor: TfrmEditor
       OnClick = btnMemClearClick
     end
     object btnMemUnload: TToolButton
-      Left = 308
+      Left = 331
       Top = 0
       Hint = #1042#1099#1075#1088#1091#1079#1080#1090#1100' '#1087#1088#1086#1075#1088#1072#1084#1084#1091' '#1074' '#1087#1072#1084#1103#1090#1100
       Caption = 'btnMemUnload'
@@ -174,7 +182,7 @@ object frmEditor: TfrmEditor
       OnClick = btnMemUnloadClick
     end
     object btn7: TToolButton
-      Left = 331
+      Left = 354
       Top = 0
       Width = 8
       Caption = 'btn7'
@@ -182,7 +190,7 @@ object frmEditor: TfrmEditor
       Style = tbsSeparator
     end
     object btnRunReal: TToolButton
-      Left = 339
+      Left = 362
       Top = 0
       Hint = #1042#1099#1087#1086#1083#1085#1080#1090#1100' '#1074' '#1088#1077#1072#1083#1100#1085#1086#1084' '#1074#1088#1077#1084#1077#1085#1080
       Caption = 'btnRunReal'
@@ -190,7 +198,7 @@ object frmEditor: TfrmEditor
       OnClick = btnRunRealClick
     end
     object btnRunStep: TToolButton
-      Left = 362
+      Left = 385
       Top = 0
       Hint = #1042#1099#1087#1086#1083#1085#1080#1090#1100' '#1074' '#1087#1086#1096#1072#1075#1086#1074#1086#1084' '#1088#1077#1078#1080#1084#1077
       Caption = 'btnRunStep'
@@ -198,7 +206,7 @@ object frmEditor: TfrmEditor
       ImageIndex = 12
     end
     object btnStop: TToolButton
-      Left = 385
+      Left = 408
       Top = 0
       Hint = #1054#1089#1090#1072#1085#1086#1074#1080#1090#1100' '#1074#1099#1087#1086#1083#1085#1077#1085#1080#1077
       Caption = 'btnStop'
@@ -206,7 +214,7 @@ object frmEditor: TfrmEditor
       ImageIndex = 13
     end
     object btn5: TToolButton
-      Left = 408
+      Left = 431
       Top = 0
       Width = 8
       Caption = 'btn5'
@@ -214,7 +222,7 @@ object frmEditor: TfrmEditor
       Style = tbsDivider
     end
     object btnShowMemory: TToolButton
-      Left = 416
+      Left = 439
       Top = 0
       Hint = #1055#1086#1082#1072#1079#1072#1090#1100' '#1089#1086#1076#1077#1088#1078#1080#1084#1086#1077' '#1087#1072#1084#1103#1090#1080
       Caption = 'btnShowMemory'
@@ -222,7 +230,7 @@ object frmEditor: TfrmEditor
       OnClick = btnShowMemoryClick
     end
     object btnShowScheme: TToolButton
-      Left = 439
+      Left = 462
       Top = 0
       Hint = #1055#1086#1082#1072#1079#1072#1090#1100' '#1089#1093#1077#1084#1091' '#1087#1088#1086#1094#1077#1089#1089#1086#1088#1072
       Caption = 'btnShowScheme'
@@ -231,29 +239,30 @@ object frmEditor: TfrmEditor
     end
   end
   object redtCode: TRichEdit
-    Left = 0
+    Left = 41
     Top = 24
-    Width = 654
+    Width = 613
     Height = 328
     Align = alClient
     Font.Charset = RUSSIAN_CHARSET
     Font.Color = clWindowText
-    Font.Height = -11
-    Font.Name = 'Tahoma'
+    Font.Height = -13
+    Font.Name = 'Courier New'
     Font.Style = []
     HideScrollBars = False
     Lines.Strings = (
       'LXI D, 27654'
-      'MVI A, 37'
-      'MVI B, 40'
+      'MVI A, 25H ;'#1079#1072#1075#1088#1091#1078#1072#1077#1084' '#1074' '#1072#1082#1082#1091#1084#1091#1083#1103#1090#1086#1088' '#1095#1080#1089#1083#1086' 25 ('#1096#1077#1089#1090#1085#1072#1076#1094#1072#1090#1077#1088#1080#1095#1085#1086#1077')'
+      'MVI B, 40 ;'#1079#1072#1075#1088#1091#1078#1072#1077#1084' '#1074' B '#1095#1080#1089#1083#1086' 40 ('#1076#1077#1089#1103#1090#1080#1095#1085#1086#1077')'
       'MVI L, 35'
       'MVI M, 75'
       'LHLD 0023H'
-      'ADD B'
+      'ADD B ;'#1087#1088#1080#1073#1072#1074#1083#1103#1077#1084' B '#1082' '#1072#1082#1082#1091#1084#1091#1083#1103#1090#1086#1088#1091
       'HLT')
     ParentFont = False
     ScrollBars = ssVertical
     TabOrder = 1
+    WordWrap = False
     Zoom = 100
   end
   object redtMsg: TRichEdit
@@ -269,7 +278,6 @@ object frmEditor: TfrmEditor
     Font.Style = []
     HideScrollBars = False
     ParentFont = False
-    ReadOnly = True
     ScrollBars = ssVertical
     TabOrder = 2
     Zoom = 100
@@ -284,6 +292,26 @@ object frmEditor: TfrmEditor
         Text = #1043#1086#1090#1086#1074
         Width = 50
       end>
+  end
+  object grdLines: TStringGrid
+    Left = 0
+    Top = 24
+    Width = 41
+    Height = 328
+    Margins.Left = 0
+    Margins.Right = 0
+    Margins.Bottom = 0
+    Align = alLeft
+    ColCount = 1
+    DefaultColWidth = 200
+    DefaultRowHeight = 15
+    Enabled = False
+    FixedCols = 0
+    RowCount = 100
+    FixedRows = 0
+    Options = [goFixedVertLine, goFixedHorzLine, goVertLine, goHorzLine, goRowSelect]
+    ScrollBars = ssNone
+    TabOrder = 4
   end
   object menuMain: TMainMenu
     Left = 8
@@ -314,6 +342,17 @@ object frmEditor: TfrmEditor
     end
     object miHelp: TMenuItem
       Caption = #1057#1087#1088#1072#1074#1082#1072
+      object miHelpUserGuide: TMenuItem
+        Caption = #1056#1091#1082#1086#1074#1086#1076#1089#1090#1074#1086' '#1087#1086#1083#1100#1079#1086#1074#1072#1090#1077#1083#1103
+        Enabled = False
+      end
+      object miHelpCommands: TMenuItem
+        Caption = #1057#1080#1089#1090#1077#1084#1072' '#1082#1086#1084#1072#1085#1076
+        Enabled = False
+      end
+      object miN2: TMenuItem
+        Caption = '-'
+      end
       object miHelpAbout: TMenuItem
         Caption = #1054' '#1087#1088#1086#1075#1088#1072#1084#1084#1077
         OnClick = miHelpAboutClick
@@ -325,7 +364,7 @@ object frmEditor: TfrmEditor
     Left = 8
     Top = 80
     Bitmap = {
-      494C010112001800480010001000FFFFFFFF2110FFFFFFFFFFFFFFFF424D3600
+      494C0101120018004C0010001000FFFFFFFF2110FFFFFFFFFFFFFFFF424D3600
       0000000000003600000028000000400000005000000001002000000000000050
       0000000000000000000000000000000000000000000000000000000000050000
       001D00000032000000332C170074793C02CC2C17007400000033000000330000
