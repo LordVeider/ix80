@@ -12,28 +12,29 @@ uses
 
 type
   TfrmScheme = class(TForm)
-    imgSchemeBackground: TImage;
+    grScheme: TGroupBox;
     edtA: TEdit;
-    edtIR: TEdit;
-    edtW: TEdit;
-    edtZ: TEdit;
     edtB: TEdit;
+    edtBuf: TEdit;
     edtC: TEdit;
     edtD: TEdit;
     edtE: TEdit;
     edtH: TEdit;
+    edtIR: TEdit;
     edtL: TEdit;
-    edtSP: TEdit;
     edtPC: TEdit;
+    edtSP: TEdit;
+    edtW: TEdit;
+    edtZ: TEdit;
     grdPSW: TStringGrid;
-    grdNewMem: TStringGrid;
-    procedure grdNewMemDblClick(Sender: TObject);
+    imgSchemeBackground: TImage;
+    grLog: TGroupBox;
+    redtLog: TRichEdit;
   private
     { Private declarations }
   public
     { Public declarations }
     procedure DrawProcessor(Processor: TProcessor);
-    procedure DrawMemory(Memory: TMemory);
   end;
 
 var
@@ -47,26 +48,6 @@ uses
   FormEditor;
 
 { TfrmScheme }
-
-procedure TfrmScheme.DrawMemory(Memory: TMemory);
-var
-  i: Integer;
-begin
-  for i := 0 to 99 do
-  begin
-    grdNewMem.Cells[0, i] := WordToHexString(i) + 'H';
-    if Assigned(Memory) then
-    begin
-      grdNewMem.Cells[1, i] := WordToHexString(Memory.ReadMemory(i));
-      grdNewMem.Cells[2, i] := ByteToBinString(Memory.ReadMemory(i));
-    end
-    else
-    begin
-      grdNewMem.Cells[1, i] := WordToHexString(0);
-      grdNewMem.Cells[2, i] := ByteToBinString(0);
-    end;
-  end;
-end;
 
 procedure TfrmScheme.DrawProcessor(Processor: TProcessor);
 begin
@@ -106,13 +87,6 @@ begin
       Cells[7,1] := GetFlag(FCY).ToString;
     end;
   end;
-end;
-
-procedure TfrmScheme.grdNewMemDblClick(Sender: TObject);
-begin
-  {with grdNewMem do
-    if Assigned(MEM) then
-      ShowMessage(MEM.ReadMemory(Row).ToString()); }
 end;
 
 end.

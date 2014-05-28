@@ -109,7 +109,7 @@ type
 implementation
 
 uses
-  SysUtils, Dialogs, TypInfo, FormScheme;
+  SysUtils, Dialogs, TypInfo, FormScheme, FormMemory;
 
 { TProcessor }
 
@@ -320,7 +320,7 @@ end;
 
 procedure TMemory.ShowNewMem;
 begin
-  frmScheme.DrawMemory(Self);
+  frmMemory.DrawMemory(Self);
 end;
 
 procedure TMemory.WriteMemoryObject;
