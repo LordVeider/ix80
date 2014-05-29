@@ -45,12 +45,12 @@ begin
       if Assigned(Memory) then
       begin
         grdNewMem.Cells[1, i] := WordToHexString(Memory.ReadMemory(i-1));
-        grdNewMem.Cells[2, i] := ByteToBinString(Memory.ReadMemory(i-1));
+        grdNewMem.Cells[2, i] := Int8ToBinString(Memory.ReadMemory(i-1));
       end
       else
       begin
         grdNewMem.Cells[1, i] := WordToHexString(0);
-        grdNewMem.Cells[2, i] := ByteToBinString(0);
+        grdNewMem.Cells[2, i] := Int8ToBinString(0);
       end;
     end;
   end

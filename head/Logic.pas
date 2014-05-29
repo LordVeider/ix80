@@ -17,7 +17,7 @@ const
 type
   TMemoryCell = record
     Command: Pointer;                       //Объект "команда" (для ячеек, содержащих команды)
-    Numeric: Byte;                          //Цифровое содержимое ячейки памяти
+    Numeric: Int8;                          //Цифровое содержимое ячейки памяти
   end;
   TMemoryCells = array [Word] of TMemoryCell;
   TMemory = class
@@ -27,20 +27,20 @@ type
     procedure ShowNewMem;                                                       //Отобразить содержимое памяти на экране
     procedure WriteMemoryObject(Address: Word; Value: TMemoryCell);             //Записать в память ячейку
     function ReadMemoryObject(Address: Word): TMemoryCell;                      //Считать из памяти ячейку
-    procedure WriteMemory(Address: Word; Value: Byte);                          //Записать в память цифровое значение
-    function ReadMemory(Address: Word): Byte;                                   //Считать из памяти цифровое значение
+    procedure WriteMemory(Address: Word; Value: Int8);                          //Записать в память цифровое значение
+    function ReadMemory(Address: Word): Int8;                                   //Считать из памяти цифровое значение
   end;
 
   TFlagsNames = (FS, FZ, FAC, FP, FCY);
   TFlagsRegister = array [TFlagsNames] of Boolean;
   TDataRegistersNames = (RA, RB, RC, RD, RE, RH, RL, RW, RZ);
-  TDataRegisters = array [TDataRegistersNames] of Byte;
+  TDataRegisters = array [TDataRegistersNames] of Int8;
   TRegisters = record
     DataRegisters: TDataRegisters;          //Регистры данных (8 bit)
     SP: Word;                               //Указатель стека (16 bit)
     PC: Word;                               //Счетчик команд (16 bit)
     PSW: TFlagsRegister;                    //Регистр признаков (8 bit)
-    IR: Byte;                               //Регистр команд (8 bit)
+    IR: Int8;                               //Регистр команд (8 bit)
   end;
 
   TProcessor = class
@@ -54,18 +54,18 @@ type
     procedure InitCpu(EntryPoint: Word);    //Инициализация процессора
     procedure Run;                          //Запустить выполнение
     procedure ShowRegisters;                //Отобразить содержимое регистров на экране
-    procedure PerformALU(Value: Byte);      //Выполнить операцию на АЛУ
-    procedure SetDataReg(DataRegName: TDataRegistersNames; Value: Byte);        //Установить значение регистра
-    function GetDataReg(DataRegName: TDataRegistersNames): Byte;                //Получить значение регистра
+    procedure PerformALU(Value: Int8);      //Выполнить операцию на АЛУ
+    procedure SetDataReg(DataRegName: TDataRegistersNames; Value: Int8);        //Установить значение регистра
+    function GetDataReg(DataRegName: TDataRegistersNames): Int8;                //Получить значение регистра
     procedure SetDataRP(DataRPName: TDataRegistersNames; Value: Word);          //Установить значение регистровой пары
     function GetDataRP(DataRPName: TDataRegistersNames): Word;                  //Получить значение регистровой пары
-    function DataRegNameByTextName(TextName: String): TDataRegistersNames;      //Имя регистра по текстовому имени
-    procedure SetRegAddrValue(Operand: String; Value: Byte);                    //Получить значение по регистровой адресации
-    function GetRegAddrValue(Operand: String): Byte;                            //Установить значение по регистровой адресации
+    function DataRegNameInt8xtName(TextName: String): TDataRegistersNames;      //Имя регистра по текстовому имени
+    procedure SetRegAddrValue(Operand: String; Value: Int8);                    //Получить значение по регистровой адресации
+    function GetRegAddrValue(Operand: String): Int8;                            //Установить значение по регистровой адресации
     procedure SetStackPointer(Value: Word);                                      //Установить значение указателя стека
     function GetStackPointer: Word;                                             //Получить значение указателя стека
     function GetProgramCounter: Word;                                           //Получить значение счетчика команд
-    function GetInstRegister: Byte;                                             //Получить значение регистра команд
+    function GetInstRegister: Int8;                                             //Получить значение регистра команд
     procedure SetFlag(FlagName: TFlagsNames; Value: Boolean = True);            //Установить флаг
     function GetFlag(FlagName: TFlagsNames): Boolean;                           //Получить состояние флага
   end;
@@ -120,7 +120,7 @@ end;
 
 procedure TProcessor.InitDataRegisters;
 var
-  i: byte;
+  i: Int8;
 begin
   with Registers do
   begin
@@ -142,11 +142,11 @@ procedure TProcessor.PerformALU;
 var
   Op1, Op2, Op3: String;
   i: Integer;
-  NewBit: Byte;
-  Carry, Parity: Byte;
+  NewBit: Int8;
+  Carry, Parity: Int8;
 begin
-  Op1 := ByteToBinString(GetDataReg(RA));
-  Op2 := ByteToBinString(Value);
+  Op1 := Int8ToBinString(GetDataReg(RA));
+  Op2 := Int8ToBinString(Value);
   Op3 := '';
   Carry := 0;
   Parity := 0;
@@ -181,10 +181,10 @@ begin
   if Carry = 1 then                     //Перенос из старшего разряда
     SetFlag(FCY);
   //Обновляем аккумулятор
-  SetDataReg(RA,BinStringToByte(Op3));
+  SetDataReg(RA,BinStringToInt8(Op3));
 end;
 
-function TProcessor.DataRegNameByTextName;
+function TProcessor.DataRegNameInt8xtName;
 var
   CurReg: TDataRegistersNames;
 begin
@@ -199,7 +199,7 @@ begin
   if Operand = 'M' then             //Косвенная адресация памяти
     Memory.WriteMemory(GetDataRP(RH), Value)
   else                              //Регистровая адресация
-    SetDataReg(DataRegNameByTextName(Operand), Value);
+    SetDataReg(DataRegNameInt8xtName(Operand), Value);
 end;
 
 function TProcessor.GetRegAddrValue;
@@ -207,7 +207,7 @@ begin
   if Operand = 'M' then             //Косвенная адресация памяти
     Result := Memory.ReadMemory(GetDataRP(RH))
   else                              //Регистровая адресация
-    Result := GetDataReg(DataRegNameByTextName(Operand));
+    Result := GetDataReg(DataRegNameInt8xtName(Operand));
 end;
 
 procedure TProcessor.SetDataReg;
@@ -269,7 +269,7 @@ begin
   Result := Registers.PC;
 end;
 
-function TProcessor.GetInstRegister: Byte;
+function TProcessor.GetInstRegister: Int8;
 begin
   Result := Registers.IR;
 end;
@@ -333,12 +333,12 @@ begin
   Result := Cells[Address];
 end;
 
-procedure TMemory.WriteMemory(Address: Word; Value: Byte);
+procedure TMemory.WriteMemory(Address: Word; Value: Int8);
 begin
   Cells[Address].Numeric := Value;
 end;
 
-function TMemory.ReadMemory(Address: Word): Byte;
+function TMemory.ReadMemory(Address: Word): Int8;
 begin
   Result := Cells[Address].Numeric;
 end;
@@ -363,7 +363,7 @@ begin
   Memory.WriteMemoryObject(Address, CurrentCell);
   //Записываем в память двоичный код команды
   repeat
-    Memory.WriteMemory(Address + CommandSize, BinStringToByte(Copy(CommandCode, CommandSize*8 + 1, 8)));
+    Memory.WriteMemory(Address + CommandSize, BinStringToInt8(Copy(CommandCode, CommandSize*8 + 1, 8)));
     Inc(CommandSize);
   until CommandSize = Size;
   //Возвращаем следующий свободный адрес памяти
@@ -457,7 +457,7 @@ begin
   if Name = 'MOV' then
     CommandCode := '01' + FormatAddrCode(Op1) + FormatAddrCode(Op2)
   else if Name = 'MVI' then
-    CommandCode := '00' + FormatAddrCode(Op1) + '110' + FormatOperandByte(Op2, SBIN)
+    CommandCode := '00' + FormatAddrCode(Op1) + '110' + FormatOperandInt8(Op2, SBIN)
   else if Name = 'LXI' then
     CommandCode := '00' + FormatAddrCode(Op1, True) + '0001' + FormatOperandWord(Op2, SBIN)
   else if Name = 'LDA' then
@@ -488,17 +488,17 @@ begin
     if Name = 'MOV' then
       SetRegAddrValue(Op1, GetRegAddrValue(Op2))
     else if Name = 'MVI' then
-      SetRegAddrValue(Op1, StrToInt(FormatOperandByte(Op2, SDEC)))
+      SetRegAddrValue(Op1, StrToInt(FormatOperandInt8(Op2, SDEC)))
     else if Name = 'LXI' then
-      SetDataRP(DataRegNameByTextName(Op1), StrToInt(FormatOperandWord(Op2, SDEC)))
+      SetDataRP(DataRegNameInt8xtName(Op1), StrToInt(FormatOperandWord(Op2, SDEC)))
     else if Name = 'LDA' then
       SetDataReg(RA, Memory.ReadMemory(StrToInt(FormatOperandWord(Op1, SDEC))))
     else if Name = 'LDAX' then
-      SetDataReg(RA, Memory.ReadMemory(GetDataRP(DataRegNameByTextName(Op1))))
+      SetDataReg(RA, Memory.ReadMemory(GetDataRP(DataRegNameInt8xtName(Op1))))
     else if Name = 'STA' then
       Memory.WriteMemory(StrToInt(FormatOperandWord(Op1, SDEC)), GetDataReg(RA))
     else if Name = 'STAX' then
-      Memory.WriteMemory(GetDataRP(DataRegNameByTextName(Op1)), GetDataReg(RA))
+      Memory.WriteMemory(GetDataRP(DataRegNameInt8xtName(Op1)), GetDataReg(RA))
     else if Name = 'LHLD' then
     begin
       SetDataReg(RL, Memory.ReadMemory(StrToInt(FormatOperandWord(Op1, SDEC))));

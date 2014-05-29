@@ -46,8 +46,8 @@ begin
     end
     else
     begin
-      edtBin.Text := FormatOperandByte(edtHex.Text + 'H', SBIN);
-      edtDec.Text := FormatOperandByte(edtHex.Text + 'H', SDEC);
+      edtBin.Text := FormatOperandInt8(edtHex.Text + 'H', SBIN);
+      edtDec.Text := FormatOperandInt8(edtHex.Text + 'H', SDEC);
     end;
   except
     edtBin.Text := 'Некорректное значение';
@@ -65,8 +65,8 @@ begin
     end
     else
     begin
-      edtHex.Text := FormatOperandByte(edtBin.Text + 'B', SHEX);
-      edtDec.Text := FormatOperandByte(edtBin.Text + 'B', SDEC);
+      edtHex.Text := FormatOperandInt8(edtBin.Text + 'B', SHEX);
+      edtDec.Text := FormatOperandInt8(edtBin.Text + 'B', SDEC);
     end;
   except
     edtHex.Text := 'Некорректное значение';
@@ -84,8 +84,8 @@ begin
     end
     else
     begin
-      edtHex.Text := FormatOperandByte(edtDec.Text, SHEX);
-      edtBin.Text := FormatOperandByte(edtDec.Text, SBIN);
+      edtHex.Text := FormatOperandInt8(edtDec.Text, SHEX);
+      edtBin.Text := FormatOperandInt8(edtDec.Text, SBIN);
     end;
   except
     edtBin.Text := 'Некорректное значение';
