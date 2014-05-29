@@ -11,23 +11,23 @@ uses
 type
   TNumeralSystems = (SBIN, SDEC, SOCT, SHEX);
 
-  function ByteToBinString(Value: Byte): String;                                  //ѕреобразовать байт в двоичную строку из 0 и 1
-  function BinStringToByte(Value: String): Byte;                                  //ѕреобразовать двоичную строку из 0 и 1 в байт
+  function Int8ToBinString(Value: Int8): String;                                  //ѕреобразовать байт в двоичную строку из 0 и 1
+  function BinStringToInt8(Value: String): Int8;                                  //ѕреобразовать двоичную строку из 0 и 1 в байт
   function WordToBinString(Value: Word): String;                                  //ѕреобразовать Word в двоичную строку из 0 и 1
   function BinStringToWord(Value: String): Word;                                  //ѕреобразовать двоичную строку из 0 и 1 в Word
-  function ByteToHexString(Value: Byte): String;                                  //ѕреобразовать байт в шестнадцатеричную строку
-  function HexStringToByte(Value: String): Byte;                                  //ѕреобразовать шестнадцатеричную строку в байт
+  function Int8ToHexString(Value: Int8): String;                                  //ѕреобразовать байт в шестнадцатеричную строку
+  function HexStringToInt8(Value: String): Int8;                                  //ѕреобразовать шестнадцатеричную строку в байт
   function WordToHexString(Value: Word): String;                                  //ѕреобразовать Word в шестнадцатеричную строку
   function HexStringToWord(Value: String): Word;                                  //ѕреобразовать шестнадцатеричную строку в Word
 
   function FormatAddrCode(Value: String; RP: Boolean = False): String;            //ѕолучить двоичную строку (код регистра или пары)
 
-  function FormatOperandByte(Op: String; Sys: TNumeralSystems): String;           //ѕривести 8бит операнд к нужной системе счислени€
+  function FormatOperandInt8(Op: String; Sys: TNumeralSystems): String;           //ѕривести 8бит операнд к нужной системе счислени€
   function FormatOperandWord(Op: String; Sys: TNumeralSystems): String;           //ѕривести 16бит операнд к нужной системе счислени€
 
 implementation
 
-function ByteToBinString;
+function Int8ToBinString;
 var
   i: Integer;
 begin
@@ -41,7 +41,7 @@ begin
   end;
 end;
 
-function BinStringToByte;
+function BinStringToInt8;
 var
   i: Integer;
 begin
@@ -85,12 +85,12 @@ begin
   end;
 end;
 
-function ByteToHexString;
+function Int8ToHexString;
 begin
   Result := IntToHex(Value, 2);
 end;
 
-function HexStringToByte;
+function HexStringToInt8;
 begin
   Result := StrToInt('$' + Value);
 end;
@@ -126,20 +126,20 @@ begin
     end;
 end;
 
-function FormatOperandByte;
+function FormatOperandInt8;
 var
-  Value: Byte;
+  Value: Int8;
 begin
   if Op[Op.Length] = 'B' then
-    Value := BinStringToByte(Copy(Op, 1, Op.Length - 1))
+    Value := BinStringToInt8(Copy(Op, 1, Op.Length - 1))
   else if Op[Op.Length] = 'H' then
-    Value := HexStringToByte(Copy(Op, 1, Op.Length - 1))
+    Value := HexStringToInt8(Copy(Op, 1, Op.Length - 1))
   else
     Value := StrToInt(Op);
   if Sys = SBIN then
-    Result := ByteToBinString(Value)
+    Result := Int8ToBinString(Value)
   else if Sys = SHEX then
-    Result := ByteToHexString(Value)
+    Result := Int8ToHexString(Value)
   else
     Result := IntToStr(Value);
 end;
