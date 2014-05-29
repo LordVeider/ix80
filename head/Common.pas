@@ -9,7 +9,7 @@ uses
   Math, SysUtils;
 
 type
-  TNumeralSystems = (SBIN, SDEC, SOCT, SHEX);
+  TNumeralSystem = (SBIN, SDEC, SOCT, SHEX);
 
   function Int8ToBinString(Value: Int8): String;                                  //ѕреобразовать байт в двоичную строку из 0 и 1
   function BinStringToInt8(Value: String): Int8;                                  //ѕреобразовать двоичную строку из 0 и 1 в байт
@@ -22,10 +22,84 @@ type
 
   function FormatAddrCode(Value: String; RP: Boolean = False): String;            //ѕолучить двоичную строку (код регистра или пары)
 
-  function FormatOperandInt8(Op: String; Sys: TNumeralSystems): String;           //ѕривести 8бит операнд к нужной системе счислени€
-  function FormatOperandWord(Op: String; Sys: TNumeralSystems): String;           //ѕривести 16бит операнд к нужной системе счислени€
+  function FormatOperandInt8(Op: String; Sys: TNumeralSystem): String;           //ѕривести 8бит операнд к нужной системе счислени€
+  function FormatOperandWord(Op: String; Sys: TNumeralSystem): String;           //ѕривести 16бит операнд к нужной системе счислени€
+
+  function HexToInt(Value: String): Integer;                                    //—троковый HEX в число
+  function BinToInt(Value: String): Integer;                                    //—троковый BIN в число
+  function IntToBin(Value: Integer; Digits: Integer): String;                   //„исло в строковый BIN
+
+  function CaseNumeralSystem(Value: String): TNumeralSystem;                    //ќпределение системы счислени€ по формату записи
+  function ConvertNumericString
+    (Value: String; BaseIn, BaseOut: TNumeralSystem; Digits: Integer = 0): String;  //ѕреобразование в систему счислени€
+  function NumericStringToInteger(Value: String): Integer;                          //ѕреобразование к числу
 
 implementation
+
+function HexToInt;
+begin
+  Result := StrToInt('$' + Value);
+end;
+
+function BinToInt;
+var
+  i: Integer;
+begin
+  Result := 0;
+  if Value[1] = '1' then
+    while Value.Length < 32 do
+      Value := '1' + Value;
+  for i := Value.Length downto 1 do
+    if Value[i] = '1' then
+      Result := Result + (1 shl (Value.Length - i));
+end;
+
+function IntToBin;
+var
+  i: Integer;
+begin
+  Result := '';
+  for i := 0 to Digits-1 do
+    if Value and (1 shl i) > 0 then
+      Result := '1' + Result
+    else
+      Result := '0' + Result;
+end;
+
+function CaseNumeralSystem;
+begin
+  if Value[Value.Length] = 'B' then
+    Result := SBIN
+  else if Value[Value.Length] = 'H' then
+    Result := SHEX
+  else
+    Result := SDEC;
+end;
+
+function ConvertNumericString;
+var
+  Temp: Integer;
+begin
+  case BaseIn of
+    SBIN: Temp := BinToInt(Value);
+    SHEX: Temp := HexToInt(Value);
+    SDEC: Temp := StrToInt(Value);
+  end;
+  case BaseOut of
+    SBIN: Result := IntToBin(Temp, Digits);
+    SHEX: Result := IntToHex(Temp, Digits);
+    SDEC: Result := IntToStr(Temp);
+  end;
+end;
+
+function NumericStringToInteger;
+begin
+  Result := StrToInt(ConvertNumericString(Value, CaseNumeralSystem(Value), SDEC));
+end;
+
+
+
+
 
 function Int8ToBinString;
 var

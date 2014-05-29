@@ -63,6 +63,7 @@ type
     btnNextCommand: TToolButton;
     btn8: TToolButton;
     btnTextSaveAs: TToolButton;
+    btn9: TToolButton;
     procedure btnShowMemoryClick(Sender: TObject);
     procedure btnShowSchemeClick(Sender: TObject);
     procedure btnTextOpenClick(Sender: TObject);
@@ -72,6 +73,7 @@ type
     procedure btnMemClearClick(Sender: TObject);
     procedure btnMemUnloadClick(Sender: TObject);
     procedure btn8Click(Sender: TObject);
+    procedure btn9Click(Sender: TObject);
   private
     { Private declarations }
   public
@@ -87,11 +89,16 @@ implementation
 
 {$R *.dfm}
 
-uses FormAbout, FormValue;
+uses FormAbout, FormValue, FormNumeric;
 
 procedure TfrmEditor.btn8Click(Sender: TObject);
 begin
   frmValue.Show;
+end;
+
+procedure TfrmEditor.btn9Click(Sender: TObject);
+begin
+  frmNumeric.Show;
 end;
 
 procedure TfrmEditor.btnMemClearClick(Sender: TObject);
