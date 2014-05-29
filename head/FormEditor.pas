@@ -42,7 +42,7 @@ type
     btn5: TToolButton;
     btnShowMemory: TToolButton;
     btnShowScheme: TToolButton;
-    imglMain: TImageList;
+    ilToolbar: TImageList;
     redtCode: TRichEdit;
     redtMsg: TRichEdit;
     dlgSaveMain: TSaveDialog;
@@ -58,6 +58,11 @@ type
     miHelpCommands: TMenuItem;
     miN2: TMenuItem;
     grdLines: TStringGrid;
+    btn6: TToolButton;
+    btnNextStep: TToolButton;
+    btnNextCommand: TToolButton;
+    btn8: TToolButton;
+    btnTextSaveAs: TToolButton;
     procedure btnShowMemoryClick(Sender: TObject);
     procedure btnShowSchemeClick(Sender: TObject);
     procedure btnTextOpenClick(Sender: TObject);
@@ -66,6 +71,7 @@ type
     procedure miHelpAboutClick(Sender: TObject);
     procedure btnMemClearClick(Sender: TObject);
     procedure btnMemUnloadClick(Sender: TObject);
+    procedure btn8Click(Sender: TObject);
   private
     { Private declarations }
   public
@@ -81,7 +87,12 @@ implementation
 
 {$R *.dfm}
 
-uses FormAbout;
+uses FormAbout, FormValue;
+
+procedure TfrmEditor.btn8Click(Sender: TObject);
+begin
+  frmValue.Show;
+end;
 
 procedure TfrmEditor.btnMemClearClick(Sender: TObject);
 begin
@@ -98,7 +109,9 @@ var
   par1: TCommandParser;
   tempc: TCommand;
   ad: Word;
+  compiled: Boolean;
 begin
+  compiled := True;
   ad := 5;
   if not Assigned(MEM) then
     MEM := TMemory.Create;
@@ -108,12 +121,17 @@ begin
   begin
     if par1.ParseCommand(redtCode.Lines.Strings[i], tempc) then
     begin
-      redtMsg.Lines.Add(tempc.ShowSummary);
+      //redtMsg.Lines.Add(tempc.ShowSummary);
       ad := tempc.WriteToMemory(MEM, ad);
     end
     else
-      redtMsg.Lines.Add('error parsing command');
+    begin
+      redtMsg.Lines.Add('Ошибка: неверная команда (строка: ' + IntToStr(i+1) + ')');
+      compiled := False;
+    end;
   end;
+  if compiled then
+    redtMsg.Lines.Add('Программа успешно транслирована в память');
   MEM.ShowNewMem;
 end;
 
