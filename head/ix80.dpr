@@ -8,7 +8,8 @@ uses
   Common in 'Common.pas',
   Logic in 'Logic.pas',
   FormAbout in 'FormAbout.pas' {frmAbout},
-  FormValue in 'FormValue.pas' {frmValue};
+  FormValue in 'FormValue.pas' {frmValue},
+  FormNumeric in 'FormNumeric.pas' {frmNumeric};
 
 {$R *.res}
 
@@ -21,5 +22,6 @@ begin
   Application.CreateForm(TfrmScheme, frmScheme);
   Application.CreateForm(TfrmAbout, frmAbout);
   Application.CreateForm(TfrmValue, frmValue);
+  Application.CreateForm(TfrmNumeric, frmNumeric);
   Application.Run;
 end.
