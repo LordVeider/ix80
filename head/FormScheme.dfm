@@ -1711,10 +1711,11 @@ object frmScheme: TfrmScheme
     Caption = #1051#1086#1075
     TabOrder = 1
     object redtLog: TRichEdit
-      Left = 3
-      Top = 18
-      Width = 779
-      Height = 89
+      Left = 2
+      Top = 15
+      Width = 781
+      Height = 93
+      Align = alClient
       Font.Charset = RUSSIAN_CHARSET
       Font.Color = clWindowText
       Font.Height = -11
@@ -1733,6 +1734,8 @@ object frmScheme: TfrmScheme
       ScrollBars = ssVertical
       TabOrder = 0
       Zoom = 100
+      ExplicitWidth = 613
+      ExplicitHeight = 66
     end
   end
 end
