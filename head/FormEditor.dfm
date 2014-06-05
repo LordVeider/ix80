@@ -31,6 +31,7 @@ object frmEditor: TfrmEditor
       Top = 0
       Hint = #1054#1095#1080#1089#1090#1080#1090#1100' '#1080#1089#1093#1086#1076#1085#1099#1081' '#1082#1086#1076
       Caption = 'btnNew'
+      Enabled = False
       ImageIndex = 0
     end
     object btnTextOpen: TToolButton
@@ -38,6 +39,7 @@ object frmEditor: TfrmEditor
       Top = 0
       Hint = #1054#1090#1082#1088#1099#1090#1100' '#1092#1072#1081#1083' '#1089' '#1080#1089#1093#1086#1076#1085#1099#1084' '#1082#1086#1076#1086#1084
       Caption = 'btnTextOpen'
+      Enabled = False
       ImageIndex = 1
       OnClick = btnTextOpenClick
     end
@@ -46,12 +48,14 @@ object frmEditor: TfrmEditor
       Top = 0
       Hint = #1057#1086#1093#1088#1072#1085#1080#1090#1100' '#1080#1089#1093#1086#1076#1085#1099#1081' '#1082#1086#1076' '#1074' '#1092#1072#1081#1083
       Caption = 'btnTextSave'
+      Enabled = False
       ImageIndex = 2
     end
     object btnTextSaveAs: TToolButton
       Left = 69
       Top = 0
       Caption = 'btnTextSaveAs'
+      Enabled = False
       ImageIndex = 3
     end
     object btn1: TToolButton
@@ -157,6 +161,7 @@ object frmEditor: TfrmEditor
       Top = 0
       Hint = #1047#1072#1075#1088#1091#1079#1080#1090#1100' '#1076#1072#1084#1087' '#1087#1072#1084#1103#1090#1080' '#1080#1079' '#1092#1072#1081#1083#1072
       Caption = 'btnDumpLoad'
+      Enabled = False
       ImageIndex = 1
     end
     object btnDumpSave: TToolButton
@@ -164,6 +169,7 @@ object frmEditor: TfrmEditor
       Top = 0
       Hint = #1057#1086#1093#1088#1072#1085#1080#1090#1100' '#1076#1072#1084#1087' '#1087#1072#1084#1103#1090#1080' '#1074' '#1092#1072#1081#1083
       Caption = 'btnDumpSave'
+      Enabled = False
       ImageIndex = 2
     end
     object btnMemClear: TToolButton
@@ -204,6 +210,7 @@ object frmEditor: TfrmEditor
       Hint = #1042#1099#1087#1086#1083#1085#1080#1090#1100' '#1074' '#1087#1086#1096#1072#1075#1086#1074#1086#1084' '#1088#1077#1078#1080#1084#1077
       Caption = 'btnRunStep'
       ImageIndex = 12
+      OnClick = btnRunStepClick
     end
     object btn6: TToolButton
       Left = 431
@@ -218,21 +225,27 @@ object frmEditor: TfrmEditor
       Top = 0
       Hint = #1057#1083#1077#1076#1091#1102#1097#1080#1081' '#1096#1072#1075
       Caption = 'btnNextStep'
+      Enabled = False
       ImageIndex = 21
+      OnClick = btnNextStepClick
     end
     object btnNextCommand: TToolButton
       Left = 462
       Top = 0
       Hint = #1057#1083#1077#1076#1091#1102#1097#1072#1103' '#1082#1086#1084#1072#1085#1076#1072
       Caption = 'btnNextCommand'
+      Enabled = False
       ImageIndex = 20
+      OnClick = btnNextCommandClick
     end
     object btnStop: TToolButton
       Left = 485
       Top = 0
       Hint = #1054#1089#1090#1072#1085#1086#1074#1080#1090#1100' '#1074#1099#1087#1086#1083#1085#1077#1085#1080#1077
       Caption = 'btnStop'
+      Enabled = False
       ImageIndex = 13
+      OnClick = btnStopClick
     end
     object btn5: TToolButton
       Left = 508
@@ -271,6 +284,7 @@ object frmEditor: TfrmEditor
       Top = 0
       Caption = 'btn9'
       ImageIndex = 23
+      Visible = False
     end
   end
   object redtCode: TRichEdit
@@ -399,7 +413,7 @@ object frmEditor: TfrmEditor
     Left = 8
     Top = 80
     Bitmap = {
-      494C01011800F000800010001000FFFFFFFF2110FFFFFFFFFFFFFFFF424D3600
+      494C01011800F000840010001000FFFFFFFF2110FFFFFFFFFFFFFFFF424D3600
       0000000000003600000028000000400000007000000001002000000000000070
       0000000000000000000000000000000000000000000000000000000000000000
       0000000000000000000000000000000000000000000000000000000000000000

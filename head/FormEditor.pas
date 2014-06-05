@@ -8,7 +8,7 @@ interface
 uses
   Winapi.Windows, Winapi.Messages, System.SysUtils, System.Variants, System.Classes, Vcl.Graphics,
   Vcl.Controls, Vcl.Forms, Vcl.Dialogs, Vcl.Menus, Vcl.ToolWin, Vcl.ComCtrls,
-  Vcl.ImgList, Vcl.StdCtrls, FormMemory, FormScheme, Common, Logic, Vcl.Grids;
+  Vcl.ImgList, Vcl.StdCtrls, SyncObjs, FormMemory, FormScheme, Common, Logic, Vcl.Grids;
 
 type
   TfrmEditor = class(TForm)
@@ -73,6 +73,10 @@ type
     procedure btnMemClearClick(Sender: TObject);
     procedure btnMemUnloadClick(Sender: TObject);
     procedure btn8Click(Sender: TObject);
+    procedure btnNextStepClick(Sender: TObject);
+    procedure btnNextCommandClick(Sender: TObject);
+    procedure btnRunStepClick(Sender: TObject);
+    procedure btnStopClick(Sender: TObject);
   private
     { Private declarations }
   public
@@ -150,11 +154,62 @@ begin
   begin
     if not Assigned(CPU) then
       CPU := TProcessor.Create(MEM);
+    //CPU.StopSection := TEvent.Create(nil, False, False, '');
+    //CPU.StopSection.Enter;
+      btnRunReal.Enabled := False;
+      btnRunStep.Enabled := False;
+      btnStop. Enabled := True;
+      btnNextCommand.Enabled := False;
+      btnMemClear.Enabled := False;
+      btnMemUnload.Enabled := False;
     CPU.InitCpu(5);
     CPU.Run;
     //CPU.ShowRegisters;
     //MEM.ShowNewMem;
   end;
+end;
+
+procedure TfrmEditor.btnRunStepClick(Sender: TObject);
+begin
+  if Assigned(MEM) then
+  begin
+    if not Assigned(CPU) then
+      CPU := TProcessor.Create(MEM);
+    CPU.StopSection := TEvent.Create(nil, False, False, '');
+      btnRunReal.Enabled := False;
+      btnRunStep.Enabled := False;
+      btnStop. Enabled := True;
+      btnNextCommand.Enabled := True;
+      btnMemClear.Enabled := False;
+      btnMemUnload.Enabled := False;
+    //CPU.StopSection.Enter;
+    CPU.InitCpu(5);
+    CPU.Run;
+    //CPU.ShowRegisters;
+    //MEM.ShowNewMem;
+  end;
+end;
+
+procedure TfrmEditor.btnNextCommandClick(Sender: TObject);
+begin
+  if Assigned(CPU.StopSection) then
+  begin
+    //CPU.StopSection.Leave;
+    //CPU.StopSection.Enter;
+    CPU.StopSection.SetEvent;
+  end;
+end;
+
+procedure TfrmEditor.btnNextStepClick(Sender: TObject);
+begin
+  //CPU.StopSection.Leave;
+end;
+
+procedure TfrmEditor.btnStopClick(Sender: TObject);
+begin
+  CPU.ProcessorThread.Terminate;
+  if Assigned(CPU.StopSection) then
+    CPU.StopSection.SetEvent;
 end;
 
 procedure TfrmEditor.btnShowMemoryClick(Sender: TObject);
