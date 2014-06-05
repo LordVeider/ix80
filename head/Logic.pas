@@ -33,13 +33,12 @@ type
 
   TFlagsNames = (FS, FZ, FAC, FP, FCY);
   TFlagsRegister = array [TFlagsNames] of Boolean;
-  TDataRegistersNames = (RA, RB, RC, RD, RE, RH, RL, RW, RZ);
+  TDataRegistersNames = (RA, RF, RB, RC, RD, RE, RH, RL, RW, RZ);
   TDataRegisters = array [TDataRegistersNames] of Int8;
   TRegisters = record
     DataRegisters: TDataRegisters;          //Регистры данных (8 bit)
     SP: Word;                               //Указатель стека (16 bit)
     PC: Word;                               //Счетчик команд (16 bit)
-    PSW: TFlagsRegister;                    //Регистр признаков (8 bit)
     IR: Int8;                               //Регистр команд (8 bit)
   end;
 
@@ -49,6 +48,7 @@ type
     Memory: TMemory;                        //Память
     Registers: TRegisters;                  //Регистры
     procedure InitDataRegisters;            //Инициализация регистров
+    procedure InitFlags;                    //Инициализация регистра флагов
   public
     constructor Create(Memory: TMemory);
     procedure InitCpu(EntryPoint: Word);    //Инициализация процессора
@@ -62,11 +62,11 @@ type
     function DataRegNameInt8xtName(TextName: String): TDataRegistersNames;      //Имя регистра по текстовому имени
     procedure SetRegAddrValue(Operand: String; Value: Int8);                    //Получить значение по регистровой адресации
     function GetRegAddrValue(Operand: String): Int8;                            //Установить значение по регистровой адресации
-    procedure SetStackPointer(Value: Word);                                      //Установить значение указателя стека
+    procedure SetStackPointer(Value: Word);                                     //Установить значение указателя стека
     function GetStackPointer: Word;                                             //Получить значение указателя стека
     function GetProgramCounter: Word;                                           //Получить значение счетчика команд
     function GetInstRegister: Int8;                                             //Получить значение регистра команд
-    procedure SetFlag(FlagName: TFlagsNames; Value: Boolean = True);            //Установить флаг
+    procedure SetFlag(FlagName: TFlagsNames);                                   //Установить флаг
     function GetFlag(FlagName: TFlagsNames): Boolean;                           //Получить состояние флага
   end;
 
@@ -120,22 +120,10 @@ end;
 
 procedure TProcessor.InitDataRegisters;
 var
-  i: Int8;
+  CurReg: TDataRegistersNames;
 begin
-  with Registers do
-  begin
-    {A := 0;
-    B := 0;
-    C := 0;
-    D := 0;
-    E := 0;
-    H := 0;
-    L := 0;
-    W := 0;
-    Z := 0;}
-    for i := 1 to 9 do
-      DataRegisters[TDataRegistersNames(i)] := 0;
-  end;
+  for CurReg := Low(TDataRegistersNames) to High(TDataRegistersNames) do
+    Registers.DataRegisters[CurReg] := 0;
 end;
 
 procedure TProcessor.PerformALU;
@@ -166,7 +154,7 @@ begin
     if NewBit = 1 then
       Inc(Parity);
     //Выставляем флаг вспомогательного переноса
-    if (i = 5) and (Carry = 1) then
+    if (i = 4) and (Carry = 1) then
       SetFlag(FAC);
     //Конечный результат
     Op3 := IntToStr(NewBit) + Op3;
@@ -224,6 +212,10 @@ procedure TProcessor.SetDataRP;
 begin
   //Определяем регистровую пару и записываем отдельно старший и младший байты
   case DataRPName of
+    RA: begin
+          SetDataReg(RA, Hi(Value));
+          SetDataReg(RF, Lo(Value));
+        end;
     RB: begin
           SetDataReg(RB, Hi(Value));
           SetDataReg(RC, Lo(Value));
@@ -247,6 +239,7 @@ function TProcessor.GetDataRP;
 begin
   //Определяем регистровую пару и преобразуем два байта в Word
   case DataRPName of
+    RA: Result := GetDataReg(RF) + (GetDataReg(RA) shl 8);
     RB: Result := GetDataReg(RC) + (GetDataReg(RB) shl 8);
     RD: Result := GetDataReg(RE) + (GetDataReg(RD) shl 8);
     RH: Result := GetDataReg(RL) + (GetDataReg(RH) shl 8);
@@ -274,14 +267,41 @@ begin
   Result := Registers.IR;
 end;
 
-procedure TProcessor.SetFlag(FlagName: TFlagsNames; Value: Boolean);
+procedure TProcessor.InitFlags;
 begin
-  Registers.PSW[FlagName] := Value;
+  Registers.DataRegisters[RF] := 2; //00000010
 end;
 
-function TProcessor.GetFlag(FlagName: TFlagsNames): Boolean;
+procedure TProcessor.SetFlag;
+var
+  Shift: Byte;
 begin
-  Result := Registers.PSW[FlagName];
+  //Определяем бит
+  case FlagName of
+    FS:  Shift := 7;
+    FZ:  Shift := 6;
+    FAC: Shift := 4;
+    FP:  Shift := 2;
+    FCY: Shift := 0;
+  end;
+  //Меняем бит
+  Registers.DataRegisters[RF] := Registers.DataRegisters[RF] or (1 shl Shift);
+end;
+
+function TProcessor.GetFlag;
+var
+  Shift: Byte;
+begin
+  //Определяем бит
+  case FlagName of
+    FS:  Shift := 7;
+    FZ:  Shift := 6;
+    FAC: Shift := 4;
+    FP:  Shift := 2;
+    FCY: Shift := 0;
+  end;
+  //Считываем бит
+  Result := (Registers.DataRegisters[RF] shr Shift) and 1 = 1;
 end;
 
 procedure TProcessor.InitCpu(EntryPoint: Word);

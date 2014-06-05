@@ -186,6 +186,8 @@ begin
       'B': Result := '00';
       'D': Result := '01';
       'H': Result := '10';
+      else if Value = 'PSW' then
+        Result := '11';
     end
   else
     case Value[1] of
