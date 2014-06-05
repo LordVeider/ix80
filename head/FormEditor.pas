@@ -152,8 +152,8 @@ begin
       CPU := TProcessor.Create(MEM);
     CPU.InitCpu(5);
     CPU.Run;
-    CPU.ShowRegisters;
-    MEM.ShowNewMem;
+    //CPU.ShowRegisters;
+    //MEM.ShowNewMem;
   end;
 end;
 
