@@ -62,8 +62,8 @@ begin
     edtL.Text := GetDataReg(RL).ToString;
     edtW.Text := GetDataReg(RW).ToString;
     edtZ.Text := GetDataReg(RZ).ToString;
-    edtSP.Text := WordToHexString(GetStackPointer) + 'H';
-    edtPC.Text := WordToHexString(GetProgramCounter) + 'H';
+    edtSP.Text := IntToNumStr(GetStackPointer, SHEX, 4) + 'H';
+    edtPC.Text := IntToNumStr(GetProgramCounter, SHEX, 4) + 'H';
     edtIR.Text := GetInstRegister.ToString;
     with grdPSW do
     begin

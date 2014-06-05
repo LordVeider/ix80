@@ -9,30 +9,24 @@ uses
   Math, SysUtils;
 
 type
-  TNumeralSystem = (SBIN, SDEC, SOCT, SHEX);
+  TNumSys = (SBIN, SDEC, SOCT, SHEX);
 
-  function Int8ToBinString(Value: Int8): String;                                  //ѕреобразовать байт в двоичную строку из 0 и 1
-  function BinStringToInt8(Value: String): Int8;                                  //ѕреобразовать двоичную строку из 0 и 1 в байт
-  function WordToBinString(Value: Word): String;                                  //ѕреобразовать Word в двоичную строку из 0 и 1
-  function BinStringToWord(Value: String): Word;                                  //ѕреобразовать двоичную строку из 0 и 1 в Word
-  function Int8ToHexString(Value: Int8): String;                                  //ѕреобразовать байт в шестнадцатеричную строку
-  function HexStringToInt8(Value: String): Int8;                                  //ѕреобразовать шестнадцатеричную строку в байт
-  function WordToHexString(Value: Word): String;                                  //ѕреобразовать Word в шестнадцатеричную строку
-  function HexStringToWord(Value: String): Word;                                  //ѕреобразовать шестнадцатеричную строку в Word
-
-  function FormatAddrCode(Value: String; RP: Boolean = False): String;            //ѕолучить двоичную строку (код регистра или пары)
-
-  function FormatOperandInt8(Op: String; Sys: TNumeralSystem): String;           //ѕривести 8бит операнд к нужной системе счислени€
-  function FormatOperandWord(Op: String; Sys: TNumeralSystem): String;           //ѕривести 16бит операнд к нужной системе счислени€
+  function FormatAddrCode(Value: String; RP: Boolean = False): String;          //ѕолучить двоичную строку (код регистра или пары)
 
   function HexToInt(Value: String): Integer;                                    //—троковый HEX в число
   function BinToInt(Value: String): Integer;                                    //—троковый BIN в число
   function IntToBin(Value: Integer; Digits: Integer): String;                   //„исло в строковый BIN
 
-  function CaseNumeralSystem(Value: String): TNumeralSystem;                    //ќпределение системы счислени€ по формату записи
-  function ConvertNumericString
-    (Value: String; BaseIn, BaseOut: TNumeralSystem; Digits: Integer = 0): String;  //ѕреобразование в систему счислени€
-  function NumericStringToInteger(Value: String): Integer;                          //ѕреобразование к числу
+  function ConvertNumStr
+    (Value: String; BaseIn, BaseOut: TNumSys; Digits: Integer = 0): String;     //ѕреобразование в систему счислени€
+  function NumStrToInt
+    (Value: String; Base: TNumSys): Integer;                                    //ѕреобразование к числу
+  function ConvertNumStrAuto
+    (Value: String; Base: TNumSys; Digits: Integer = 0): String;                //ѕреобразование в систему счислени€ (автовыбор исходной CC)
+  function NumStrToIntAuto
+    (Value: String): Integer;                                                   //ѕреобразование к числу (автовыбор исходной CC)
+  function IntToNumStr
+    (Value: Integer; Base: TNumSys; Digits: Integer = 0): String;               //ѕреобразование к строке
 
 implementation
 
@@ -46,7 +40,7 @@ var
   i: Integer;
 begin
   Result := 0;
-  if Value[1] = '1' then
+  if (Value.Length mod 8 = 0) AND (Value[1] = '1') then
     while Value.Length < 32 do
       Value := '1' + Value;
   for i := Value.Length downto 1 do
@@ -66,17 +60,7 @@ begin
       Result := '0' + Result;
 end;
 
-function CaseNumeralSystem;
-begin
-  if Value[Value.Length] = 'B' then
-    Result := SBIN
-  else if Value[Value.Length] = 'H' then
-    Result := SHEX
-  else
-    Result := SDEC;
-end;
-
-function ConvertNumericString;
+function ConvertNumStr;
 var
   Temp: Integer;
 begin
@@ -92,91 +76,29 @@ begin
   end;
 end;
 
-function NumericStringToInteger;
+function NumStrToInt;
 begin
-  Result := StrToInt(ConvertNumericString(Value, CaseNumeralSystem(Value), SDEC));
+  Result := StrToInt(ConvertNumStr(Value, Base, SDEC));
 end;
 
-
-
-
-
-function Int8ToBinString;
-var
-  i: Integer;
+function ConvertNumStrAuto;
 begin
-  Result := '';
-  for i := 0 to 7 do
-  begin
-    if Value and (1 shl i) > 0 then
-      Result := '1' + Result
-    else
-      Result := '0' + Result;
-  end;
+  if Value[Value.Length] = 'B' then
+    Result := ConvertNumStr(Copy(Value, 1, Value.Length-1), SBIN, Base, Digits)
+  else if Value[Value.Length] = 'H' then
+    Result := ConvertNumStr(Copy(Value, 1, Value.Length-1), SHEX, Base, Digits)
+  else
+    Result := ConvertNumStr(Value, SDEC, Base, Digits);
 end;
 
-function BinStringToInt8;
-var
-  i: Integer;
+function NumStrToIntAuto;
 begin
-  Result := 0;
-  while Value.Length < 8 do
-    Value := '0' + Value;
-  for i := 1 to 8 do
-  begin
-    Result := Result shl 1;
-    if Value[i] = '1' then
-      Result := Result or 1;
-  end;
+  Result := StrToInt(ConvertNumStrAuto(Value, SDEC));
 end;
 
-function WordToBinString;
-var
-  i: Integer;
+function IntToNumStr;
 begin
-  Result := '';
-  for i := 0 to 15 do
-  begin
-    if Value and (1 shl i) > 0 then
-      Result := '1' + Result
-    else
-      Result := '0' + Result;
-  end;
-end;
-
-function BinStringToWord;
-var
-  i: Integer;
-begin
-  Result := 0;
-  while Value.Length < 16 do
-    Value := '0' + Value;
-  for i := 1 to 16 do
-  begin
-    Result := Result shl 1;
-    if Value[i] = '1' then
-      Result := Result or 1;
-  end;
-end;
-
-function Int8ToHexString;
-begin
-  Result := IntToHex(Value, 2);
-end;
-
-function HexStringToInt8;
-begin
-  Result := StrToInt('$' + Value);
-end;
-
-function WordToHexString;
-begin
-  Result := IntToHex(Value, 4);
-end;
-
-function HexStringToWord;
-begin
-  Result := StrToInt('$' + Value);
+  Result := ConvertNumStr(IntToStr(Value), SDEC, Base, Digits);
 end;
 
 function FormatAddrCode;
@@ -200,42 +122,6 @@ begin
       'M': Result := '110';
       'A': Result := '111';
     end;
-end;
-
-function FormatOperandInt8;
-var
-  Value: Int8;
-begin
-  if Op[Op.Length] = 'B' then
-    Value := BinStringToInt8(Copy(Op, 1, Op.Length - 1))
-  else if Op[Op.Length] = 'H' then
-    Value := HexStringToInt8(Copy(Op, 1, Op.Length - 1))
-  else
-    Value := StrToInt(Op);
-  if Sys = SBIN then
-    Result := Int8ToBinString(Value)
-  else if Sys = SHEX then
-    Result := Int8ToHexString(Value)
-  else
-    Result := IntToStr(Value);
-end;
-
-function FormatOperandWord;
-var
-  Value: Word;
-begin
-  if Op[Op.Length] = 'B' then
-    Value := BinStringToWord(Copy(Op, 1, Op.Length - 1))
-  else if Op[Op.Length] = 'H' then
-    Value := HexStringToWord(Copy(Op, 1, Op.Length - 1))
-  else
-    Value := StrToInt(Op);
-  if Sys = SBIN then
-    Result := WordToBinString(Value)
-  else if Sys = SHEX then
-    Result := WordToHexString(Value)
-  else
-    Result := IntToStr(Value);
 end;
 
 end.

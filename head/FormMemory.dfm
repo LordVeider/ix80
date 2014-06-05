@@ -27,8 +27,6 @@ object frmMemory: TfrmMemory
     RowCount = 100
     ScrollBars = ssVertical
     TabOrder = 0
-    ExplicitWidth = 582
-    ExplicitHeight = 472
   end
   object grdNewMem: TStringGrid
     Left = 0
@@ -44,8 +42,5 @@ object frmMemory: TfrmMemory
     FixedRows = 0
     ScrollBars = ssVertical
     TabOrder = 1
-    ExplicitLeft = 51
-    ExplicitTop = -179
-    ExplicitHeight = 703
   end
 end

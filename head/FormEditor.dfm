@@ -26,7 +26,6 @@ object frmEditor: TfrmEditor
     ParentShowHint = False
     ShowHint = True
     TabOrder = 0
-    ExplicitTop = -6
     object btnNew: TToolButton
       Left = 0
       Top = 0
@@ -272,7 +271,6 @@ object frmEditor: TfrmEditor
       Top = 0
       Caption = 'btn9'
       ImageIndex = 23
-      OnClick = btn9Click
     end
   end
   object redtCode: TRichEdit
@@ -401,7 +399,7 @@ object frmEditor: TfrmEditor
     Left = 8
     Top = 80
     Bitmap = {
-      494C01011800F0007C0010001000FFFFFFFF2110FFFFFFFFFFFFFFFF424D3600
+      494C01011800F000800010001000FFFFFFFF2110FFFFFFFFFFFFFFFF424D3600
       0000000000003600000028000000400000007000000001002000000000000070
       0000000000000000000000000000000000000000000000000000000000000000
       0000000000000000000000000000000000000000000000000000000000000000
