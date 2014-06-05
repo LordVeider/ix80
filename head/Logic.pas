@@ -10,11 +10,12 @@ uses
   Classes, SyncObjs, Common;
 
 const
-  CMD_DATA          = '#MOV#MVI#LXI#LDA#STA#LDAX#STAX#LHLD#SHLD#XCHG#SPHL#PUSH#POP#XTHL#';
-  CMD_ARTH          = '#ADD#ADC#ADI#ACI#INR#DAD#INX#DAA#SUB#SBB#SUI#SBI#DCR#DCX#CMP#CPI#';
-  CMD_LOGC          = '#ANA#ORA#XRA#ANI#ORI#XRI#CMA#RAL#RAR#RLC#RRC#';
-  CMD_CTRL          = '#JMP#CALL#RET#PCHL#RST#JNC#JC#JNZ#JZ#JP#JM#JO#JPE#CNC#CC#CNZ#CZ#CP#CM#CO#CPE#RNC#RC#RNZ#RZ#RP#RM#RO#RPE#';
-  CMD_SYST          = '#NOP#HLT#STC#CMC#';
+  CMD_DATA          = '#MOV#MVI#LXI#LDA#STA#LDAX#STAX#LHLD#SHLD#XCHG#';
+  CMD_STCK          = '#PUSH#POP#SPHL#XTHL#';
+  CMD_ARTH          = '#ADD#ADC#ADI#ACI#SUB#SBB#SUI#SBI#INR#INX#DCR#DCX#DAD#DAA#';
+  CMD_LOGC          = '#ANA#ORA#XRA#ANI#ORI#XRI#CMP#CPI#RAL#RAR#RLC#RRC#CMA#CMC#STC#';
+  CMD_CTRL          = '#JMP#CALL#RET#RST#PCHL#JNC#JC#JNZ#JZ#JP#JM#JPO#JPE#CNC#CC#CNZ#CZ#CP#CM#CPO#CPE#RNC#RC#RNZ#RZ#RP#RM#RPO#RPE#';
+  CMD_SYST          = '#NOP#HLT#';
 
 type
   TMemoryCell = record
@@ -98,18 +99,31 @@ type
     procedure Execute(Processor: TProcessor);                                   //Выполнить команду на процессоре
   end;
 
-  TArithmCommand = class(TCommand)            //Команды арифметики
-  public
-    constructor Create(Name: String; Op1, Op2: String);
-    procedure Execute(Processor: TProcessor);
-  end;
-  TLogicCommand = class(TCommand);           //КОманды логики
   TDataCommand = class(TCommand)            //Команды пересылки данных
   public
     constructor Create(Name: String; Op1, Op2: String);
     procedure Execute(Processor: TProcessor);
   end;
-  TCtrlCommand = class(TCommand);           //Команды переходов и передачи управления
+  TStackCommand = class(TCommand)            //Команды обращения со стеком
+  public
+    constructor Create(Name: String; Op1, Op2: String);
+    procedure Execute(Processor: TProcessor);
+  end;
+  TArithmCommand = class(TCommand)            //Команды арифметики
+  public
+    constructor Create(Name: String; Op1, Op2: String);
+    procedure Execute(Processor: TProcessor);
+  end;
+  TLogicCommand = class(TCommand)           //Команды логики
+  public
+    constructor Create(Name: String; Op1, Op2: String);
+    procedure Execute(Processor: TProcessor);
+  end;
+  TCtrlCommand = class(TCommand)           //Команды переходов и передачи управления
+  public
+    constructor Create(Name: String; Op1, Op2: String);
+    procedure Execute(Processor: TProcessor);
+  end;
   TSysCommand = class(TCommand)            //Команды управления процессором
   public
     constructor Create(Name: String; Op1, Op2: String);
@@ -490,70 +504,6 @@ begin
   Result := 'Command: #' + Name + '#, OP1: #' + Op1 + '#, OP2: #' + Op2 + '#, Code: #' + CommandCode + '#';
 end;
 
-{ TMathCommand }
-
-constructor TArithmCommand.Create(Name, Op1, Op2: String);
-begin
-  inherited;
-  //Сложение
-  if Name = 'ADD' then
-    CommandCode := '10000' + FormatAddrCode(Op1)
-  else if Name = 'ADI' then
-    CommandCode := '11000110'
-  else if Name = 'ADC' then
-    CommandCode := '10001' + FormatAddrCode(Op1)
-  else if Name = 'ACI' then
-    CommandCode := '11001110'
-  //Вычитание
-  else if Name = 'SUB' then
-    CommandCode := '10010' + FormatAddrCode(Op1)
-  else if Name = 'SUI' then
-    CommandCode := '11010110'
-  else if Name = 'SBB' then
-    CommandCode := '10011' + FormatAddrCode(Op1)
-  else if Name = 'SBI' then
-    CommandCode := '11011110'
-  //Логические операции
-  else if Name = 'ANA' then
-    CommandCode := '10100' + FormatAddrCode(Op1)
-  else if Name = 'ANI' then
-    CommandCode := '11100110'
-  else if Name = 'XRA' then
-    CommandCode := '10101' + FormatAddrCode(Op1)
-  else if Name = 'XRI' then
-    CommandCode := '11101110'
-  else if Name = 'ORA' then
-    CommandCode := '10110' + FormatAddrCode(Op1)
-  else if Name = 'ORI' then
-    CommandCode := '11110110'
-  //Сравнение
-  else if Name = 'CMP' then
-    CommandCode := '10111' + FormatAddrCode(Op1)
-  else if Name = 'CPI' then
-    CommandCode := '11111110'
-  //Инкремент/декремент
-  else if Name = 'INR' then
-    CommandCode := '00' + FormatAddrCode(Op1) + '100'
-  else if Name = 'INX' then
-    CommandCode := '00' + FormatAddrCode(Op1, True) + '0011'
-  else if Name = 'DCR' then
-    CommandCode := '00' + FormatAddrCode(Op1) + '101'
-  else if Name = 'DCX' then
-    CommandCode := '00' + FormatAddrCode(Op1, True) + '1011';
-end;
-
-procedure TArithmCommand.Execute(Processor: TProcessor);
-begin
-  inherited;
-  with Processor do
-  begin
-    if Name = 'ADD' then
-    begin
-      PerformALU(GetRegAddrValue(Op1));
-    end;
-  end;
-end;
-
 { TDataCommand }
 
 constructor TDataCommand.Create;
@@ -567,22 +517,18 @@ begin
     CommandCode := '00' + FormatAddrCode(Op1, True) + '0001' + ConvertNumStrAuto(Op2, SBIN, 16)
   else if Name = 'LDA' then
     CommandCode := '00111010' + ConvertNumStrAuto(Op1, SBIN, 16)
-  else if Name = 'LHLD' then
-    CommandCode := '00101010' + ConvertNumStrAuto(Op1, SBIN, 16)
-  else if Name = 'LDAX' then
-    CommandCode := '00' + FormatAddrCode(Op1, True) + '1010'
-  else if Name = 'XCHG' then
-    CommandCode := '11101011'
   else if Name = 'STA' then
     CommandCode := '00110010' + ConvertNumStrAuto(Op1, SBIN, 16)
-  else if Name = 'SHLD' then
-    CommandCode := '00100010' + ConvertNumStrAuto(Op1, SBIN, 16)
+  else if Name = 'LDAX' then
+    CommandCode := '00' + FormatAddrCode(Op1, True) + '1010'
   else if Name = 'STAX' then
     CommandCode := '00' + FormatAddrCode(Op1, True) + '0010'
-  else if Name = 'SPHL' then
-    CommandCode := '11111001'
-  else if Name = 'XTHL' then
-    CommandCode := '11100011';
+  else if Name = 'LHLD' then
+    CommandCode := '00101010' + ConvertNumStrAuto(Op1, SBIN, 16)
+  else if Name = 'SHLD' then
+    CommandCode := '00100010' + ConvertNumStrAuto(Op1, SBIN, 16)
+  else if Name = 'XCHG' then
+    CommandCode := '11101011';
 end;
 
 procedure TDataCommand.Execute;
@@ -621,8 +567,33 @@ begin
       Temp16 := GetDataRP(RH);
       SetDataRP(RH, GetDataRP(RD));
       SetDataRP(RD, Temp16);
-    end
-    else if Name = 'SPHL' then
+    end;
+  end;
+end;
+
+{ TStackCommand }
+
+constructor TStackCommand.Create(Name, Op1, Op2: String);
+begin
+  inherited;
+  if Name = 'PUSH' then
+    CommandCode := '11' + FormatAddrCode(Op1, True) + '0101'
+  else if Name = 'POP' then
+    CommandCode := '11' + FormatAddrCode(Op1, True) + '0001'
+  else if Name = 'SPHL' then
+    CommandCode := '11111001'
+  else if Name = 'XTHL' then
+    CommandCode := '11100011';
+end;
+
+procedure TStackCommand.Execute(Processor: TProcessor);
+var
+  Temp16: Word;
+begin
+  inherited;
+  with Processor do
+  begin
+    if Name = 'SPHL' then
       SetStackPointer(GetDataRP(RH))
     else if Name = 'XTHL' then
     begin
@@ -635,13 +606,157 @@ begin
   end;
 end;
 
+{ TArithmCommand }
+
+constructor TArithmCommand.Create(Name, Op1, Op2: String);
+begin
+  inherited;
+  //Сложение
+  if Name = 'ADD' then
+    CommandCode := '10000' + FormatAddrCode(Op1)
+  else if Name = 'ADI' then
+    CommandCode := '11000110' + ConvertNumStrAuto(Op1, SBIN, 8)
+  else if Name = 'ADC' then
+    CommandCode := '10001' + FormatAddrCode(Op1)
+  else if Name = 'ACI' then
+    CommandCode := '11001110' + ConvertNumStrAuto(Op1, SBIN, 8)
+  //Вычитание
+  else if Name = 'SUB' then
+    CommandCode := '10010' + FormatAddrCode(Op1)
+  else if Name = 'SUI' then
+    CommandCode := '11010110' + ConvertNumStrAuto(Op1, SBIN, 8)
+  else if Name = 'SBB' then
+    CommandCode := '10011' + FormatAddrCode(Op1)
+  else if Name = 'SBI' then
+    CommandCode := '11011110' + ConvertNumStrAuto(Op1, SBIN, 8)
+  //Инкремент/декремент
+  else if Name = 'INR' then
+    CommandCode := '00' + FormatAddrCode(Op1) + '100'
+  else if Name = 'INX' then
+    CommandCode := '00' + FormatAddrCode(Op1, True) + '0011'
+  else if Name = 'DCR' then
+    CommandCode := '00' + FormatAddrCode(Op1) + '101'
+  else if Name = 'DCX' then
+    CommandCode := '00' + FormatAddrCode(Op1, True) + '1011'
+  //Двойное сложение
+  else if Name = 'DAD' then
+    CommandCode := '00' + FormatAddrCode(Op1, True) + '1001'
+  //Двоично-десятичная коррекция
+  else if Name = 'DAA' then
+    CommandCode := '00100111';
+end;
+
+procedure TArithmCommand.Execute(Processor: TProcessor);
+begin
+  inherited;
+  with Processor do
+  begin
+    if Name = 'ADD' then
+    begin
+      PerformALU(GetRegAddrValue(Op1));
+    end;
+  end;
+end;
+
+{ TLogicCommand }
+
+constructor TLogicCommand.Create(Name, Op1, Op2: String);
+begin
+  inherited;
+  //Логические операции
+  if Name = 'ANA' then
+    CommandCode := '10100' + FormatAddrCode(Op1)
+  else if Name = 'ANI' then
+    CommandCode := '11100110' + ConvertNumStrAuto(Op1, SBIN, 8)
+  else if Name = 'XRA' then
+    CommandCode := '10101' + FormatAddrCode(Op1)
+  else if Name = 'XRI' then
+    CommandCode := '11101110' + ConvertNumStrAuto(Op1, SBIN, 8)
+  else if Name = 'ORA' then
+    CommandCode := '10110' + FormatAddrCode(Op1)
+  else if Name = 'ORI' then
+    CommandCode := '11110110' + ConvertNumStrAuto(Op1, SBIN, 8)
+  //Сравнение
+  else if Name = 'CMP' then
+    CommandCode := '10111' + FormatAddrCode(Op1)
+  else if Name = 'CPI' then
+    CommandCode := '11111110' + ConvertNumStrAuto(Op1, SBIN, 8)
+  //Сдвиг
+  else if Name = 'RLC' then
+    CommandCode := '00000111'
+  else if Name = 'RRC' then
+    CommandCode := '00001111'
+  else if Name = 'RAL' then
+    CommandCode := '00010111'
+  else if Name = 'RAR' then
+    CommandCode := '00011111'
+  //Специальные команды
+  else if Name = 'CMA' then
+    CommandCode := '00101111'
+  else if Name = 'CMC' then
+    CommandCode := '00111111'
+  else if Name = 'STC' then
+    CommandCode := '00110111';
+end;
+
+procedure TLogicCommand.Execute(Processor: TProcessor);
+begin
+  inherited;
+end;
+
 { TCtrlCommand }
+
+constructor TCtrlCommand.Create(Name, Op1, Op2: String);
+var
+  Condition, Instruction: String;
+begin
+  inherited;
+  //Безусловные переходы
+  if Name = 'JMP' then
+    CommandCode := '11000011' + ConvertNumStrAuto(Op1, SBIN, 16)
+  else if Name = 'CALL' then
+    CommandCode := '11001101' + ConvertNumStrAuto(Op1, SBIN, 16)
+  else if Name = 'RET' then
+    CommandCode := '11001001'
+  //Специальные команды
+  else if Name = 'RST' then
+    CommandCode := '11' + ConvertNumStrAuto(Op1, SBIN, 3) + '111'
+  else if Name = 'PCHL' then
+    CommandCode := '11101001'
+  //Условные переходы
+  else
+  begin
+    Condition := Copy(Name, 2, Name.Length-1);
+    if      Condition   = 'NZ'  then Condition    := '000'
+    else if Condition   = 'Z'   then Condition    := '001'
+    else if Condition   = 'NC'  then Condition    := '010'
+    else if Condition   = 'C'   then Condition    := '011'
+    else if Condition   = 'PO'  then Condition    := '100'
+    else if Condition   = 'PE'  then Condition    := '101'
+    else if Condition   = 'P'   then Condition    := '110'
+    else if Condition   = 'M'   then Condition    := '111';
+    Instruction := Name[1];
+    if      Instruction = 'J'   then Instruction  := '010'
+    else if Instruction = 'C'   then Instruction  := '100'
+    else if Instruction = 'R'   then Instruction  := '000';
+    CommandCode := '11' + Condition + Instruction;
+  end;
+end;
+
+procedure TCtrlCommand.Execute(Processor: TProcessor);
+begin
+  inherited;
+end;
+
+{ TSysCommand }
 
 constructor TSysCommand.Create;
 begin
   inherited;
   if Name = 'HLT' then
-    CommandCode := '01110110';
+    CommandCode := '01110110'
+  else if Name = 'NOP' then
+    CommandCode := '00000000';
 end;
 
 procedure TSysCommand.Execute;
@@ -682,7 +797,7 @@ begin
       end;
     end;
     //Семантический анализ
-    if Pos(Cmd, CMD_DATA) > 0 then          //Команда пересылки
+     if Pos(Cmd, CMD_DATA) > 0 then          //Команда пересылки
       Command := TDataCommand.Create(Cmd, Op1, Op2)
     else if Pos(Cmd, CMD_ARTH) > 0 then     //Команда арифметики-логики
       Command := TArithmCommand.Create(Cmd, Op1, Op2)
