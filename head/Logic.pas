@@ -55,14 +55,14 @@ type
 
   TProcessor = class
   private
-    ProcessorThread: TProcessorThread;
-    StopSection: TCriticalSection;
     HltState: Boolean;
     Memory: TMemory;                        //Память
     Registers: TRegisters;                  //Регистры
     procedure InitDataRegisters;            //Инициализация регистров
     procedure InitFlags;                    //Инициализация регистра флагов
   public
+    ProcessorThread: TProcessorThread;
+    StopSection: TEvent;
     constructor Create(Memory: TMemory);
     procedure OnTerm(Sender: TObject);
     procedure InitCpu(EntryPoint: Word);    //Инициализация процессора
@@ -124,7 +124,7 @@ type
 implementation
 
 uses
-  SysUtils, Dialogs, TypInfo, FormScheme, FormMemory;
+  SysUtils, Dialogs, TypInfo, FormScheme, FormMemory, FormEditor;
 
 { TProcessor }
 
@@ -388,8 +388,19 @@ begin
           TSysCommand(Memory.Cells[Registers.PC].Command).Execute(Processor)
       end;
     until HltState or Terminated;
-    Synchronize(ShowRegisters);
-    Synchronize(Memory.ShowNewMem);
+    //Synchronize(ShowRegisters);
+    //Synchronize(Memory.ShowNewMem);
+    if Assigned(StopSection) then
+      FreeAndNil(StopSection);
+    with frmEditor do
+    begin
+      btnRunReal.Enabled := True;
+      btnRunStep.Enabled := True;
+      btnStop. Enabled := False;
+      btnNextCommand.Enabled := False;
+      btnMemClear.Enabled := True;
+      btnMemUnload.Enabled := True;
+    end;
   end;
 end;
 
@@ -449,6 +460,12 @@ end;
 
 procedure TCommand.Execute;
 begin
+  Processor.ShowRegisters;
+  Processor.Memory.ShowNewMem;
+
+  if Assigned(Processor.StopSection) then
+    Processor.StopSection.WaitFor(INFINITE);
+
   Processor.Registers.IR := NumStrToInt(Copy(CommandCode, 1, 8), SBIN);
   Processor.SetDataReg(RW, 0);
   Processor.SetDataReg(RZ, 0);
@@ -457,6 +474,10 @@ begin
   if Size > 2 then
     Processor.SetDataReg(RZ, NumStrToInt(Copy(CommandCode, 17, 8), SBIN));
   Processor.Registers.PC := Processor.Registers.PC + Size;
+
+  if Assigned(Processor.StopSection) then
+    Processor.StopSection.ResetEvent;
+
 end;
 
 function TCommand.Size: Integer;
