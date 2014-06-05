@@ -1734,8 +1734,6 @@ object frmScheme: TfrmScheme
       ScrollBars = ssVertical
       TabOrder = 0
       Zoom = 100
-      ExplicitWidth = 613
-      ExplicitHeight = 66
     end
   end
 end

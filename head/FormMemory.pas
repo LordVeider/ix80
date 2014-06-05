@@ -41,16 +41,16 @@ begin
     grdNewMem.Cells[2, 0] := 'BIN';
     for i := 1 to 100 do
     begin
-      grdNewMem.Cells[0, i] := WordToHexString(i-1) + 'H';
+      grdNewMem.Cells[0, i] := IntToNumStr(i-1, SHEX, 4) + 'H';
       if Assigned(Memory) then
       begin
-        grdNewMem.Cells[1, i] := WordToHexString(Memory.ReadMemory(i-1));
-        grdNewMem.Cells[2, i] := Int8ToBinString(Memory.ReadMemory(i-1));
+        grdNewMem.Cells[1, i] := IntToNumStr(Memory.ReadMemory(i-1), SHEX, 2);
+        grdNewMem.Cells[2, i] := IntToNumStr(Memory.ReadMemory(i-1), SBIN, 8);
       end
       else
       begin
-        grdNewMem.Cells[1, i] := WordToHexString(0);
-        grdNewMem.Cells[2, i] := Int8ToBinString(0);
+        grdNewMem.Cells[1, i] := IntToNumStr(0, SHEX, 2);
+        grdNewMem.Cells[2, i] := IntToNumStr(0, SBIN, 8);
       end;
     end;
   end

@@ -39,7 +39,7 @@ implementation
 procedure TfrmValue.edtHexKeyPress(Sender: TObject; var Key: Char);
 begin
   try
-    if DoubleOperand then
+    {if DoubleOperand then
     begin
       edtBin.Text := FormatOperandWord(edtHex.Text + 'H', SBIN);
       edtDec.Text := FormatOperandWord(edtHex.Text + 'H', SDEC);
@@ -48,7 +48,7 @@ begin
     begin
       edtBin.Text := FormatOperandInt8(edtHex.Text + 'H', SBIN);
       edtDec.Text := FormatOperandInt8(edtHex.Text + 'H', SDEC);
-    end;
+    end;}
   except
     edtBin.Text := 'Некорректное значение';
     edtDec.Text := 'Некорректное значение';
@@ -58,7 +58,7 @@ end;
 procedure TfrmValue.edtBinKeyPress(Sender: TObject; var Key: Char);
 begin
   try
-    if DoubleOperand then
+    {if DoubleOperand then
     begin
       edtHex.Text := FormatOperandWord(edtBin.Text + 'B', SHEX);
       edtDec.Text := FormatOperandWord(edtBin.Text + 'B', SDEC);
@@ -67,7 +67,7 @@ begin
     begin
       edtHex.Text := FormatOperandInt8(edtBin.Text + 'B', SHEX);
       edtDec.Text := FormatOperandInt8(edtBin.Text + 'B', SDEC);
-    end;
+    end;}
   except
     edtHex.Text := 'Некорректное значение';
     edtDec.Text := 'Некорректное значение';
@@ -77,7 +77,7 @@ end;
 procedure TfrmValue.edtDecKeyPress(Sender: TObject; var Key: Char);
 begin
   try
-    if DoubleOperand then
+    {if DoubleOperand then
     begin
       edtHex.Text := FormatOperandWord(edtDec.Text, SHEX);
       edtBin.Text := FormatOperandWord(edtDec.Text, SBIN);
@@ -86,7 +86,7 @@ begin
     begin
       edtHex.Text := FormatOperandInt8(edtDec.Text, SHEX);
       edtBin.Text := FormatOperandInt8(edtDec.Text, SBIN);
-    end;
+    end;}
   except
     edtBin.Text := 'Некорректное значение';
     edtHex.Text := 'Некорректное значение';
