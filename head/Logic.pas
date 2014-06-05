@@ -7,12 +7,14 @@ unit Logic;
 interface
 
 uses
-  Common;
+  Classes, SyncObjs, Common;
 
 const
   CMD_DATA          = '#MOV#MVI#LXI#LDA#STA#LDAX#STAX#LHLD#SHLD#XCHG#SPHL#PUSH#POP#XTHL#';
-  CMD_MATH          = '#ADD#ADC#ADI#ACI#INR#DAD#INX#DAA#SUB#SBB#SUI#SBI#DCR#DCX#CMP#CPI#ANA#ORA#XRA#ANI#ORI#XRI#CMA#RAL#RAR#RLC#RRC#';
-  CMD_CTRL          = '#JMP#CALL#RET#PCHL#RST#JNC#JC#JNZ#JZ#JP#JM#JO#JPE#CNC#CC#CNZ#CZ#CP#CM#CO#CPE#RNC#RC#RNZ#RZ#RP#RM#RO#RPE#NOP#HLT#CTS#CMC#';
+  CMD_ARTH          = '#ADD#ADC#ADI#ACI#INR#DAD#INX#DAA#SUB#SBB#SUI#SBI#DCR#DCX#CMP#CPI#';
+  CMD_LOGC          = '#ANA#ORA#XRA#ANI#ORI#XRI#CMA#RAL#RAR#RLC#RRC#';
+  CMD_CTRL          = '#JMP#CALL#RET#PCHL#RST#JNC#JC#JNZ#JZ#JP#JM#JO#JPE#CNC#CC#CNZ#CZ#CP#CM#CO#CPE#RNC#RC#RNZ#RZ#RP#RM#RO#RPE#';
+  CMD_SYST          = '#NOP#HLT#STC#CMC#';
 
 type
   TMemoryCell = record
@@ -42,8 +44,19 @@ type
     IR: Int8;                               //Регистр команд  (8 bit)
   end;
 
+  TProcessor = class;
+
+  TProcessorThread = class(TThread)
+  private
+    Processor: TProcessor;
+  public
+    procedure Execute; override;
+  end;
+
   TProcessor = class
   private
+    ProcessorThread: TProcessorThread;
+    StopSection: TCriticalSection;
     HltState: Boolean;
     Memory: TMemory;                        //Память
     Registers: TRegisters;                  //Регистры
@@ -51,23 +64,24 @@ type
     procedure InitFlags;                    //Инициализация регистра флагов
   public
     constructor Create(Memory: TMemory);
+    procedure OnTerm(Sender: TObject);
     procedure InitCpu(EntryPoint: Word);    //Инициализация процессора
     procedure Run;                          //Запустить выполнение
     procedure ShowRegisters;                //Отобразить содержимое регистров на экране
     procedure PerformALU(Value: Int8);      //Выполнить операцию на АЛУ
-    procedure SetDataReg(DataRegName: TDataRegName; Value: Int8);        //Установить значение регистра
-    function GetDataReg(DataRegName: TDataRegName): Int8;                //Получить значение регистра
-    procedure SetDataRP(DataRPName: TDataRegName; Value: Word);          //Установить значение регистровой пары
-    function GetDataRP(DataRPName: TDataRegName): Word;                  //Получить значение регистровой пары
-    function DataRegNameInt8xtName(TextName: String): TDataRegName;      //Имя регистра по текстовому имени
+    procedure SetDataReg(DataRegName: TDataRegName; Value: Int8);               //Установить значение регистра
+    function GetDataReg(DataRegName: TDataRegName): Int8;                       //Получить значение регистра
+    procedure SetDataRP(DataRPName: TDataRegName; Value: Word);                 //Установить значение регистровой пары
+    function GetDataRP(DataRPName: TDataRegName): Word;                         //Получить значение регистровой пары
+    function DataRegNameInt8xtName(TextName: String): TDataRegName;             //Имя регистра по текстовому имени
     procedure SetRegAddrValue(Operand: String; Value: Int8);                    //Получить значение по регистровой адресации
     function GetRegAddrValue(Operand: String): Int8;                            //Установить значение по регистровой адресации
     procedure SetStackPointer(Value: Word);                                     //Установить значение указателя стека
     function GetStackPointer: Word;                                             //Получить значение указателя стека
     function GetProgramCounter: Word;                                           //Получить значение счетчика команд
     function GetInstRegister: Int8;                                             //Получить значение регистра команд
-    procedure SetFlag(FlagName: TFlag);                                   //Установить флаг
-    function GetFlag(FlagName: TFlag): Boolean;                           //Получить состояние флага
+    procedure SetFlag(FlagName: TFlag);                                         //Установить флаг
+    function GetFlag(FlagName: TFlag): Boolean;                                 //Получить состояние флага
   end;
 
   TCommand = class                          //Команда (базовый класс)
@@ -84,21 +98,24 @@ type
     procedure Execute(Processor: TProcessor);                                   //Выполнить команду на процессоре
   end;
 
-  TMathCommand = class(TCommand)            //Команды арифметики и логики
+  TArithmCommand = class(TCommand)            //Команды арифметики
   public
     constructor Create(Name: String; Op1, Op2: String);
     procedure Execute(Processor: TProcessor);
   end;
+  TLogicCommand = class(TCommand);           //КОманды логики
   TDataCommand = class(TCommand)            //Команды пересылки данных
   public
     constructor Create(Name: String; Op1, Op2: String);
     procedure Execute(Processor: TProcessor);
   end;
-  TCtrlCommand = class(TCommand)            //Команды переходов и управления
+  TCtrlCommand = class(TCommand);           //Команды переходов и передачи управления
+  TSysCommand = class(TCommand)            //Команды управления процессором
   public
     constructor Create(Name: String; Op1, Op2: String);
     procedure Execute(Processor: TProcessor);
   end;
+
   TCommandParser = class                    //Анализатор исходного кода
   public
     function ParseCommand(TextLine: String; var Command: TCommand): Boolean;    //Разбор текста команды
@@ -131,6 +148,7 @@ var
   NewBit: Int8;
   Carry, Parity: Int8;
 begin
+  InitFlags;
   Op1 := IntToNumStr(GetDataReg(RA), SBIN, 8);
   Op2 := IntToNumStr(Value, SBIN, 8);
   Op3 := '';
@@ -177,7 +195,10 @@ begin
   //Преобразуем текстовое обозначение регистра в его обозначение из TDataRegistersNames
   for CurReg := Low(TDataRegName) to High(TDataRegName) do
     if 'R' + TextName = GetEnumName(TypeInfo(TDataRegName), Ord(CurReg)) then
+    begin
       Result := CurReg;
+      Break;
+    end;
 end;
 
 procedure TProcessor.SetRegAddrValue;
@@ -314,24 +335,62 @@ var
   s: string;
   c: integer;
 begin
-  repeat
+  {repeat
     if Assigned(Memory.Cells[Registers.PC].Command) then
     begin
       c := Registers.PC;
       s := TCommand(Memory.Cells[Registers.PC].Command).ShowSummary;
       if TCommand(Memory.Cells[Registers.PC].Command) is TDataCommand then
         TDataCommand(Memory.Cells[Registers.PC].Command).Execute(Self)
-      else if TCommand(Memory.Cells[Registers.PC].Command) is TMathCommand then
-        TMathCommand(Memory.Cells[Registers.PC].Command).Execute(Self)
-      else if TCommand(Memory.Cells[Registers.PC].Command) is TCtrlCommand then
-        TCtrlCommand(Memory.Cells[Registers.PC].Command).Execute(Self)
+      else if TCommand(Memory.Cells[Registers.PC].Command) is TArithmCommand then
+        TArithmCommand(Memory.Cells[Registers.PC].Command).Execute(Self)
+      else if TCommand(Memory.Cells[Registers.PC].Command) is TSysCommand then
+        TSysCommand(Memory.Cells[Registers.PC].Command).Execute(Self)
     end;
-  until HltState;
+  until HltState;}
+  ProcessorThread := TProcessorThread.Create(True);
+  ProcessorThread.OnTerminate := OnTerm;
+  ProcessorThread.Processor := Self;
+  ProcessorThread.Start;
 end;
 
 procedure TProcessor.ShowRegisters;
 begin
   frmScheme.DrawProcessor(Self);
+end;
+
+procedure TProcessor.OnTerm(Sender: TObject);
+begin
+  ProcessorThread := nil;
+end;
+
+{ TProcessorThread }
+
+procedure TProcessorThread.Execute;
+var
+  s: string;
+  c: integer;
+begin
+  inherited;
+  FreeOnTerminate := True;
+  with Processor do
+  begin
+    repeat
+      if Assigned(Memory.Cells[Registers.PC].Command) then
+      begin
+        c := Registers.PC;
+        s := TCommand(Memory.Cells[Registers.PC].Command).ShowSummary;
+        if TCommand(Memory.Cells[Registers.PC].Command) is TDataCommand then
+          TDataCommand(Memory.Cells[Registers.PC].Command).Execute(Processor)
+        else if TCommand(Memory.Cells[Registers.PC].Command) is TArithmCommand then
+          TArithmCommand(Memory.Cells[Registers.PC].Command).Execute(Processor)
+        else if TCommand(Memory.Cells[Registers.PC].Command) is TSysCommand then
+          TSysCommand(Memory.Cells[Registers.PC].Command).Execute(Processor)
+      end;
+    until HltState or Terminated;
+    Synchronize(ShowRegisters);
+    Synchronize(Memory.ShowNewMem);
+  end;
 end;
 
 { TMemory }
@@ -373,23 +432,30 @@ end;
 function TCommand.WriteToMemory;
 var
   CurrentCell: TMemoryCell;
-  CommandSize: Integer;
+  CommandByte: Integer;
 begin
-  CommandSize := 0;
+  CommandByte := 0;
   //Записываем в память объект
   CurrentCell.Command := Self;
   Memory.WriteMemoryObject(Address, CurrentCell);
   //Записываем в память двоичный код команды
   repeat
-    Memory.WriteMemory(Address + CommandSize, NumStrToInt(Copy(CommandCode, CommandSize*8 + 1, 8), SBIN));
-    Inc(CommandSize);
-  until CommandSize = Size;
+    Memory.WriteMemory(Address + CommandByte, NumStrToInt(Copy(CommandCode, CommandByte*8 + 1, 8), SBIN));
+    Inc(CommandByte);
+  until CommandByte = Size;
   //Возвращаем следующий свободный адрес памяти
-  Result := Address + CommandSize;
+  Result := Address + CommandByte;
 end;
 
 procedure TCommand.Execute;
 begin
+  Processor.Registers.IR := NumStrToInt(Copy(CommandCode, 1, 8), SBIN);
+  Processor.SetDataReg(RW, 0);
+  Processor.SetDataReg(RZ, 0);
+  if Size > 1 then
+    Processor.SetDataReg(RW, NumStrToInt(Copy(CommandCode, 9, 8), SBIN));
+  if Size > 2 then
+    Processor.SetDataReg(RZ, NumStrToInt(Copy(CommandCode, 17, 8), SBIN));
   Processor.Registers.PC := Processor.Registers.PC + Size;
 end;
 
@@ -405,7 +471,7 @@ end;
 
 { TMathCommand }
 
-constructor TMathCommand.Create(Name, Op1, Op2: String);
+constructor TArithmCommand.Create(Name, Op1, Op2: String);
 begin
   inherited;
   //Сложение
@@ -455,7 +521,7 @@ begin
     CommandCode := '00' + FormatAddrCode(Op1, True) + '1011';
 end;
 
-procedure TMathCommand.Execute(Processor: TProcessor);
+procedure TArithmCommand.Execute(Processor: TProcessor);
 begin
   inherited;
   with Processor do
@@ -499,6 +565,8 @@ begin
 end;
 
 procedure TDataCommand.Execute;
+var
+  Temp16: Word;
 begin
   inherited;
   with Processor do
@@ -529,33 +597,33 @@ begin
     end
     else if Name = 'XCHG' then
     begin
-      SetDataRP(RW, GetDataRP(RH));
+      Temp16 := GetDataRP(RH);
       SetDataRP(RH, GetDataRP(RD));
-      SetDataRP(RD, GetDataRP(RW));
+      SetDataRP(RD, Temp16);
     end
     else if Name = 'SPHL' then
       SetStackPointer(GetDataRP(RH))
     else if Name = 'XTHL' then
     begin
-      SetDataRP(RW, GetDataRP(RH));
+      Temp16 := GetDataRP(RH);
       SetDataReg(RH, Memory.ReadMemory(GetStackPointer));
       SetDataReg(RL, Memory.ReadMemory(GetStackPointer + 1));
-      Memory.WriteMemory(GetStackPointer, GetDataReg(RW));
-      Memory.WriteMemory(GetStackPointer + 1, GetDataReg(RZ));
+      Memory.WriteMemory(GetStackPointer, Hi(Temp16));
+      Memory.WriteMemory(GetStackPointer + 1, Lo(Temp16));
      end;
   end;
 end;
 
 { TCtrlCommand }
 
-constructor TCtrlCommand.Create;
+constructor TSysCommand.Create;
 begin
   inherited;
   if Name = 'HLT' then
     CommandCode := '01110110';
 end;
 
-procedure TCtrlCommand.Execute;
+procedure TSysCommand.Execute;
 begin
   inherited;
   if Name = 'HLT' then
@@ -595,10 +663,10 @@ begin
     //Семантический анализ
     if Pos(Cmd, CMD_DATA) > 0 then          //Команда пересылки
       Command := TDataCommand.Create(Cmd, Op1, Op2)
-    else if Pos(Cmd, CMD_MATH) > 0 then     //Команда арифметики-логики
-      Command := TMathCommand.Create(Cmd, Op1, Op2)
-    else if Pos(Cmd, CMD_CTRL) > 0 then     //Команда перехода или управления
-      Command := TCtrlCommand.Create(Cmd, Op1, Op2)
+    else if Pos(Cmd, CMD_ARTH) > 0 then     //Команда арифметики-логики
+      Command := TArithmCommand.Create(Cmd, Op1, Op2)
+    else if Pos(Cmd, CMD_SYST) > 0 then     //Команда перехода или управления
+      Command := TSysCommand.Create(Cmd, Op1, Op2)
     else
       Result := False;                      //Ошибка в коде команды
    except
