@@ -27,6 +27,7 @@ type
     (Value: String): Integer;                                                   //Преобразование к числу (автовыбор исходной CC)
   function IntToNumStr
     (Value: Integer; Base: TNumSys; Digits: Integer = 0): String;               //Преобразование к строке
+  function SwapBytes(Value: String): String;                                    //Поменять местами два байта в строке
 
   function ExtractReg(Code: Byte; Tail: Boolean = False): Byte;
   function ExtractRP(Code: Byte): Byte;
@@ -118,6 +119,11 @@ end;
 function IntToNumStr;
 begin
   Result := ConvertNumStr(IntToStr(Value), SDEC, Base, Digits);
+end;
+
+function SwapBytes;
+begin
+  Result := Copy(Value, 9, 8) + Copy(Value, 1, 8);
 end;
 
 function FormatAddrCode;
