@@ -3,7 +3,7 @@ object frmValue: TfrmValue
   Top = 0
   BorderStyle = bsToolWindow
   Caption = #1047#1085#1072#1095#1077#1085#1080#1077
-  ClientHeight = 141
+  ClientHeight = 130
   ClientWidth = 185
   Color = clWindow
   Font.Charset = DEFAULT_CHARSET
@@ -12,104 +12,120 @@ object frmValue: TfrmValue
   Font.Name = 'Tahoma'
   Font.Style = []
   OldCreateOrder = False
+  OnClose = FormClose
+  OnShow = FormShow
+  DesignSize = (
+    185
+    130)
   PixelsPerInch = 96
   TextHeight = 13
-  object lblValueName: TLabel
+  object lblHex: TLabel
     Left = 8
-    Top = 8
-    Width = 233
+    Top = 11
+    Width = 169
     Height = 13
     AutoSize = False
-    Caption = #1071#1095#1077#1081#1082#1072' '#1087#1072#1084#1103#1090#1080': '#1072#1076#1088#1077#1089' 0A17'
+    Caption = 'HEX:'
+    Font.Charset = DEFAULT_CHARSET
+    Font.Color = clWindowText
+    Font.Height = -11
+    Font.Name = 'Tahoma'
+    Font.Style = [fsBold]
+    ParentFont = False
   end
-  object edtHex: TLabeledEdit
-    Left = 31
-    Top = 27
-    Width = 121
-    Height = 21
-    EditLabel.Width = 19
-    EditLabel.Height = 13
-    EditLabel.Caption = 'HEX'
-    LabelPosition = lpRight
-    TabOrder = 0
-    OnKeyPress = edtHexKeyPress
-  end
-  object edtBin: TLabeledEdit
-    Left = 31
-    Top = 54
-    Width = 121
-    Height = 21
-    EditLabel.Width = 17
-    EditLabel.Height = 13
-    EditLabel.Caption = 'BIN'
-    LabelPosition = lpRight
-    TabOrder = 1
-    OnKeyPress = edtBinKeyPress
-  end
-  object edtDec: TLabeledEdit
-    Left = 31
-    Top = 81
-    Width = 121
-    Height = 21
-    EditLabel.Width = 20
-    EditLabel.Height = 13
-    EditLabel.Caption = 'DEC'
-    LabelPosition = lpRight
-    TabOrder = 2
-    OnKeyPress = edtDecKeyPress
-  end
-  object rbHex: TRadioButton
+  object lblBin: TLabel
     Left = 8
-    Top = 29
-    Width = 17
-    Height = 17
-    Checked = True
-    TabOrder = 3
-    TabStop = True
-    OnClick = rbHexClick
+    Top = 30
+    Width = 169
+    Height = 13
+    AutoSize = False
+    Caption = 'BIN:'
+    Font.Charset = DEFAULT_CHARSET
+    Font.Color = clWindowText
+    Font.Height = -11
+    Font.Name = 'Tahoma'
+    Font.Style = [fsBold]
+    ParentFont = False
   end
-  object rbBin: TRadioButton
+  object lblDec: TLabel
     Left = 8
-    Top = 56
-    Width = 17
-    Height = 17
-    TabOrder = 4
-    OnClick = rbHexClick
+    Top = 49
+    Width = 169
+    Height = 13
+    AutoSize = False
+    Caption = 'DEC:'
+    Font.Charset = DEFAULT_CHARSET
+    Font.Color = clWindowText
+    Font.Height = -11
+    Font.Name = 'Tahoma'
+    Font.Style = [fsBold]
+    ParentFont = False
   end
-  object rbDec: TRadioButton
-    Left = 8
-    Top = 83
-    Width = 17
-    Height = 17
-    TabOrder = 5
-    OnClick = rbHexClick
+  object lblHexValue: TLabel
+    Left = 40
+    Top = 11
+    Width = 169
+    Height = 13
+    AutoSize = False
+    Caption = 'lblHex'
   end
-  object btnApply: TButton
-    Left = 8
-    Top = 108
-    Width = 81
-    Height = 25
-    Caption = #1055#1088#1080#1084#1077#1085#1080#1090#1100
-    ImageIndex = 0
-    Images = ilButtons
-    TabOrder = 6
+  object lblBinValue: TLabel
+    Left = 40
+    Top = 30
+    Width = 169
+    Height = 13
+    AutoSize = False
+    Caption = 'lblHex'
+  end
+  object lblDecValue: TLabel
+    Left = 40
+    Top = 49
+    Width = 169
+    Height = 13
+    AutoSize = False
+    Caption = 'lblHex'
   end
   object btnCancel: TButton
     Left = 95
-    Top = 108
+    Top = 97
     Width = 81
     Height = 25
+    Anchors = [akRight, akBottom]
     Caption = #1054#1090#1084#1077#1085#1080#1090#1100
     ImageIndex = 1
     Images = ilButtons
-    TabOrder = 7
+    TabOrder = 0
+    OnClick = btnCancelClick
+    ExplicitTop = 108
+  end
+  object edtValue: TEdit
+    Left = 8
+    Top = 68
+    Width = 169
+    Height = 21
+    TabOrder = 1
+    Text = '0'
+    OnChange = edtValueChange
+  end
+  object btnApply: TButton
+    Left = 8
+    Top = 97
+    Width = 81
+    Height = 25
+    Anchors = [akRight, akBottom]
+    Caption = #1055#1088#1080#1084#1077#1085#1080#1090#1100
+    ImageIndex = 0
+    Images = ilButtons
+    TabOrder = 2
+    OnClick = btnApplyClick
+    ExplicitTop = 108
   end
   object ilButtons: TImageList
     ColorDepth = cd32Bit
     Left = 440
     Top = 200
     Bitmap = {
-      494C010102000800180010001000FFFFFFFF2110FFFFFFFFFFFFFFFF424D3600
+      494C0101020008001C0010001000FFFFFFFF2110FFFFFFFFFFFFFFFF424D3600
       0000000000003600000028000000400000001000000001002000000000000010
       00000000000000000000000000000000000000000000000000020000000C0000
       00160000001A0000001A0000001A0000001A0000001A0000001A0000001A0000

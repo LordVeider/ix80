@@ -276,7 +276,6 @@ object frmEditor: TfrmEditor
       Top = 0
       Caption = 'btn8'
       ImageIndex = 22
-      Visible = False
       OnClick = btn8Click
     end
     object btn9: TToolButton

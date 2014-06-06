@@ -422,7 +422,8 @@ end;
 
 procedure TMemory.ShowNewMem;
 begin
-  frmMemory.DrawMemory(Self);
+  frmMemory.Memory := Self;
+  frmMemory.DrawMemory;
 end;
 
 procedure TMemory.WriteMemoryObject;

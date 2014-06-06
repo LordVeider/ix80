@@ -42,5 +42,6 @@ object frmMemory: TfrmMemory
     FixedRows = 0
     ScrollBars = ssVertical
     TabOrder = 1
+    OnDblClick = grdNewMemDblClick
   end
 end
