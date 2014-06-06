@@ -7,7 +7,7 @@ unit Logic;
 interface
 
 uses
-  Classes, SyncObjs, Common;
+  Classes, SyncObjs, Common, InstructionSet;
 
 const
   CMD_DATA          = '#MOV#MVI#LXI#LDA#STA#LDAX#STAX#LHLD#SHLD#XCHG#';
@@ -131,38 +131,11 @@ type
     procedure Execute(Processor: TProcessor);
   end;
 
-  TCommandParser = class                    //Анализатор исходного кода
-  public
-    function ParseCommand(TextLine: String; var Command: TCommand): Boolean;    //Разбор текста команды
-  end;
-
-  TNewParser = class
-  private
-    function GetCode(Name, Op1, Op2: String; var CommandCode: String): Boolean;
+  TMatrixParser = class
   public
     function ParseCommand(TextLine: String; var CommandCode: String): Boolean;    //Разбор текста команды
     function WriteCode(CommandCode: String; Memory: TMemory; var Address: Word): Boolean;
   end;
-
-  TNewCommand = class
-  private
-    Address: Word;
-    Code: Byte;
-  public
-    constructor Create(Address: Word);
-    function Execute(Processor: TProcessor): Boolean;
-  end;
-
-  TNewSysCommand = class(TNewCommand)
-  public
-    function Execute(Processor: TProcessor): Boolean;
-  end;
-  //SYST $00, $76
-  //DATA $01, $11, $21, $31, $02, $12, $22, $32, $06, $16, $26, $36, $0A, $1A, $2A, $3A, $0E, $1E, $2E, $3E, $40..$75, $77..$7F, $EB
-  //STCK $C1, $D1, $E1, $F1, $E3, $C5, $D5, $E5, $F5, $F9
-  //ARTH $03..$05, $13..$15, $23..$25, $33..$35, $27, $09, $19, $29, $39, $0B..$0D, $1B..$1D, $2B..$2D, $3B..$3D, $80..$9F, $C6, $D6, $CE, $DE
-  //LOGC $07, $17, $37, $0F, $1F, $2F, $3F, $A0..$BF, $E6, $F6, $EE, $FE
-  //CTRL $C0, $D0, $E0, $F0, $C2, $D2, $E2, $F2, $C3, $C4, $D4, $E4, $F4, $C7, $D7, $E7, $F7, $C8, $D8, $E8, $F8, $C9, $E9, $CA, $DA, $EA, $FA, $CC, $DC, $EC, $FC, $CD, $CF, $DF, $EF, $FF
 
 implementation
 
@@ -799,12 +772,13 @@ begin
     Processor.HltState := True;
 end;
 
-{ TCommandParser }
+{ TMatrixParser }
 
-function TCommandParser.ParseCommand;
+function TMatrixParser.ParseCommand;
 var
   Cmd, Op1, Op2: String;
   NextDelimeter: Integer;
+  Command: TInstruction;
 begin
   try
     Result := True;
@@ -830,63 +804,19 @@ begin
       end;
     end;
     //Семантический анализ
-    if Pos(Cmd, CMD_DATA) > 0 then          //Команда пересылки
-      Command := TDataCommand.Create(Cmd, Op1, Op2)
-    else if Pos(Cmd, CMD_STCK) > 0 then     //Команда стека
-      Command := TStackCommand.Create(Cmd, Op1, Op2)
-    else if Pos(Cmd, CMD_ARTH) > 0 then     //Команда арифметики
-      Command := TArithmCommand.Create(Cmd, Op1, Op2)
-    else if Pos(Cmd, CMD_LOGC) > 0 then     //Команда логики
-      Command := TLogicCommand.Create(Cmd, Op1, Op2)
-    else if Pos(Cmd, CMD_CTRL) > 0 then     //Команда перехода
-      Command := TCtrlCommand.Create(Cmd, Op1, Op2)
-    else if Pos(Cmd, CMD_SYST) > 0 then     //Команда управления
-      Command := TSysCommand.Create(Cmd, Op1, Op2)
+    //Result := GetCode(Cmd, Op1, Op2, CommandCode);
+    //InstrSet.FindByMnemonic(Cmd).FullCode('D', '256');
+    Command := InstrSet.FindByMnemonic(Cmd);
+    if Assigned(Command) then
+      CommandCode := Command.FullCode(Op1, Op2)
     else
-      Result := False;                      //Ошибка в коде команды
-   except
-    Result := False;                        //Синтаксическая ошибка
-  end;
-end;
-
-{ TNewParser }
-
-function TNewParser.ParseCommand;
-var
-  Cmd, Op1, Op2: String;
-  NextDelimeter: Integer;
-begin
-  try
-    Result := True;
-    //Синтаксический анализ
-    NextDelimeter := Pos(#59, TextLine);    //Ищем точку с запятой в строке
-    if NextDelimeter > 0 then               //Есть комментарий
-      Delete(TextLine, Pos(#59, TextLine) - 1, TextLine.Length - Pos(#59, TextLine) + 2);
-    NextDelimeter := Pos(#32, TextLine);    //Ищем пробел в строке
-    if NextDelimeter = 0 then               //Операндов нет
-      Cmd := TextLine
-    else                                    //Операнды есть
-    begin
-      Cmd := Copy(TextLine, 1, NextDelimeter - 1);
-      Delete(TextLine, 1, NextDelimeter);
-      NextDelimeter := Pos(#44, TextLine);  //Ищем запятую в строке
-      if NextDelimeter = 0 then             //Операнд один
-        Op1 := TextLine
-      else                                  //Операндов два
-      begin
-        Op1 := Copy(TextLine, 1, NextDelimeter - 1);
-        Delete(TextLine, 1, NextDelimeter + 1);
-        Op2 := TextLine;
-      end;
-    end;
-    //Семантический анализ
-    Result := GetCode(Cmd, Op1, Op2, CommandCode);
+      Result := False;                      //Семантическая ошибка
   except
     Result := False;                        //Синтаксическая ошибка
   end;
 end;
 
-function TNewParser.WriteCode;
+function TMatrixParser.WriteCode;
 var
   Bits: Byte;
 begin
@@ -902,189 +832,6 @@ begin
   except
     Result := False;
   end;
-end;
-
-function TNewParser.GetCode;
-var
-  Condition, Instruction: String;
-begin
-  CommandCode := '';
-  //Команды пересылки данных
-  if Pos(Name, CMD_DATA) > 0 then
-  begin
-    if Name = 'MOV' then
-      CommandCode := '01' + FormatAddrCode(Op1) + FormatAddrCode(Op2)
-    else if Name = 'MVI' then
-      CommandCode := '00' + FormatAddrCode(Op1) + '110' + ConvertNumStrAuto(Op2, SBIN, 8)
-    else if Name = 'LXI' then
-      CommandCode := '00' + FormatAddrCode(Op1, True) + '0001' + ConvertNumStrAuto(Op2, SBIN, 16)
-    else if Name = 'LDA' then
-      CommandCode := '00111010' + ConvertNumStrAuto(Op1, SBIN, 16)
-    else if Name = 'STA' then
-      CommandCode := '00110010' + ConvertNumStrAuto(Op1, SBIN, 16)
-    else if Name = 'LDAX' then
-      CommandCode := '00' + FormatAddrCode(Op1, True) + '1010'
-    else if Name = 'STAX' then
-      CommandCode := '00' + FormatAddrCode(Op1, True) + '0010'
-    else if Name = 'LHLD' then
-      CommandCode := '00101010' + ConvertNumStrAuto(Op1, SBIN, 16)
-    else if Name = 'SHLD' then
-      CommandCode := '00100010' + ConvertNumStrAuto(Op1, SBIN, 16)
-    else if Name = 'XCHG' then
-      CommandCode := '11101011';
-  end
-  //Команды работы со стеком
-  else if Pos(Name, CMD_STCK) > 0 then
-  begin
-    if Name = 'PUSH' then
-      CommandCode := '11' + FormatAddrCode(Op1, True) + '0101'
-    else if Name = 'POP' then
-      CommandCode := '11' + FormatAddrCode(Op1, True) + '0001'
-    else if Name = 'SPHL' then
-      CommandCode := '11111001'
-    else if Name = 'XTHL' then
-      CommandCode := '11100011';
-  end
-  //Арифметические команды
-  else if Pos(Name, CMD_ARTH) > 0 then
-  begin
-    //Сложение
-    if Name = 'ADD' then
-      CommandCode := '10000' + FormatAddrCode(Op1)
-    else if Name = 'ADI' then
-      CommandCode := '11000110' + ConvertNumStrAuto(Op1, SBIN, 8)
-    else if Name = 'ADC' then
-      CommandCode := '10001' + FormatAddrCode(Op1)
-    else if Name = 'ACI' then
-      CommandCode := '11001110' + ConvertNumStrAuto(Op1, SBIN, 8)
-    //Вычитание
-    else if Name = 'SUB' then
-      CommandCode := '10010' + FormatAddrCode(Op1)
-    else if Name = 'SUI' then
-      CommandCode := '11010110' + ConvertNumStrAuto(Op1, SBIN, 8)
-    else if Name = 'SBB' then
-      CommandCode := '10011' + FormatAddrCode(Op1)
-    else if Name = 'SBI' then
-      CommandCode := '11011110' + ConvertNumStrAuto(Op1, SBIN, 8)
-    //Инкремент/декремент
-    else if Name = 'INR' then
-      CommandCode := '00' + FormatAddrCode(Op1) + '100'
-    else if Name = 'INX' then
-      CommandCode := '00' + FormatAddrCode(Op1, True) + '0011'
-    else if Name = 'DCR' then
-      CommandCode := '00' + FormatAddrCode(Op1) + '101'
-    else if Name = 'DCX' then
-      CommandCode := '00' + FormatAddrCode(Op1, True) + '1011'
-    //Двойное сложение
-    else if Name = 'DAD' then
-      CommandCode := '00' + FormatAddrCode(Op1, True) + '1001'
-    //Двоично-десятичная коррекция
-    else if Name = 'DAA' then
-      CommandCode := '00100111';
-  end
-  //Логические операции
-  else if Pos(Name, CMD_LOGC) > 0 then
-  begin
-    if Name = 'ANA' then
-      CommandCode := '10100' + FormatAddrCode(Op1)
-    else if Name = 'ANI' then
-      CommandCode := '11100110' + ConvertNumStrAuto(Op1, SBIN, 8)
-    else if Name = 'XRA' then
-      CommandCode := '10101' + FormatAddrCode(Op1)
-    else if Name = 'XRI' then
-      CommandCode := '11101110' + ConvertNumStrAuto(Op1, SBIN, 8)
-    else if Name = 'ORA' then
-      CommandCode := '10110' + FormatAddrCode(Op1)
-    else if Name = 'ORI' then
-      CommandCode := '11110110' + ConvertNumStrAuto(Op1, SBIN, 8)
-    //Сравнение
-    else if Name = 'CMP' then
-      CommandCode := '10111' + FormatAddrCode(Op1)
-    else if Name = 'CPI' then
-      CommandCode := '11111110' + ConvertNumStrAuto(Op1, SBIN, 8)
-    //Сдвиг
-    else if Name = 'RLC' then
-      CommandCode := '00000111'
-    else if Name = 'RRC' then
-      CommandCode := '00001111'
-    else if Name = 'RAL' then
-      CommandCode := '00010111'
-    else if Name = 'RAR' then
-      CommandCode := '00011111'
-    //Специальные команды
-    else if Name = 'CMA' then
-      CommandCode := '00101111'
-    else if Name = 'CMC' then
-      CommandCode := '00111111'
-    else if Name = 'STC' then
-      CommandCode := '00110111';
-  end
-  //Команды передачи управления
-  else if Pos(Name, CMD_CTRL) > 0 then
-  begin
-    //Безусловные переходы
-    if Name = 'JMP' then
-      CommandCode := '11000011' + ConvertNumStrAuto(Op1, SBIN, 16)
-    else if Name = 'CALL' then
-      CommandCode := '11001101' + ConvertNumStrAuto(Op1, SBIN, 16)
-    else if Name = 'RET' then
-      CommandCode := '11001001'
-    //Специальные команды
-    else if Name = 'RST' then
-      CommandCode := '11' + ConvertNumStrAuto(Op1, SBIN, 3) + '111'
-    else if Name = 'PCHL' then
-      CommandCode := '11101001'
-    //Условные переходы
-    else
-    begin
-      //Определяем условие
-      Condition := Copy(Name, 2, Name.Length-1);
-      if      Condition   = 'NZ'  then Condition    := '000'
-      else if Condition   = 'Z'   then Condition    := '001'
-      else if Condition   = 'NC'  then Condition    := '010'
-      else if Condition   = 'C'   then Condition    := '011'
-      else if Condition   = 'PO'  then Condition    := '100'
-      else if Condition   = 'PE'  then Condition    := '101'
-      else if Condition   = 'P'   then Condition    := '110'
-      else if Condition   = 'M'   then Condition    := '111';
-      //Определяем тип перехода
-      Instruction := Name[1];
-      if      Instruction = 'J'   then Instruction  := '010'
-      else if Instruction = 'C'   then Instruction  := '100'
-      else if Instruction = 'R'   then Instruction  := '000';
-      //Получаем код команды
-      CommandCode := '11' + Condition + Instruction;
-    end;
-  end
-  //Команды управления микропроцессором
-  else if Pos(Name, CMD_SYST) > 0 then
-  begin
-    if Name = 'HLT' then
-      CommandCode := '01110110'
-    else if Name = 'NOP' then
-      CommandCode := '00000000';
-  end;
-  Result := CommandCode <> '';
-end;
-
-{ TNewCommand }
-
-constructor TNewCommand.Create;
-begin
-  Self.Address := Address;
-end;
-
-function TNewCommand.Execute;
-begin
-  Processor.Registers.IR := Processor.Memory.ReadMemory(Address);
-  //Code :=
-end;
-
-{ TNewSysCommand }
-
-function TNewSysCommand.Execute(Processor: TProcessor): Boolean;
-begin
-
 end;
 
 end.
