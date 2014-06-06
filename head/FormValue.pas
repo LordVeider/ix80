@@ -1,5 +1,8 @@
 unit FormValue;
 
+//ix80 Intel 8080 CPU Emulator & Demonstration Model
+//Форма редактирования значения
+
 interface
 
 uses

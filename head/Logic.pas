@@ -66,10 +66,10 @@ type
     StopSection: TEvent;
     constructor Create(Memory: TMemory);
     procedure OnTerm(Sender: TObject);
-    procedure InitCpu(EntryPoint: Word);    //Инициализация процессора
-    procedure Run;                          //Запустить выполнение
-    procedure ShowRegisters;                //Отобразить содержимое регистров на экране
-    procedure PerformALU(Value: Int8);      //Выполнить операцию на АЛУ
+    procedure InitCpu(EntryPoint: Word);                                        //Инициализация процессора
+    procedure Run;                                                              //Запустить выполнение
+    procedure ShowRegisters;                                                    //Отобразить содержимое регистров на экране
+    procedure PerformALU(Value: Int8);                                          //Выполнить операцию на АЛУ
     procedure SetDataReg(DataRegName: TDataRegName; Value: Int8);               //Установить значение регистра
     function GetDataReg(DataRegName: TDataRegName): Int8;                       //Получить значение регистра
     procedure SetDataRP(DataRPName: TDataRegName; Value: Word);                 //Установить значение регистровой пары
@@ -104,12 +104,12 @@ type
     constructor Create(Name: String; Op1, Op2: String);
     procedure Execute(Processor: TProcessor);
   end;
-  TStackCommand = class(TCommand)            //Команды обращения со стеком
+  TStackCommand = class(TCommand)           //Команды обращения со стеком
   public
     constructor Create(Name: String; Op1, Op2: String);
     procedure Execute(Processor: TProcessor);
   end;
-  TArithmCommand = class(TCommand)            //Команды арифметики
+  TArithmCommand = class(TCommand)          //Команды арифметики
   public
     constructor Create(Name: String; Op1, Op2: String);
     procedure Execute(Processor: TProcessor);
@@ -119,12 +119,12 @@ type
     constructor Create(Name: String; Op1, Op2: String);
     procedure Execute(Processor: TProcessor);
   end;
-  TCtrlCommand = class(TCommand)           //Команды переходов и передачи управления
+  TCtrlCommand = class(TCommand)            //Команды переходов и передачи управления
   public
     constructor Create(Name: String; Op1, Op2: String);
     procedure Execute(Processor: TProcessor);
   end;
-  TSysCommand = class(TCommand)            //Команды управления процессором
+  TSysCommand = class(TCommand)             //Команды управления процессором
   public
     constructor Create(Name: String; Op1, Op2: String);
     procedure Execute(Processor: TProcessor);
@@ -349,19 +349,7 @@ var
   s: string;
   c: integer;
 begin
-  {repeat
-    if Assigned(Memory.Cells[Registers.PC].Command) then
-    begin
-      c := Registers.PC;
-      s := TCommand(Memory.Cells[Registers.PC].Command).ShowSummary;
-      if TCommand(Memory.Cells[Registers.PC].Command) is TDataCommand then
-        TDataCommand(Memory.Cells[Registers.PC].Command).Execute(Self)
-      else if TCommand(Memory.Cells[Registers.PC].Command) is TArithmCommand then
-        TArithmCommand(Memory.Cells[Registers.PC].Command).Execute(Self)
-      else if TCommand(Memory.Cells[Registers.PC].Command) is TSysCommand then
-        TSysCommand(Memory.Cells[Registers.PC].Command).Execute(Self)
-    end;
-  until HltState;}
+  //Создаём и запускаем поток
   ProcessorThread := TProcessorThread.Create(True);
   ProcessorThread.OnTerminate := OnTerm;
   ProcessorThread.Processor := Self;
@@ -389,6 +377,7 @@ begin
   FreeOnTerminate := True;
   with Processor do
   begin
+    //Пока не получили HLT или команду на уничтожение потока - читаем команды
     repeat
       if Assigned(Memory.Cells[Registers.PC].Command) then
       begin
@@ -396,16 +385,22 @@ begin
         s := TCommand(Memory.Cells[Registers.PC].Command).ShowSummary;
         if TCommand(Memory.Cells[Registers.PC].Command) is TDataCommand then
           TDataCommand(Memory.Cells[Registers.PC].Command).Execute(Processor)
+        else if TCommand(Memory.Cells[Registers.PC].Command) is TStackCommand then
+          TStackCommand(Memory.Cells[Registers.PC].Command).Execute(Processor)
         else if TCommand(Memory.Cells[Registers.PC].Command) is TArithmCommand then
           TArithmCommand(Memory.Cells[Registers.PC].Command).Execute(Processor)
+        else if TCommand(Memory.Cells[Registers.PC].Command) is TLogicCommand then
+          TLogicCommand(Memory.Cells[Registers.PC].Command).Execute(Processor)
+        else if TCommand(Memory.Cells[Registers.PC].Command) is TCtrlCommand then
+          TCtrlCommand(Memory.Cells[Registers.PC].Command).Execute(Processor)
         else if TCommand(Memory.Cells[Registers.PC].Command) is TSysCommand then
           TSysCommand(Memory.Cells[Registers.PC].Command).Execute(Processor)
       end;
     until HltState or Terminated;
-    //Synchronize(ShowRegisters);
-    //Synchronize(Memory.ShowNewMem);
+    //Уничтожаем объект синхронизации
     if Assigned(StopSection) then
       FreeAndNil(StopSection);
+    //TODO: вынести в отдельный метод
     with frmEditor do
     begin
       btnRunReal.Enabled := True;
@@ -475,12 +470,13 @@ end;
 
 procedure TCommand.Execute;
 begin
+  //Обновляем вывод данных
   Processor.ShowRegisters;
   Processor.Memory.ShowNewMem;
-
+  //Если есть объект синхронизации потока - ждём его
   if Assigned(Processor.StopSection) then
     Processor.StopSection.WaitFor(INFINITE);
-
+  //Устанавливаем первый байт команды в IR, второй и третий - в WZ
   Processor.Registers.IR := NumStrToInt(Copy(CommandCode, 1, 8), SBIN);
   Processor.SetDataReg(RW, 0);
   Processor.SetDataReg(RZ, 0);
@@ -488,11 +484,11 @@ begin
     Processor.SetDataReg(RW, NumStrToInt(Copy(CommandCode, 9, 8), SBIN));
   if Size > 2 then
     Processor.SetDataReg(RZ, NumStrToInt(Copy(CommandCode, 17, 8), SBIN));
+  //Инкрементим счетчик команд
   Processor.Registers.PC := Processor.Registers.PC + Size;
-
+  //Сбрасываем объект синхронизации потока
   if Assigned(Processor.StopSection) then
     Processor.StopSection.ResetEvent;
-
 end;
 
 function TCommand.Size: Integer;
@@ -510,6 +506,7 @@ end;
 constructor TDataCommand.Create;
 begin
   inherited;
+  //Команды пересылки данных
   if Name = 'MOV' then
     CommandCode := '01' + FormatAddrCode(Op1) + FormatAddrCode(Op2)
   else if Name = 'MVI' then
@@ -577,6 +574,7 @@ end;
 constructor TStackCommand.Create(Name, Op1, Op2: String);
 begin
   inherited;
+  //Команды работы со стеком
   if Name = 'PUSH' then
     CommandCode := '11' + FormatAddrCode(Op1, True) + '0101'
   else if Name = 'POP' then
@@ -727,6 +725,7 @@ begin
   //Условные переходы
   else
   begin
+    //Определяем условие
     Condition := Copy(Name, 2, Name.Length-1);
     if      Condition   = 'NZ'  then Condition    := '000'
     else if Condition   = 'Z'   then Condition    := '001'
@@ -736,10 +735,12 @@ begin
     else if Condition   = 'PE'  then Condition    := '101'
     else if Condition   = 'P'   then Condition    := '110'
     else if Condition   = 'M'   then Condition    := '111';
+    //Определяем тип перехода
     Instruction := Name[1];
     if      Instruction = 'J'   then Instruction  := '010'
     else if Instruction = 'C'   then Instruction  := '100'
     else if Instruction = 'R'   then Instruction  := '000';
+    //Получаем код команды
     CommandCode := '11' + Condition + Instruction;
   end;
 end;
@@ -800,9 +801,15 @@ begin
     //Семантический анализ
      if Pos(Cmd, CMD_DATA) > 0 then          //Команда пересылки
       Command := TDataCommand.Create(Cmd, Op1, Op2)
-    else if Pos(Cmd, CMD_ARTH) > 0 then     //Команда арифметики-логики
+    else if Pos(Cmd, CMD_STCK) > 0 then     //Команда стека
+      Command := TStackCommand.Create(Cmd, Op1, Op2)
+    else if Pos(Cmd, CMD_ARTH) > 0 then     //Команда арифметики
       Command := TArithmCommand.Create(Cmd, Op1, Op2)
-    else if Pos(Cmd, CMD_SYST) > 0 then     //Команда перехода или управления
+    else if Pos(Cmd, CMD_LOGC) > 0 then     //Команда логики
+      Command := TLogicCommand.Create(Cmd, Op1, Op2)
+    else if Pos(Cmd, CMD_CTRL) > 0 then     //Команда перехода
+      Command := TCtrlCommand.Create(Cmd, Op1, Op2)
+    else if Pos(Cmd, CMD_SYST) > 0 then     //Команда управления
       Command := TSysCommand.Create(Cmd, Op1, Op2)
     else
       Result := False;                      //Ошибка в коде команды

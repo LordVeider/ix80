@@ -1,5 +1,8 @@
 unit FormMemory;
 
+//ix80 Intel 8080 CPU Emulator & Demonstration Model
+//Визуальная схема памяти
+
 interface
 
 uses
