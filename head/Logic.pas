@@ -35,8 +35,9 @@ type
   end;
 
   TFlag = (FS, FZ, FAC, FP, FCY);
-  TDataRegName = (RA, RF, RB, RC, RD, RE, RH, RL, RW, RZ);
-  TDataRegisters = array [TDataRegName] of Int8;
+  //TDataRegName = (RA, RF, RB, RC, RD, RE, RH, RL, RW, RZ);
+  TDataReg = (RB, RC, RD, RE, RH, RL, RM, RA, RW, RZ, RF);
+  TDataRegisters = array [TDataReg] of Int8;
   TRegisters = record
     DataRegisters: TDataRegisters;          //Регистры данных (8 bit)
     SP: Word;                               //Указатель стека (16 bit)
@@ -70,11 +71,11 @@ type
     procedure Run;                                                              //Запустить выполнение
     procedure ShowRegisters;                                                    //Отобразить содержимое регистров на экране
     procedure PerformALU(Value: Int8);                                          //Выполнить операцию на АЛУ
-    procedure SetDataReg(DataRegName: TDataRegName; Value: Int8);               //Установить значение регистра
-    function GetDataReg(DataRegName: TDataRegName): Int8;                       //Получить значение регистра
-    procedure SetDataRP(DataRPName: TDataRegName; Value: Word);                 //Установить значение регистровой пары
-    function GetDataRP(DataRPName: TDataRegName): Word;                         //Получить значение регистровой пары
-    function DataRegNameInt8xtName(TextName: String): TDataRegName;             //Имя регистра по текстовому имени
+    procedure SetDataReg(DataRegName: TDataReg; Value: Int8);               //Установить значение регистра
+    function GetDataReg(DataRegName: TDataReg): Int8;                       //Получить значение регистра
+    procedure SetDataRP(DataRPName: TDataReg; Value: Word);                 //Установить значение регистровой пары
+    function GetDataRP(DataRPName: TDataReg): Word;                         //Получить значение регистровой пары
+    function DataRegNameInt8xtName(TextName: String): TDataReg;             //Имя регистра по текстовому имени
     procedure SetRegAddrValue(Operand: String; Value: Int8);                    //Получить значение по регистровой адресации
     function GetRegAddrValue(Operand: String): Int8;                            //Установить значение по регистровой адресации
     procedure SetStackPointer(Value: Word);                                     //Установить значение указателя стека
@@ -135,6 +136,13 @@ type
     function ParseCommand(TextLine: String; var Command: TCommand): Boolean;    //Разбор текста команды
   end;
 
+  TNewParser = class
+  private
+    function GetCode(Name, Op1, Op2: String; var CommandCode: String): Boolean;
+  public
+    function ParseCommand(TextLine: String; var CommandCode: String): Boolean;    //Разбор текста команды
+  end;
+
 implementation
 
 uses
@@ -149,9 +157,9 @@ end;
 
 procedure TProcessor.InitDataRegisters;
 var
-  CurReg: TDataRegName;
+  CurReg: TDataReg;
 begin
-  for CurReg := Low(TDataRegName) to High(TDataRegName) do
+  for CurReg := Low(TDataReg) to High(TDataReg) do
     Registers.DataRegisters[CurReg] := 0;
 end;
 
@@ -204,11 +212,11 @@ end;
 
 function TProcessor.DataRegNameInt8xtName;
 var
-  CurReg: TDataRegName;
+  CurReg: TDataReg;
 begin
   //Преобразуем текстовое обозначение регистра в его обозначение из TDataRegistersNames
-  for CurReg := Low(TDataRegName) to High(TDataRegName) do
-    if 'R' + TextName = GetEnumName(TypeInfo(TDataRegName), Ord(CurReg)) then
+  for CurReg := Low(TDataReg) to High(TDataReg) do
+    if 'R' + TextName = GetEnumName(TypeInfo(TDataReg), Ord(CurReg)) then
     begin
       Result := CurReg;
       Break;
@@ -527,6 +535,8 @@ begin
     CommandCode := '00100010' + ConvertNumStrAuto(Op1, SBIN, 16)
   else if Name = 'XCHG' then
     CommandCode := '11101011';
+  //if NumStrToInt(Copy(CommandCode, 1, 8), SBIN) in [$2A..$2A] then
+  //  ShowMessage(Name);
 end;
 
 procedure TDataCommand.Execute;
@@ -799,7 +809,7 @@ begin
       end;
     end;
     //Семантический анализ
-     if Pos(Cmd, CMD_DATA) > 0 then          //Команда пересылки
+    if Pos(Cmd, CMD_DATA) > 0 then          //Команда пересылки
       Command := TDataCommand.Create(Cmd, Op1, Op2)
     else if Pos(Cmd, CMD_STCK) > 0 then     //Команда стека
       Command := TStackCommand.Create(Cmd, Op1, Op2)
@@ -815,6 +825,204 @@ begin
       Result := False;                      //Ошибка в коде команды
    except
     Result := False;                        //Синтаксическая ошибка
+  end;
+end;
+
+{ TNewParser }
+
+function TNewParser.ParseCommand;
+var
+  Cmd, Op1, Op2: String;
+  NextDelimeter: Integer;
+begin
+  try
+    Result := True;
+    //Синтаксический анализ
+    NextDelimeter := Pos(#59, TextLine);    //Ищем точку с запятой в строке
+    if NextDelimeter > 0 then               //Есть комментарий
+      Delete(TextLine, Pos(#59, TextLine) - 1, TextLine.Length - Pos(#59, TextLine) + 2);
+    NextDelimeter := Pos(#32, TextLine);    //Ищем пробел в строке
+    if NextDelimeter = 0 then               //Операндов нет
+      Cmd := TextLine
+    else                                    //Операнды есть
+    begin
+      Cmd := Copy(TextLine, 1, NextDelimeter - 1);
+      Delete(TextLine, 1, NextDelimeter);
+      NextDelimeter := Pos(#44, TextLine);  //Ищем запятую в строке
+      if NextDelimeter = 0 then             //Операнд один
+        Op1 := TextLine
+      else                                  //Операндов два
+      begin
+        Op1 := Copy(TextLine, 1, NextDelimeter - 1);
+        Delete(TextLine, 1, NextDelimeter + 1);
+        Op2 := TextLine;
+      end;
+    end;
+    //Семантический анализ
+    Result := GetCode(Cmd, Op1, Op2, CommandCode);
+  except
+    Result := False;                        //Синтаксическая ошибка
+  end;
+end;
+
+function TNewParser.GetCode;
+var
+  Condition, Instruction: String;
+begin
+  //Команды пересылки данных
+  if Pos(Name, CMD_DATA) > 0 then
+  begin
+    if Name = 'MOV' then
+      CommandCode := '01' + FormatAddrCode(Op1) + FormatAddrCode(Op2)
+    else if Name = 'MVI' then
+      CommandCode := '00' + FormatAddrCode(Op1) + '110' + ConvertNumStrAuto(Op2, SBIN, 8)
+    else if Name = 'LXI' then
+      CommandCode := '00' + FormatAddrCode(Op1, True) + '0001' + ConvertNumStrAuto(Op2, SBIN, 16)
+    else if Name = 'LDA' then
+      CommandCode := '00111010' + ConvertNumStrAuto(Op1, SBIN, 16)
+    else if Name = 'STA' then
+      CommandCode := '00110010' + ConvertNumStrAuto(Op1, SBIN, 16)
+    else if Name = 'LDAX' then
+      CommandCode := '00' + FormatAddrCode(Op1, True) + '1010'
+    else if Name = 'STAX' then
+      CommandCode := '00' + FormatAddrCode(Op1, True) + '0010'
+    else if Name = 'LHLD' then
+      CommandCode := '00101010' + ConvertNumStrAuto(Op1, SBIN, 16)
+    else if Name = 'SHLD' then
+      CommandCode := '00100010' + ConvertNumStrAuto(Op1, SBIN, 16)
+    else if Name = 'XCHG' then
+      CommandCode := '11101011';
+  end
+  //Команды работы со стеком
+  else if Pos(Name, CMD_STCK) > 0 then
+  begin
+    if Name = 'PUSH' then
+      CommandCode := '11' + FormatAddrCode(Op1, True) + '0101'
+    else if Name = 'POP' then
+      CommandCode := '11' + FormatAddrCode(Op1, True) + '0001'
+    else if Name = 'SPHL' then
+      CommandCode := '11111001'
+    else if Name = 'XTHL' then
+      CommandCode := '11100011';
+  end
+  //Арифметические команды
+  else if Pos(Name, CMD_ARTH) > 0 then
+  begin
+    //Сложение
+    if Name = 'ADD' then
+      CommandCode := '10000' + FormatAddrCode(Op1)
+    else if Name = 'ADI' then
+      CommandCode := '11000110' + ConvertNumStrAuto(Op1, SBIN, 8)
+    else if Name = 'ADC' then
+      CommandCode := '10001' + FormatAddrCode(Op1)
+    else if Name = 'ACI' then
+      CommandCode := '11001110' + ConvertNumStrAuto(Op1, SBIN, 8)
+    //Вычитание
+    else if Name = 'SUB' then
+      CommandCode := '10010' + FormatAddrCode(Op1)
+    else if Name = 'SUI' then
+      CommandCode := '11010110' + ConvertNumStrAuto(Op1, SBIN, 8)
+    else if Name = 'SBB' then
+      CommandCode := '10011' + FormatAddrCode(Op1)
+    else if Name = 'SBI' then
+      CommandCode := '11011110' + ConvertNumStrAuto(Op1, SBIN, 8)
+    //Инкремент/декремент
+    else if Name = 'INR' then
+      CommandCode := '00' + FormatAddrCode(Op1) + '100'
+    else if Name = 'INX' then
+      CommandCode := '00' + FormatAddrCode(Op1, True) + '0011'
+    else if Name = 'DCR' then
+      CommandCode := '00' + FormatAddrCode(Op1) + '101'
+    else if Name = 'DCX' then
+      CommandCode := '00' + FormatAddrCode(Op1, True) + '1011'
+    //Двойное сложение
+    else if Name = 'DAD' then
+      CommandCode := '00' + FormatAddrCode(Op1, True) + '1001'
+    //Двоично-десятичная коррекция
+    else if Name = 'DAA' then
+      CommandCode := '00100111';
+  end
+  //Логические операции
+  else if Pos(Name, CMD_LOGC) > 0 then
+  begin
+    if Name = 'ANA' then
+      CommandCode := '10100' + FormatAddrCode(Op1)
+    else if Name = 'ANI' then
+      CommandCode := '11100110' + ConvertNumStrAuto(Op1, SBIN, 8)
+    else if Name = 'XRA' then
+      CommandCode := '10101' + FormatAddrCode(Op1)
+    else if Name = 'XRI' then
+      CommandCode := '11101110' + ConvertNumStrAuto(Op1, SBIN, 8)
+    else if Name = 'ORA' then
+      CommandCode := '10110' + FormatAddrCode(Op1)
+    else if Name = 'ORI' then
+      CommandCode := '11110110' + ConvertNumStrAuto(Op1, SBIN, 8)
+    //Сравнение
+    else if Name = 'CMP' then
+      CommandCode := '10111' + FormatAddrCode(Op1)
+    else if Name = 'CPI' then
+      CommandCode := '11111110' + ConvertNumStrAuto(Op1, SBIN, 8)
+    //Сдвиг
+    else if Name = 'RLC' then
+      CommandCode := '00000111'
+    else if Name = 'RRC' then
+      CommandCode := '00001111'
+    else if Name = 'RAL' then
+      CommandCode := '00010111'
+    else if Name = 'RAR' then
+      CommandCode := '00011111'
+    //Специальные команды
+    else if Name = 'CMA' then
+      CommandCode := '00101111'
+    else if Name = 'CMC' then
+      CommandCode := '00111111'
+    else if Name = 'STC' then
+      CommandCode := '00110111';
+  end
+  //Команды передачи управления
+  else if Pos(Name, CMD_CTRL) > 0 then
+  begin
+    //Безусловные переходы
+    if Name = 'JMP' then
+      CommandCode := '11000011' + ConvertNumStrAuto(Op1, SBIN, 16)
+    else if Name = 'CALL' then
+      CommandCode := '11001101' + ConvertNumStrAuto(Op1, SBIN, 16)
+    else if Name = 'RET' then
+      CommandCode := '11001001'
+    //Специальные команды
+    else if Name = 'RST' then
+      CommandCode := '11' + ConvertNumStrAuto(Op1, SBIN, 3) + '111'
+    else if Name = 'PCHL' then
+      CommandCode := '11101001'
+    //Условные переходы
+    else
+    begin
+      //Определяем условие
+      Condition := Copy(Name, 2, Name.Length-1);
+      if      Condition   = 'NZ'  then Condition    := '000'
+      else if Condition   = 'Z'   then Condition    := '001'
+      else if Condition   = 'NC'  then Condition    := '010'
+      else if Condition   = 'C'   then Condition    := '011'
+      else if Condition   = 'PO'  then Condition    := '100'
+      else if Condition   = 'PE'  then Condition    := '101'
+      else if Condition   = 'P'   then Condition    := '110'
+      else if Condition   = 'M'   then Condition    := '111';
+      //Определяем тип перехода
+      Instruction := Name[1];
+      if      Instruction = 'J'   then Instruction  := '010'
+      else if Instruction = 'C'   then Instruction  := '100'
+      else if Instruction = 'R'   then Instruction  := '000';
+      //Получаем код команды
+      CommandCode := '11' + Condition + Instruction;
+    end;
+  end
+  //Команды управления микропроцессором
+  else if Pos(Name, CMD_CTRL) > 0 then
+  begin
+    if Name = 'HLT' then
+      CommandCode := '01110110'
+    else if Name = 'NOP' then
+      CommandCode := '00000000';
   end;
 end;
 

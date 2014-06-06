@@ -28,7 +28,19 @@ type
   function IntToNumStr
     (Value: Integer; Base: TNumSys; Digits: Integer = 0): String;               //Преобразование к строке
 
+  function ExtractReg(Code: Byte; Tail: Boolean = False): Byte;
+
 implementation
+
+function ExtractReg;
+begin
+  if not Tail then
+    Code := Code shr 3;
+  Code := Code shl 5;
+  Code := Code shr 5;
+  Result := Code;
+end;
+
 
 function HexToInt;
 begin

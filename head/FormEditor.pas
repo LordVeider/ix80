@@ -77,6 +77,7 @@ type
     procedure btnNextCommandClick(Sender: TObject);
     procedure btnRunStepClick(Sender: TObject);
     procedure btnStopClick(Sender: TObject);
+    procedure btn9Click(Sender: TObject);
   private
     { Private declarations }
   public
@@ -97,6 +98,11 @@ uses FormAbout, FormValue;
 procedure TfrmEditor.btn8Click(Sender: TObject);
 begin
   frmValue.Show;
+end;
+
+procedure TfrmEditor.btn9Click(Sender: TObject);
+begin
+  //ShowMessage(IntToNumStr(ExtractReg($58), SBIN, 8));
 end;
 
 procedure TfrmEditor.btnMemClearClick(Sender: TObject);
