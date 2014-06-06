@@ -141,6 +141,7 @@ type
     function GetCode(Name, Op1, Op2: String; var CommandCode: String): Boolean;
   public
     function ParseCommand(TextLine: String; var CommandCode: String): Boolean;    //Разбор текста команды
+    function WriteCode(CommandCode: String; Memory: TMemory; var Address: Word): Boolean;
   end;
 
 implementation
@@ -865,10 +866,29 @@ begin
   end;
 end;
 
+function TNewParser.WriteCode;
+var
+  Bits: Byte;
+begin
+  try
+    Bits := 0;
+    //Записываем в память двоичный код команды
+    repeat
+      Memory.WriteMemory(Address, NumStrToInt(Copy(CommandCode, Bits + 1, 8), SBIN));
+      Address := Address + 1;
+      Bits := Bits + 8;
+    until Bits = CommandCode.Length;
+    Result := True;
+  except
+    Result := False;
+  end;
+end;
+
 function TNewParser.GetCode;
 var
   Condition, Instruction: String;
 begin
+  CommandCode := '';
   //Команды пересылки данных
   if Pos(Name, CMD_DATA) > 0 then
   begin
@@ -1017,13 +1037,14 @@ begin
     end;
   end
   //Команды управления микропроцессором
-  else if Pos(Name, CMD_CTRL) > 0 then
+  else if Pos(Name, CMD_SYST) > 0 then
   begin
     if Name = 'HLT' then
       CommandCode := '01110110'
     else if Name = 'NOP' then
       CommandCode := '00000000';
   end;
+  Result := CommandCode <> '';
 end;
 
 end.
