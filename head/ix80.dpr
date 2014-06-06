@@ -8,7 +8,8 @@ uses
   Common in 'Common.pas',
   Logic in 'Logic.pas',
   FormAbout in 'FormAbout.pas' {frmAbout},
-  FormValue in 'FormValue.pas' {frmValue};
+  FormValue in 'FormValue.pas' {frmValue},
+  InstructionSet in 'InstructionSet.pas';
 
 {$R *.res}
 

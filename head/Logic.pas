@@ -43,7 +43,7 @@ type
     SP: Word;                               //”казатель стека (16 bit)
     PC: Word;                               //—четчик команд  (16 bit)
     AB: Word;                               //Ѕуфер адреса    (16 bit)
-    IR: Int8;                               //–егистр команд  (8 bit)
+    IR: Byte;                               //–егистр команд  (8 bit)
   end;
 
   TProcessor = class;
@@ -144,7 +144,19 @@ type
     function WriteCode(CommandCode: String; Memory: TMemory; var Address: Word): Boolean;
   end;
 
-  //TNewCommand = class
+  TNewCommand = class
+  private
+    Address: Word;
+    Code: Byte;
+  public
+    constructor Create(Address: Word);
+    function Execute(Processor: TProcessor): Boolean;
+  end;
+
+  TNewSysCommand = class(TNewCommand)
+  public
+    function Execute(Processor: TProcessor): Boolean;
+  end;
   //SYST $00, $76
   //DATA $01, $11, $21, $31, $02, $12, $22, $32, $06, $16, $26, $36, $0A, $1A, $2A, $3A, $0E, $1E, $2E, $3E, $40..$75, $77..$7F, $EB
   //STCK $C1, $D1, $E1, $F1, $E3, $C5, $D5, $E5, $F5, $F9
@@ -1053,6 +1065,26 @@ begin
       CommandCode := '00000000';
   end;
   Result := CommandCode <> '';
+end;
+
+{ TNewCommand }
+
+constructor TNewCommand.Create;
+begin
+  Self.Address := Address;
+end;
+
+function TNewCommand.Execute;
+begin
+  Processor.Registers.IR := Processor.Memory.ReadMemory(Address);
+  //Code :=
+end;
+
+{ TNewSysCommand }
+
+function TNewSysCommand.Execute(Processor: TProcessor): Boolean;
+begin
+
 end;
 
 end.

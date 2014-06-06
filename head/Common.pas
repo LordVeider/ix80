@@ -29,6 +29,7 @@ type
     (Value: Integer; Base: TNumSys; Digits: Integer = 0): String;               //Преобразование к строке
 
   function ExtractReg(Code: Byte; Tail: Boolean = False): Byte;
+  function ExtractRP(Code: Byte): Byte;
 
 implementation
 
@@ -41,6 +42,12 @@ begin
   Result := Code;
 end;
 
+function ExtractRP;
+begin
+  Code := Code shl 2;
+  Code := Code shr 6;
+  Result := Code;
+end;
 
 function HexToInt;
 begin
