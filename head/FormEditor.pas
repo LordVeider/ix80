@@ -117,32 +117,34 @@ end;
 
 procedure TfrmEditor.btnMemUnloadClick(Sender: TObject);
 var
-  i: integer;
-  par1: TCommandParser;
-  tempc: TCommand;
-  ad: Word;
-  compiled: Boolean;
+  LineIndex: Integer;
+  CommandCode: String;
+  Address: Word;
+  Parser: TNewParser;
+  Success: Boolean;
 begin
-  compiled := True;
-  ad := 5;
   if not Assigned(MEM) then
     MEM := TMemory.Create;
   redtMsg.Lines.Clear;
-  par1 := TCommandParser.Create;
-  for i := 0 to redtCode.Lines.Count-1 do
+  Parser := TNewParser.Create;
+  Success := True;
+  Address := 5;
+  for LineIndex := 0 to redtCode.Lines.Count-1 do
   begin
-    if par1.ParseCommand(redtCode.Lines.Strings[i], tempc) then
+    if Success then
     begin
-      //redtMsg.Lines.Add(tempc.ShowSummary);
-      ad := tempc.WriteToMemory(MEM, ad);
+      Success := Parser.ParseCommand(redtCode.Lines.Strings[LineIndex], CommandCode);
+      if Success then
+        Success := Parser.WriteCode(CommandCode, MEM, Address)
+      else
+        redtMsg.Lines.Add('Ошибка записи команды в память (строка: ' + IntToStr(LineIndex + 1) + ')');
     end
     else
     begin
-      redtMsg.Lines.Add('Ошибка: неверная команда (строка: ' + IntToStr(i+1) + ')');
-      compiled := False;
+      redtMsg.Lines.Add('Ошибка трансляции команды (строка: ' + IntToStr(LineIndex + 1) + ')');
     end;
   end;
-  if compiled then
+  if Success then
     redtMsg.Lines.Add('Программа успешно транслирована в память');
   MEM.ShowNewMem;
 end;
