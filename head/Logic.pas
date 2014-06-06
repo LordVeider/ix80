@@ -144,6 +144,14 @@ type
     function WriteCode(CommandCode: String; Memory: TMemory; var Address: Word): Boolean;
   end;
 
+  //TNewCommand = class
+  //SYST $00, $76
+  //DATA $01, $11, $21, $31, $02, $12, $22, $32, $06, $16, $26, $36, $0A, $1A, $2A, $3A, $0E, $1E, $2E, $3E, $40..$75, $77..$7F, $EB
+  //STCK $C1, $D1, $E1, $F1, $E3, $C5, $D5, $E5, $F5, $F9
+  //ARTH $03..$05, $13..$15, $23..$25, $33..$35, $27, $09, $19, $29, $39, $0B..$0D, $1B..$1D, $2B..$2D, $3B..$3D, $80..$9F, $C6, $D6, $CE, $DE
+  //LOGC $07, $17, $37, $0F, $1F, $2F, $3F, $A0..$BF, $E6, $F6, $EE, $FE
+  //CTRL $C0, $D0, $E0, $F0, $C2, $D2, $E2, $F2, $C3, $C4, $D4, $E4, $F4, $C7, $D7, $E7, $F7, $C8, $D8, $E8, $F8, $C9, $E9, $CA, $DA, $EA, $FA, $CC, $DC, $EC, $FC, $CD, $CF, $DF, $EF, $FF
+
 implementation
 
 uses
