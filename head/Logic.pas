@@ -9,14 +9,6 @@ interface
 uses
   Classes, SyncObjs, Common, InstructionSet;
 
-const
-  CMD_DATA          = '#MOV#MVI#LXI#LDA#STA#LDAX#STAX#LHLD#SHLD#XCHG#';
-  CMD_STCK          = '#PUSH#POP#SPHL#XTHL#';
-  CMD_ARTH          = '#ADD#ADC#ADI#ACI#SUB#SBB#SUI#SBI#INR#INX#DCR#DCX#DAD#DAA#';
-  CMD_LOGC          = '#ANA#ORA#XRA#ANI#ORI#XRI#CMP#CPI#RAL#RAR#RLC#RRC#CMA#CMC#STC#';
-  CMD_CTRL          = '#JMP#CALL#RET#RST#PCHL#JNC#JC#JNZ#JZ#JP#JM#JPO#JPE#CNC#CC#CNZ#CZ#CP#CM#CPO#CPE#RNC#RC#RNZ#RZ#RP#RM#RPO#RPE#';
-  CMD_SYST          = '#NOP#HLT#';
-
 type
   TMemoryCell = record
     Command: Pointer;                       //Объект "команда" (для ячеек, содержащих команды)
@@ -130,6 +122,27 @@ type
     constructor Create(Name: String; Op1, Op2: String);
     procedure Execute(Processor: TProcessor);
   end;
+
+  TMatrixCommand = class
+  private
+    Code: Byte;
+    B2, B3: Byte;
+    Instr: TInstruction;
+  public
+    constructor Create(Instr: TInstruction);
+    procedure Execute(Processor: TProcessor);
+  end;
+
+  TMatrixSystemCommand = class(TMatrixCommand);
+  TMatrixDataCommand = class(TMatrixCommand)
+  public
+    procedure Execute(Processor: TProcessor);
+  end;
+  TMatrixStackCommand = class(TMatrixCommand);
+  TMatrixArithmCommand = class(TMatrixCommand);
+  TMatrixLogicCommand = class(TMatrixCommand);
+  TMatrixControlCommand = class(TMatrixCommand);
+  TMatrixBranchCommand = class(TMatrixCommand);
 
   TMatrixParser = class
   public
@@ -374,6 +387,10 @@ procedure TProcessorThread.Execute;
 var
   s: string;
   c: integer;
+
+  CurrentAddr: Word;
+  CurrentInstr: TInstruction;
+  CurrentCommand: TMatrixCommand;
 begin
   inherited;
   FreeOnTerminate := True;
@@ -381,7 +398,7 @@ begin
   begin
     //Пока не получили HLT или команду на уничтожение потока - читаем команды
     repeat
-      if Assigned(Memory.Cells[Registers.PC].Command) then
+      {if Assigned(Memory.Cells[Registers.PC].Command) then
       begin
         c := Registers.PC;
         s := TCommand(Memory.Cells[Registers.PC].Command).ShowSummary;
@@ -397,7 +414,26 @@ begin
           TCtrlCommand(Memory.Cells[Registers.PC].Command).Execute(Processor)
         else if TCommand(Memory.Cells[Registers.PC].Command) is TSysCommand then
           TSysCommand(Memory.Cells[Registers.PC].Command).Execute(Processor)
+      end;}
+      CurrentAddr := GetProgramCounter;
+      CurrentInstr := InstrSet.FindByMask(IntToNumStr(Memory.ReadMemory(CurrentAddr), SBIN, 8));
+      if Assigned(CurrentInstr) then
+      begin
+        CurrentCommand := TMatrixCommand.Create(CurrentInstr);
+        case CurrentInstr.Group of
+          ICSystem:    TMatrixSystemCommand(CurrentCommand).Execute(Processor);
+          ICData:        TMatrixDataCommand(CurrentCommand).Execute(Processor);
+          ICStack:      TMatrixStackCommand(CurrentCommand).Execute(Processor);
+          ICArithm:    TMatrixArithmCommand(CurrentCommand).Execute(Processor);
+          ICLogic:      TMatrixLogicCommand(CurrentCommand).Execute(Processor);
+          ICControl:  TMatrixControlCommand(CurrentCommand).Execute(Processor);
+          ICBranch:    TMatrixBranchCommand(CurrentCommand).Execute(Processor);
+        end;
+        FreeAndNil(CurrentCommand);
+        //frmEditor.redtMsg.Lines.Add(CurrentInstr.Mnemonic);
+        //CurrentCommand.Execute(Processor);
       end;
+
     until HltState or Terminated;
     //Уничтожаем объект синхронизации
     if Assigned(StopSection) then
@@ -832,6 +868,28 @@ begin
   except
     Result := False;
   end;
+end;
+
+{ TMatrixCommand }
+
+constructor TMatrixCommand.Create;
+begin
+  Self.Instr := Instr;
+  //Self.Code := Code;
+  //Instr := InstrSet.FindByMask(IntToNumStr(Code, SBIN, 8));
+end;
+
+procedure TMatrixCommand.Execute;
+begin
+  ShowMessage('Generic command');
+end;
+
+{ TMatrixDataCommand }
+
+procedure TMatrixDataCommand.Execute(Processor: TProcessor);
+begin
+  inherited;
+  ShowMessage('Data command');
 end;
 
 end.
