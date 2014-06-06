@@ -122,13 +122,13 @@ var
   LineIndex: Integer;
   CommandCode: String;
   Address: Word;
-  Parser: TNewParser;
+  Parser: TMatrixParser;
   Success: Boolean;
 begin
   if not Assigned(MEM) then
     MEM := TMemory.Create;
   redtMsg.Lines.Clear;
-  Parser := TNewParser.Create;
+  Parser := TMatrixParser.Create;
   Success := True;
   Address := 5;
   for LineIndex := 0 to redtCode.Lines.Count-1 do
