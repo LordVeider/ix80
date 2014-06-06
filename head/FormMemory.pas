@@ -11,12 +11,14 @@ type
     grdMemory: TStringGrid;
     grdNewMem: TStringGrid;
     procedure FormShow(Sender: TObject);
+    procedure grdNewMemDblClick(Sender: TObject);
   private
     { Private declarations }
   public
     { Public declarations }
+    Memory: TMemory;
     TrueMem: Boolean;
-    procedure DrawMemory(Memory: TMemory);
+    procedure DrawMemory;
   end;
 
 var
@@ -26,7 +28,10 @@ implementation
 
 {$R *.dfm}
 
-procedure TfrmMemory.DrawMemory(Memory: TMemory);
+uses
+  FormValue;
+
+procedure TfrmMemory.DrawMemory;
 var
   i, j: Integer;
 begin
@@ -113,7 +118,20 @@ end;
 
 procedure TfrmMemory.FormShow(Sender: TObject);
 begin
-  DrawMemory(nil);
+  DrawMemory;
+end;
+
+procedure TfrmMemory.grdNewMemDblClick(Sender: TObject);
+begin
+  if Assigned(Memory) then
+    if grdNewMem.Row > 0 then
+    begin
+      frmValue.FMemory := Self;
+      frmValue.Address := grdNewMem.Row - 1;
+      frmValue.Left := Mouse.CursorPos.X;
+      frmValue.Top := Mouse.CursorPos.Y;
+      frmValue.ShowModal;
+    end;
 end;
 
 end.

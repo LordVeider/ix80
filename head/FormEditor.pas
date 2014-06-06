@@ -104,7 +104,8 @@ begin
   if Assigned(MEM) then
   begin
     FreeAndNil(MEM);
-    frmMemory.DrawMemory(MEM);
+    frmMemory.Memory := MEM;
+    frmMemory.DrawMemory;
   end;
 end;
 

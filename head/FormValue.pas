@@ -4,29 +4,35 @@ interface
 
 uses
   Winapi.Windows, Winapi.Messages, System.SysUtils, System.Variants, System.Classes, Vcl.Graphics,
-  Vcl.Controls, Vcl.Forms, Vcl.Dialogs, Vcl.StdCtrls, Vcl.ExtCtrls, Vcl.ImgList, Common;
+  Vcl.Controls, Vcl.Forms, Vcl.Dialogs, Vcl.StdCtrls, Vcl.ExtCtrls, Vcl.ImgList, Logic, Common;
 
 type
   TfrmValue = class(TForm)
-    edtHex: TLabeledEdit;
-    edtBin: TLabeledEdit;
-    edtDec: TLabeledEdit;
-    rbHex: TRadioButton;
-    rbBin: TRadioButton;
-    rbDec: TRadioButton;
-    btnApply: TButton;
     btnCancel: TButton;
-    lblValueName: TLabel;
     ilButtons: TImageList;
-    procedure rbHexClick(Sender: TObject);
-    procedure edtHexKeyPress(Sender: TObject; var Key: Char);
-    procedure edtBinKeyPress(Sender: TObject; var Key: Char);
-    procedure edtDecKeyPress(Sender: TObject; var Key: Char);
+    lblHex: TLabel;
+    lblBin: TLabel;
+    lblDec: TLabel;
+    edtValue: TEdit;
+    lblHexValue: TLabel;
+    lblBinValue: TLabel;
+    lblDecValue: TLabel;
+    btnApply: TButton;
+    procedure edtValueChange(Sender: TObject);
+    procedure FormShow(Sender: TObject);
+    procedure btnCancelClick(Sender: TObject);
+    procedure btnApplyClick(Sender: TObject);
+    procedure FormClose(Sender: TObject; var Action: TCloseAction);
   private
     { Private declarations }
+    Verified: Boolean;
   public
     { Public declarations }
-    DoubleOperand: Boolean;
+    FMemory: TForm;
+    Address: Word;
+    procedure LoadValue;
+    procedure UnloadValue;
+    procedure UpdateValue;
   end;
 
 var
@@ -36,82 +42,73 @@ implementation
 
 {$R *.dfm}
 
-procedure TfrmValue.edtHexKeyPress(Sender: TObject; var Key: Char);
+uses
+  FormScheme, FormMemory;
+
+procedure TfrmValue.FormShow(Sender: TObject);
+begin
+  LoadValue;
+end;
+
+procedure TfrmValue.FormClose(Sender: TObject; var Action: TCloseAction);
+begin
+  edtValue.Text := '0';
+  Address := 0;
+end;
+
+procedure TfrmValue.edtValueChange(Sender: TObject);
+begin
+  UpdateValue;
+end;
+
+procedure TfrmValue.LoadValue;
+begin
+  if Assigned(FMemory) then
+    with TfrmMemory(FMemory) do
+    begin
+      Address := grdNewMem.Row - 1;
+      edtValue.Text := IntToStr(Memory.ReadMemory(Address));
+    end;
+end;
+
+procedure TfrmValue.UnloadValue;
+begin
+  if Assigned(FMemory) then
+    with TfrmMemory(FMemory) do
+    begin
+      Memory.WriteMemory(Address, StrToInt(edtValue.Text));
+    end;
+end;
+
+procedure TfrmValue.UpdateValue;
 begin
   try
-    {if DoubleOperand then
-    begin
-      edtBin.Text := FormatOperandWord(edtHex.Text + 'H', SBIN);
-      edtDec.Text := FormatOperandWord(edtHex.Text + 'H', SDEC);
-    end
-    else
-    begin
-      edtBin.Text := FormatOperandInt8(edtHex.Text + 'H', SBIN);
-      edtDec.Text := FormatOperandInt8(edtHex.Text + 'H', SDEC);
-    end;}
+    lblHexValue.Caption := ConvertNumStrAuto(edtValue.Text, SHEX);
+    lblBinValue.Caption := ConvertNumStrAuto(edtValue.Text, SBIN, 16);
+    lblDecValue.Caption := ConvertNumStrAuto(edtValue.Text, SDEC);
+    Verified := True;
   except
-    edtBin.Text := 'Некорректное значение';
-    edtDec.Text := 'Некорректное значение';
+    lblHexValue.Caption := 'Ошибка ввода';
+    lblBinValue.Caption := 'Ошибка ввода';
+    lblDecValue.Caption := 'Ошибка ввода';
+    Verified := False;
   end;
 end;
 
-procedure TfrmValue.edtBinKeyPress(Sender: TObject; var Key: Char);
+procedure TfrmValue.btnCancelClick(Sender: TObject);
 begin
-  try
-    {if DoubleOperand then
-    begin
-      edtHex.Text := FormatOperandWord(edtBin.Text + 'B', SHEX);
-      edtDec.Text := FormatOperandWord(edtBin.Text + 'B', SDEC);
-    end
-    else
-    begin
-      edtHex.Text := FormatOperandInt8(edtBin.Text + 'B', SHEX);
-      edtDec.Text := FormatOperandInt8(edtBin.Text + 'B', SDEC);
-    end;}
-  except
-    edtHex.Text := 'Некорректное значение';
-    edtDec.Text := 'Некорректное значение';
-  end;
+  Close;
 end;
 
-procedure TfrmValue.edtDecKeyPress(Sender: TObject; var Key: Char);
+procedure TfrmValue.btnApplyClick(Sender: TObject);
 begin
-  try
-    {if DoubleOperand then
-    begin
-      edtHex.Text := FormatOperandWord(edtDec.Text, SHEX);
-      edtBin.Text := FormatOperandWord(edtDec.Text, SBIN);
-    end
-    else
-    begin
-      edtHex.Text := FormatOperandInt8(edtDec.Text, SHEX);
-      edtBin.Text := FormatOperandInt8(edtDec.Text, SBIN);
-    end;}
-  except
-    edtBin.Text := 'Некорректное значение';
-    edtHex.Text := 'Некорректное значение';
-  end;
-end;
-
-procedure TfrmValue.rbHexClick(Sender: TObject);
-begin
-  if rbHex.Checked then
+  if Verified then
   begin
-    edtHex.Enabled := True;
-    edtDec.Enabled := False;
-    edtBin.Enabled := False;
-  end
-  else if rbBin.Checked then
-  begin
-    edtHex.Enabled := False;
-    edtDec.Enabled := False;
-    edtBin.Enabled := True;
-  end
-  else if rbDec.Checked then
-  begin
-    edtHex.Enabled := False;
-    edtDec.Enabled := True;
-    edtBin.Enabled := False;
+    UnloadValue;
+    Close;
+    if Assigned(FMemory) then
+      with TfrmMemory(FMemory) do
+          DrawMemory;
   end;
 end;
 
