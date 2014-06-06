@@ -127,7 +127,7 @@ begin
       'B': Result := '00';
       'D': Result := '01';
       'H': Result := '10';
-      else if Value = 'PSW' then
+      else if (Value = 'PSW') or (Value = 'SP') then
         Result := '11';
     end
   else

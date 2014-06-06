@@ -3,23 +3,24 @@ unit InstructionSet;
 interface
 
 uses
-  System.Generics.Collections, Classes, Common;
+  System.SysUtils, System.Generics.Collections, Classes, Common;
 
 type
-  TInstrSize = (ISSingle, ISDouble, ISTriple);
   TInstrClass = (ICSystem, ICData, ICStack, ICArithm, ICLogic, ICBranch);
   TInstrFormat = (IFOnly, IFRegCenter, IFRegEnd, IFRegDouble, IfRegPair);
   TInstruction = class
   public
     Code: Byte;
     Group: TInstrClass;
-    Size: TInstrSize;
+    Size: Byte;
     Format: TInstrFormat;
     Mnemonic: String;
     Description: String;
     constructor Create
       (Code: Byte; Group: TInstrClass; Size: Byte; Format: TInstrFormat; Mnemonic: String; Description: String = '');
     function Mask: String;
+    function MainCode(Op1: String = ''; Op2: String = ''): String;
+    function FullCode(Op1: String = ''; Op2: String = ''): String;
   end;
   TInstructionSet = class
   public
@@ -29,6 +30,7 @@ type
       (Code: Byte; Group: TInstrClass; Size: Byte; Format: TInstrFormat; Mnemonic: String; Description: String = '');
     function FindByCode(Code: Byte): TInstruction;
     function FindByMask(Mask: String): TInstruction;
+    function FindByMnemonic(Mnemonic: String): TInstruction;
   end;
 
 var
@@ -88,13 +90,26 @@ begin
     end;
 end;
 
+function TInstructionSet.FindByMnemonic(Mnemonic: String): TInstruction;
+var
+  CurrentInstr: TInstruction;
+begin
+  Result := nil;
+  for CurrentInstr in List do
+    if CurrentInstr.Mnemonic = Mnemonic then
+    begin
+      Result := CurrentInstr;
+      Break;
+    end;
+end;
+
 { TInstruction }
 
 constructor TInstruction.Create;
 begin
   Self.Code := Code;
   Self.Group := Group;
-  Self.Size := TInstrSize(Size);
+  Self.Size :=Size;
   Self.Format := Format;
   Self.Mnemonic := Mnemonic;
   Self.Description := Description;
@@ -114,14 +129,56 @@ begin
   end;
 end;
 
+function TInstruction.MainCode(Op1, Op2: String): String;
+var
+  s1: string;
+begin
+  case Format of
+    IFOnly:       Result := Mask;
+    IFRegCenter:  Result := StringReplace(Mask, 'DDD', FormatAddrCode(Op1), []);
+    IFRegEnd:     Result := StringReplace(Mask, 'SSS', FormatAddrCode(Op1), []);
+    IFRegDouble:  Result := StringReplace(StringReplace(Mask, 'DDD', FormatAddrCode(Op1), []), 'SSS', FormatAddrCode(Op2), []);
+    IFRegPair:    Result := StringReplace(Mask, 'RP', FormatAddrCode(Op1, True), []);
+  end;
+end;
+
+function TInstruction.FullCode(Op1, Op2: String): String;
+var
+  Op: String;
+begin
+  case Size of
+    1: Result := MainCode(Op1, Op2);
+    2: if Format = IFOnly then
+         Result := MainCode(Op1, Op2) + ConvertNumStrAuto(Op1, SBIN, 8)
+       else
+         Result := MainCode(Op1, Op2) + ConvertNumStrAuto(Op2, SBIN, 8);
+    3: if Format = IFOnly then
+         Result := MainCode(Op1, Op2) + ConvertNumStrAuto(Op1, SBIN, 16)
+       else
+         Result := MainCode(Op1, Op2) + ConvertNumStrAuto(Op2, SBIN, 16);
+    //16 БИТ НУЖНО В ОБРАТНОМ ПОРЯДКЕ!!!
+  end;
+end;
+
 initialization
 
 InstrSet := TInstructionSet.Create;
 with InstrSet do
 begin
-  Add($0, ICSystem, 1, IFOnly, 'NOP');
-  Add($76, ICSystem, 1, IFOnly, 'HLT');
-  Add($40, ICData, 1, IFRegDouble, 'MOV');
+  //Команды управления микропроцессором
+  Add($0,   ICSystem,     1, IFOnly,      'NOP'   );
+  Add($76,  ICSystem,     1, IFOnly,      'HLT'   );
+  //Команды пересылки данных
+  Add($40,  ICData,       1, IFRegDouble, 'MOV'   );
+  Add($06,  ICData,       2, IFRegCenter, 'MVI'   );
+  Add($01,  ICData,       3, IFRegPair,   'LXI'   );
+  Add($01,  ICData,       3, IFOnly,      'LDA'   );
+  Add($01,  ICData,       3, IFOnly,      'STA'   );
+  Add($01,  ICData,       1, IFRegPair,   'LDAX'  );
+  Add($01,  ICData,       1, IFRegPair,   'STAX'  );
+  Add($01,  ICData,       3, IFOnly,      'LHLD'  );
+  Add($01,  ICData,       3, IFOnly,      'SHLD'  );
+  Add($01,  ICData,       1, IFOnly,      'XCHG'  );
 end;
 
 end.
