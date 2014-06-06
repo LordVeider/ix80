@@ -283,7 +283,7 @@ object frmEditor: TfrmEditor
       Top = 0
       Caption = 'btn9'
       ImageIndex = 23
-      Visible = False
+      OnClick = btn9Click
     end
   end
   object redtCode: TRichEdit
