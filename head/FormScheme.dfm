@@ -1626,7 +1626,7 @@ object frmScheme: TfrmScheme
     end
     object edtE: TEdit
       Left = 673
-      Top = 401
+      Top = 404
       Width = 68
       Height = 21
       ReadOnly = True
