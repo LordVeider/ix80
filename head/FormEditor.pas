@@ -83,6 +83,7 @@ type
     { Private declarations }
   public
     { Public declarations }
+    procedure OnTerm(Sender: TObject);
   end;
 
 var
@@ -165,6 +166,7 @@ begin
   begin
     if not Assigned(CPU) then
       CPU := TProcessor.Create(MEM);
+    CPU.OnTerminate := OnTerm;
     //CPU.StopSection := TEvent.Create(nil, False, False, '');
     //CPU.StopSection.Enter;
       btnRunReal.Enabled := False;
@@ -173,8 +175,16 @@ begin
       btnNextCommand.Enabled := False;
       btnMemClear.Enabled := False;
       btnMemUnload.Enabled := False;
+
+//  ProcessorThread := TProcessorThread.Create(True);
+//  ProcessorThread.OnTerminate := OnTerm;
+//  ProcessorThread.Processor := Self;
+//  ProcessorThread.Start;
+
     CPU.InitCpu(5);
-    CPU.Run;
+    CPU.Start;
+    //CPU.InitCpu(5);
+    //CPU.Run;
     //CPU.ShowRegisters;
     //MEM.ShowNewMem;
   end;
@@ -186,6 +196,7 @@ begin
   begin
     if not Assigned(CPU) then
       CPU := TProcessor.Create(MEM);
+    CPU.OnTerminate := OnTerm;
     CPU.StopSection := TEvent.Create(nil, False, False, '');
       btnRunReal.Enabled := False;
       btnRunStep.Enabled := False;
@@ -195,7 +206,7 @@ begin
       btnMemUnload.Enabled := False;
     //CPU.StopSection.Enter;
     CPU.InitCpu(5);
-    CPU.Run;
+    CPU.Start;
     //CPU.ShowRegisters;
     //MEM.ShowNewMem;
   end;
@@ -218,7 +229,7 @@ end;
 
 procedure TfrmEditor.btnStopClick(Sender: TObject);
 begin
-  CPU.ProcessorThread.Terminate;
+  CPU.Terminate;
   if Assigned(CPU.StopSection) then
     CPU.StopSection.SetEvent;
 end;
@@ -252,6 +263,11 @@ end;
 procedure TfrmEditor.miHelpAboutClick(Sender: TObject);
 begin
   frmAbout.ShowModal;
+end;
+
+procedure TfrmEditor.OnTerm(Sender: TObject);
+begin
+  CPU := nil;
 end;
 
 end.
