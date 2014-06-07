@@ -51,10 +51,16 @@ begin
     end;
     //Семантический анализ
     Command := InstrSet.FindByMnemonic(Cmd);
-    if Assigned(Command) then
+    if Assigned(Command) then               //Команда найдена
       CommandCode := Command.FullCode(Op1, Op2)
     else
+    begin
+      Command := InstrSet.FindByMnemonic(Cmd, True);
+      if Assigned(Command) then             //Команды условного перехода обрабатываем особым способом
+        CommandCode := Command.FullCode(Copy(Cmd, 2, Cmd.Length - 1), Op1)
+      else
       Result := False;                      //Семантическая ошибка
+    end;
   except
     Result := False;                        //Синтаксическая ошибка
   end;
