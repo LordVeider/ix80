@@ -61,6 +61,7 @@ type
 
     function GetFlag(FlagName: TFlag): Boolean;                                 //Получить состояние флага
     procedure SetFlag(FlagName: TFlag);                                         //Установить флаг
+    function CheckCondition(Condition: TCondition): Boolean;                                         //Проверить условие
 
     procedure ExecuteCommand(Instr: TInstruction; B1, B2, B3: Byte);
     procedure ExecuteSystemCommand(Instr: TInstruction; B1, B2, B3: Byte);
@@ -283,6 +284,20 @@ begin
   Registers.DataRegisters[RF] := Registers.DataRegisters[RF] or (1 shl Shift);
 end;
 
+function TProcessor.CheckCondition(Condition: TCondition): Boolean;
+begin
+  case Condition of
+    FCNZ: Result := not GetFlag(FZ);
+    FCZ:  Result := GetFlag(FZ);
+    FCNC: Result := not GetFlag(FCY);
+    FCC:  Result := GetFlag(FCY);
+    FCPO: Result := not GetFlag(FP);
+    FCPE: Result := GetFlag(FP);
+    FCP:  Result := not GetFlag(FS);
+    FCM:  Result := GetFlag(FS);
+  end;
+end;
+
 procedure TProcessor.InitCpu(EntryPoint: Word);
 begin
   InitDataRegisters;                //Инициализируем регистры данных
@@ -387,7 +402,7 @@ end;
 
 procedure TProcessor.ExecuteSystemCommand;
 begin
-  with Instr do
+  with Instr, Memory do
   case Code of
     $00: {NOP}  begin
                   //Нет операции
@@ -443,49 +458,49 @@ end;
 
 procedure TProcessor.ExecuteStackCommand;
 var
-  CurrentAddr: Word;
+  CurrentSP: Word;
   Temp8: Int8;
 begin
   with Instr, Memory do
   case Code of
     $C1: {POP}  begin
-                  CurrentAddr := GetStackPointer;
+                  CurrentSP := GetStackPointer;
                   if ExPair(B1) = RPSP then   //POP PSW
                   begin
-                    SetDataReg(RF, ReadMemory(CurrentAddr));
-                    SetDataReg(RA, ReadMemory(CurrentAddr + 1));
+                    SetDataReg(RF, ReadMemory(CurrentSP));
+                    SetDataReg(RA, ReadMemory(CurrentSP + 1));
                   end
                   else                        //POP RP
                   begin
-                    SetRegPair(ExPair(B1), MakeWord(ReadMemory(CurrentAddr) + 1, ReadMemory(CurrentAddr)));
+                    SetRegPair(ExPair(B1), MakeWord(ReadMemory(CurrentSP + 1), ReadMemory(CurrentSP)));
                   end;
-                  SetStackPointer(CurrentAddr + 2);
+                  SetStackPointer(CurrentSP + 2);
                 end;
     $C5: {PUSH} begin
-                  CurrentAddr := GetStackPointer;
+                  CurrentSP := GetStackPointer;
                   if ExPair(B1) = RPSP then   //PUSH PSW
                   begin
-                    WriteMemory(CurrentAddr - 1, GetDataReg(RA));
-                    WriteMemory(CurrentAddr - 2, GetDataReg(RF));
+                    WriteMemory(CurrentSP - 1, GetDataReg(RA));
+                    WriteMemory(CurrentSP - 2, GetDataReg(RF));
                   end
                   else                        //PUSH RP
                   begin
-                    WriteMemory(CurrentAddr - 1, Hi(GetRegPair(ExPair(B1))));
-                    WriteMemory(CurrentAddr - 2, Lo(GetRegPair(ExPair(B1))));
+                    WriteMemory(CurrentSP - 1, Hi(GetRegPair(ExPair(B1))));
+                    WriteMemory(CurrentSP - 2, Lo(GetRegPair(ExPair(B1))));
                   end;
-                  SetStackPointer(CurrentAddr - 2);
+                  SetStackPointer(CurrentSP - 2);
                 end;
     $F9: {SPHL} begin
                   SetStackPointer(GetRegPair(RPHL));
                 end;
     $E3: {XTHL} begin
-                  CurrentAddr := GetStackPointer;
+                  CurrentSP := GetStackPointer;
                   Temp8 := GetDataReg(RL);
-                  SetDataReg(RL, ReadMemory(CurrentAddr));
-                  WriteMemory(CurrentAddr, Temp8);
+                  SetDataReg(RL, ReadMemory(CurrentSP));
+                  WriteMemory(CurrentSP, Temp8);
                   Temp8 := GetDataReg(RH);
-                  SetDataReg(RH, ReadMemory(CurrentAddr + 1));
-                  WriteMemory(CurrentAddr + 1, Temp8);
+                  SetDataReg(RH, ReadMemory(CurrentSP + 1));
+                  WriteMemory(CurrentSP + 1, Temp8);
                 end;
   end;
 end;
@@ -506,13 +521,56 @@ begin
 end;
 
 procedure TProcessor.ExecuteControlCommand;
+var
+  CurrentSP: Word;
+  CurrentPC: Word;
 begin
-
+  with Instr, Memory do
+  case Code of
+    $C3: {JMP}  begin
+                  SetProgramCounter(MakeWord(B3, B2));
+                end;
+    $CD: {CALL} begin
+                  CurrentSP := GetStackPointer;
+                  CurrentPC := GetProgramCounter;
+                  WriteMemory(CurrentSP - 1, GetDataReg(RA));
+                  WriteMemory(CurrentSP - 2, GetDataReg(RF));
+                  SetStackPointer(CurrentSP - 2);
+                  SetProgramCounter(MakeWord(B3, B2));
+                end;
+    $C9: {RET}  begin
+                  CurrentSP := GetStackPointer;
+                  SetProgramCounter(MakeWord(ReadMemory(CurrentSP + 1), ReadMemory(CurrentSP)));
+                  SetStackPointer(CurrentSP + 2);
+                end;
+  end;
 end;
 
 procedure TProcessor.ExecuteBranchCommand;
+var
+  CurrentSP: Word;
+  CurrentPC: Word;
 begin
-
+  with Instr, Memory do
+    if CheckCondition(ExCond(B1)) then
+    case Code of
+      $C2: {JCCC} begin
+                    SetProgramCounter(MakeWord(B3, B2));
+                  end;
+      $C4: {CCCC} begin
+                    CurrentSP := GetStackPointer;
+                    CurrentPC := GetProgramCounter;
+                    WriteMemory(CurrentSP - 1, GetDataReg(RA));
+                    WriteMemory(CurrentSP - 2, GetDataReg(RF));
+                    SetStackPointer(CurrentSP - 2);
+                    SetProgramCounter(MakeWord(B3, B2));
+                  end;
+      $C0: {RCCC} begin
+                    CurrentSP := GetStackPointer;
+                    SetProgramCounter(MakeWord(ReadMemory(CurrentSP + 1), ReadMemory(CurrentSP)));
+                    SetStackPointer(CurrentSP + 2);
+                  end;
+    end;
 end;
 
 end.
