@@ -12,7 +12,7 @@ uses
 type
   TMemory = class
   private
-    Cells: array [Word] of Int8;                    //Массив данных
+    Cells: array [Word] of Int8;            //Массив данных
   public
     procedure ShowNewMem;                                                       //Отобразить содержимое памяти на экране
     procedure WriteMemory(Address: Word; Value: Int8);                          //Записать в память цифровое значение
@@ -45,12 +45,12 @@ type
     procedure ShowRegisters;                                                    //Отобразить содержимое регистров на экране
     procedure PerformALU(Value: Int8);                                          //Выполнить операцию на АЛУ
 
-    function GetDataReg(DataReg: TDataReg): Int8;                       //Получить значение регистра
-    function GetRegAddrValue(DataReg: TDataReg): Int8;                            //Установить значение по регистровой адресации
-    function GetRegPair(RegPair: TRegPair): Word;                         //Получить значение регистровой пары
-    procedure SetDataReg(DataReg: TDataReg; Value: Int8);               //Установить значение регистра
-    procedure SetRegAddrValue(DataReg: TDataReg; Value: Int8);                    //Получить значение по регистровой адресации
-    procedure SetRegPair(RegPair: TRegPair; Value: Word);                 //Установить значение регистровой пары
+    function GetDataReg(DataReg: TDataReg): Int8;                               //Получить значение регистра
+    function GetRegAddrValue(DataReg: TDataReg): Int8;                          //Установить значение по регистровой адресации
+    function GetRegPair(RegPair: TRegPair): Word;                               //Получить значение регистровой пары
+    procedure SetDataReg(DataReg: TDataReg; Value: Int8);                       //Установить значение регистра
+    procedure SetRegAddrValue(DataReg: TDataReg; Value: Int8);                  //Получить значение по регистровой адресации
+    procedure SetRegPair(RegPair: TRegPair; Value: Word);                       //Установить значение регистровой пары
 
     function GetStackPointer: Word;                                             //Получить значение указателя стека
     function GetProgramCounter: Word;                                           //Получить значение счетчика команд
@@ -61,15 +61,13 @@ type
 
     function GetFlag(FlagName: TFlag): Boolean;                                 //Получить состояние флага
     procedure SetFlag(FlagName: TFlag);                                         //Установить флаг
-    function CheckCondition(Condition: TCondition): Boolean;                                         //Проверить условие
+    function CheckCondition(Condition: TCondition): Boolean;                    //Проверить условие
 
     procedure ExecuteCommand(Instr: TInstruction; B1, B2, B3: Byte);
     procedure ExecuteSystemCommand(Instr: TInstruction; B1, B2, B3: Byte);
     procedure ExecuteDataCommand(Instr: TInstruction; B1, B2, B3: Byte);
-    procedure ExecuteStackCommand(Instr: TInstruction; B1, B2, B3: Byte);
     procedure ExecuteArithmCommand(Instr: TInstruction; B1, B2, B3: Byte);
     procedure ExecuteLogicCommand(Instr: TInstruction; B1, B2, B3: Byte);
-    procedure ExecuteControlCommand(Instr: TInstruction; B1, B2, B3: Byte);
     procedure ExecuteBranchCommand(Instr: TInstruction; B1, B2, B3: Byte);
   end;
 
@@ -368,9 +366,11 @@ begin
         ExecuteCommand(CurrentInstr, B1, B2, B3);
       end;
     until HltState or Terminated;
+
     //Уничтожаем объект синхронизации
     if Assigned(StopSection) then
       FreeAndNil(StopSection);
+
     //TODO: вынести в отдельный метод
     with frmEditor do
     begin
@@ -390,13 +390,11 @@ begin
   frmScheme.redtLog.Lines.Add(Instr.Summary);
   //Выбор типа команды
   case Instr.Group of
-    ICSystem:   ExecuteSystemCommand(Instr, B1, B2, B3);
-    ICData:     ExecuteDataCommand(Instr, B1, B2, B3);
-    ICStack:    ExecuteStackCommand(Instr, B1, B2, B3);
-    ICArithm:   ExecuteArithmCommand(Instr, B1, B2, B3);
-    ICLogic:    ExecuteLogicCommand(Instr, B1, B2, B3);
-    ICControl:  ExecuteControlCommand(Instr, B1, B2, B3);
-    ICBranch:   ExecuteBranchCommand(Instr, B1, B2, B3);
+    IGSystem:   ExecuteSystemCommand(Instr, B1, B2, B3);
+    IGData:     ExecuteDataCommand(Instr, B1, B2, B3);
+    IGArithm:   ExecuteArithmCommand(Instr, B1, B2, B3);
+    IGLogic:    ExecuteLogicCommand(Instr, B1, B2, B3);
+    IGBranch:   ExecuteBranchCommand(Instr, B1, B2, B3);
   end;
 end;
 
@@ -415,10 +413,14 @@ end;
 
 procedure TProcessor.ExecuteDataCommand;
 var
+  CurrentSP: Word;
+  CurrentPC: Word;
+  Temp8: Int8;
   Temp16: Word;
 begin
   with Instr, Memory do
   case Code of
+    //Пересылки
     $40: {MOV}  begin
                   SetRegAddrValue(ExReg(B1), GetRegAddrValue(ExReg(B1, True)));
                 end;
@@ -440,6 +442,7 @@ begin
     $02: {STAX} begin
                   WriteMemory(GetRegPair(RPHL), GetDataReg(RA));
                 end;
+    //Обмены
     $2A: {LHLD} begin
                   SetDataReg(RL, ReadMemory(MakeWord(B3, B2)));
                   SetDataReg(RH, ReadMemory(MakeWord(B3, B2) + 1));
@@ -453,16 +456,23 @@ begin
                   SetRegPair(RPHL, GetRegPair(RPDE));
                   SetRegPair(RPDE, Temp16);
                 end;
-  end;
-end;
-
-procedure TProcessor.ExecuteStackCommand;
-var
-  CurrentSP: Word;
-  Temp8: Int8;
-begin
-  with Instr, Memory do
-  case Code of
+    //Специальные обмены
+    $E9: {PCHL} begin
+                  SetProgramCounter(GetRegPair(RPHL));
+                end;
+    $F9: {SPHL} begin
+                  SetStackPointer(GetRegPair(RPHL));
+                end;
+    $E3: {XTHL} begin
+                  CurrentSP := GetStackPointer;
+                  Temp8 := GetDataReg(RL);
+                  SetDataReg(RL, ReadMemory(CurrentSP));
+                  WriteMemory(CurrentSP, Temp8);
+                  Temp8 := GetDataReg(RH);
+                  SetDataReg(RH, ReadMemory(CurrentSP + 1));
+                  WriteMemory(CurrentSP + 1, Temp8);
+                end;
+    //Команды работы со стеком
     $C1: {POP}  begin
                   CurrentSP := GetStackPointer;
                   if ExPair(B1) = RPSP then   //POP PSW
@@ -490,18 +500,6 @@ begin
                   end;
                   SetStackPointer(CurrentSP - 2);
                 end;
-    $F9: {SPHL} begin
-                  SetStackPointer(GetRegPair(RPHL));
-                end;
-    $E3: {XTHL} begin
-                  CurrentSP := GetStackPointer;
-                  Temp8 := GetDataReg(RL);
-                  SetDataReg(RL, ReadMemory(CurrentSP));
-                  WriteMemory(CurrentSP, Temp8);
-                  Temp8 := GetDataReg(RH);
-                  SetDataReg(RH, ReadMemory(CurrentSP + 1));
-                  WriteMemory(CurrentSP + 1, Temp8);
-                end;
   end;
 end;
 
@@ -520,56 +518,31 @@ begin
 
 end;
 
-procedure TProcessor.ExecuteControlCommand;
-var
-  CurrentSP: Word;
-  CurrentPC: Word;
-begin
-  with Instr, Memory do
-  case Code of
-    $C3: {JMP}  begin
-                  SetProgramCounter(MakeWord(B3, B2));
-                end;
-    $CD: {CALL} begin
-                  CurrentSP := GetStackPointer;
-                  CurrentPC := GetProgramCounter;
-                  WriteMemory(CurrentSP - 1, GetDataReg(RA));
-                  WriteMemory(CurrentSP - 2, GetDataReg(RF));
-                  SetStackPointer(CurrentSP - 2);
-                  SetProgramCounter(MakeWord(B3, B2));
-                end;
-    $C9: {RET}  begin
-                  CurrentSP := GetStackPointer;
-                  SetProgramCounter(MakeWord(ReadMemory(CurrentSP + 1), ReadMemory(CurrentSP)));
-                  SetStackPointer(CurrentSP + 2);
-                end;
-  end;
-end;
-
 procedure TProcessor.ExecuteBranchCommand;
 var
   CurrentSP: Word;
   CurrentPC: Word;
+  ConditionChecked: Boolean;
 begin
   with Instr, Memory do
-    if CheckCondition(ExCond(B1)) then
+    if (Format <> IFCondition) or CheckCondition(ExCond(B1)) then
     case Code of
-      $C2: {JCCC} begin
-                    SetProgramCounter(MakeWord(B3, B2));
-                  end;
-      $C4: {CCCC} begin
-                    CurrentSP := GetStackPointer;
-                    CurrentPC := GetProgramCounter;
-                    WriteMemory(CurrentSP - 1, GetDataReg(RA));
-                    WriteMemory(CurrentSP - 2, GetDataReg(RF));
-                    SetStackPointer(CurrentSP - 2);
-                    SetProgramCounter(MakeWord(B3, B2));
-                  end;
-      $C0: {RCCC} begin
-                    CurrentSP := GetStackPointer;
-                    SetProgramCounter(MakeWord(ReadMemory(CurrentSP + 1), ReadMemory(CurrentSP)));
-                    SetStackPointer(CurrentSP + 2);
-                  end;
+      $C3, $C2: {JMP} begin
+                        SetProgramCounter(MakeWord(B3, B2));
+                      end;
+      $CD, $C4: {CALL} begin
+                        CurrentSP := GetStackPointer;
+                        CurrentPC := GetProgramCounter;
+                        WriteMemory(CurrentSP - 1, GetDataReg(RA));
+                        WriteMemory(CurrentSP - 2, GetDataReg(RF));
+                        SetStackPointer(CurrentSP - 2);
+                        SetProgramCounter(MakeWord(B3, B2));
+                      end;
+      $C9, $C0: {RET} begin
+                        CurrentSP := GetStackPointer;
+                        SetProgramCounter(MakeWord(ReadMemory(CurrentSP + 1), ReadMemory(CurrentSP)));
+                        SetStackPointer(CurrentSP + 2);
+                      end;
     end;
 end;
 

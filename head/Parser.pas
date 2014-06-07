@@ -12,8 +12,9 @@ uses
 type
   TCommandParser = class
   public
-    function ParseCommand(TextLine: String; var CommandCode: String): Boolean;    //Разбор текста команды
-    function WriteCode(CommandCode: String; Memory: TMemory; var Address: Word): Boolean;
+    function ParseCommand(TextLine: String; var CommandCode: String): Boolean;  //Разбор текста команды
+    function WriteCode
+      (CommandCode: String; Memory: TMemory; var Address: Word): Boolean;       //Загрузка команды в память
   end;
 
 implementation

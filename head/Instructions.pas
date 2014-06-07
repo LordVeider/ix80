@@ -10,50 +10,50 @@ uses
   Classes, TypInfo, System.SysUtils, System.Generics.Collections;
 
 type
-  TDataReg = (RB, RC, RD, RE, RH, RL, RM, RA, RW, RZ, RF);
-  TRegPair = (RPBC, RPDE, RPHL, RPSP);
-  TFlag = (FS, FZ, FAC, FP, FCY);
-  TCondition = (FCNZ, FCZ, FCNC, FCC, FCPO, FCPE, FCP, FCM);
+  TDataReg = (RB, RC, RD, RE, RH, RL, RM, RA, RW, RZ, RF);                      //Регистры
+  TRegPair = (RPBC, RPDE, RPHL, RPSP);                                          //Регистровые пары
+  TFlag = (FS, FZ, FAC, FP, FCY);                                               //Флаги
+  TCondition = (FCNZ, FCZ, FCNC, FCC, FCPO, FCPE, FCP, FCM);                    //Состояния
 
-  TInstrClass = (ICSystem, ICData, ICStack, ICArithm, ICLogic, ICControl, ICBranch);
-  TInstrFormat = (IFOnly, IFRegCenter, IFRegEnd, IFRegDouble, IFRegPair, IFCondition);
+  TInstrGroup = (IGSystem, IGData, IGArithm, IGLogic, IGBranch);                        //Группы инструкций
+  TInstrFormat = (IFOnly, IFRegCenter, IFRegEnd, IFRegDouble, IFRegPair, IFCondition);  //Форматы инструкций
 
-  TInstruction = class
+  TInstruction = class                                                          //Инструкция
   private
-    function Mask: String;
+    function Mask: String;                                                      //Маска кода инструкции
   public
-    Code: Byte;
-    Group: TInstrClass;
-    Size: Byte;
-    Format: TInstrFormat;
-    Mnemonic: String;
-    Description: String;
+    Code: Byte;                                                                 //Уникальный код
+    Group: TInstrGroup;                                                         //Группа
+    Size: Byte;                                                                 //Размер в байтах
+    Format: TInstrFormat;                                                       //Формат
+    Mnemonic: String;                                                           //Мнемоника
+    Description: String;                                                        //Описание
     constructor Create
-      (Code: Byte; Group: TInstrClass; Size: Byte; Format: TInstrFormat; Mnemonic: String; Description: String = '');
-    function MainCode(Op1: String = ''; Op2: String = ''): String;
-    function FullCode(Op1: String = ''; Op2: String = ''): String;
-    function Summary: String;
-    function ExReg(Code: Byte; Second: Boolean = False): TDataReg;
-    function ExPair(Code: Byte): TRegPair;
-    function ExCond(Code: Byte): TCondition;
+      (Code: Byte; Group: TInstrGroup; Size: Byte; Format: TInstrFormat; Mnemonic: String; Description: String = '');
+    function MainCode(Op1: String = ''; Op2: String = ''): String;              //Двоичный код первого байта
+    function FullCode(Op1: String = ''; Op2: String = ''): String;              //Двоичный код всей команды
+    function Summary: String;                                                   //Сводная информация
+    function ExReg(Code: Byte; Second: Boolean = False): TDataReg;              //Извлечь двоичный код регистра
+    function ExPair(Code: Byte): TRegPair;                                      //Извлечь двоичный код регистровой пары
+    function ExCond(Code: Byte): TCondition;                                    //Извлечь двоичный код состояния
   end;
 
-  TInstructionSet = class
+  TInstructionSet = class                                                       //Набор инструкций
   public
-    List: TList<TInstruction>;
+    List: TList<TInstruction>;                                                  //Список инструкций
     constructor Create;
     procedure Add
-      (Code: Byte; Group: TInstrClass; Size: Byte; Format: TInstrFormat; Mnemonic: String; Description: String = '');
-    function FindByCode(Code: Byte; Masked: Boolean = False): TInstruction;
-    function FindByMnemonic(Mnemonic: String; Conditioned: Boolean = False): TInstruction;
+      (Code: Byte; Group: TInstrGroup; Size: Byte; Format: TInstrFormat; Mnemonic: String; Description: String = '');
+    function FindByCode(Code: Byte; Masked: Boolean = False): TInstruction;                 //Поиск по коду или маске
+    function FindByMnemonic(Mnemonic: String; Conditioned: Boolean = False): TInstruction;  //Поиск по мнемонике
   end;
 
 var
-  InstrSet: TInstructionSet;
+  InstrSet: TInstructionSet;                                                    //Набор инструкций - глобальная переменная
 
 implementation
 
-function FormatRegister(Value: String): String;
+function FormatRegister(Value: String): String;                                 //Двоичный код регистра из мнемоники
 begin
   Result := '';
   case Value[1] of
@@ -68,7 +68,7 @@ begin
   end;
 end;
 
-function FormatPair(Value: String): String;
+function FormatPair(Value: String): String;                                     //Двоичный код регистровой пары из мнемоники
 begin
   Result := '';
   case Value[1] of
@@ -80,7 +80,7 @@ begin
   end;
 end;
 
-function FormatCondition(Value: String): String;
+function FormatCondition(Value: String): String;                                //Двоичный код состояния из мнемоники
 var
   CurCond: TCondition;
 begin
@@ -93,7 +93,7 @@ begin
     end;
 end;
 
-function MaskCompare(Value, Mask: String): Boolean;
+function MaskCompare(Value, Mask: String): Boolean;                             //Сравнение двоичного кода по маске
 var
   Index: Byte;
 begin
@@ -104,7 +104,7 @@ begin
         Result := False;
 end;
 
-function ConditionCompare(Value, Mask: String): Boolean;
+function ConditionCompare(Value, Mask: String): Boolean;                        //Сравнение мнемоники по маске состояний
 begin
   Result := False;
   if Value[1] = Mask[1] then
@@ -242,73 +242,80 @@ InstrSet := TInstructionSet.Create;
 with InstrSet do
 begin
   //Команды управления микропроцессором
-  Add($00,  ICSystem,     1, IFOnly,      'NOP',  'Нет операции'                                                            );
-  Add($76,  ICSystem,     1, IFOnly,      'HLT',  'Останов'                                                                 );
-  //Команды пересылки данных
-  Add($40,  ICData,       1, IFRegDouble, 'MOV',  'Межрегистровая пересылка'                                                );
-  Add($06,  ICData,       2, IFRegCenter, 'MVI',  'Непосредственная загрузка регистра'                                      );
-  Add($01,  ICData,       3, IFRegPair,   'LXI',  'Непосредственная загрузка регистровой пары'                              );
-  Add($3A,  ICData,       3, IFOnly,      'LDA',  'Загрузка аккумулятора из памяти (прямая адресация)'                      );
-  Add($32,  ICData,       3, IFOnly,      'STA',  'Сохранение аккумулятора в память (прямая адресация)'                     );
-  Add($0A,  ICData,       1, IFRegPair,   'LDAX', 'Загрузка аккумулятора из памяти (косвенная адресация)'                   );
-  Add($02,  ICData,       1, IFRegPair,   'STAX', 'Сохранение аккумулятора в память (косвенная адресация)'                  );
-  Add($2A,  ICData,       3, IFOnly,      'LHLD', 'Загрузка регистровой пары HL из памяти'                                  );
-  Add($22,  ICData,       3, IFOnly,      'SHLD', 'Сохранение регистровой пары HL в память'                                 );
-  Add($EB,  ICData,       1, IFOnly,      'XCHG', 'Обмен регистровых пар DE и HL'                                           );
+  Add($00,  IGSystem,     1, IFOnly,      'NOP',  'Нет операции'                                                            );
+  Add($76,  IGSystem,     1, IFOnly,      'HLT',  'Останов'                                                                 );
+
+  //Команды управления данными
+  //Пересылки
+  Add($40,  IGData,       1, IFRegDouble, 'MOV',  'Межрегистровая пересылка'                                                );
+  Add($06,  IGData,       2, IFRegCenter, 'MVI',  'Непосредственная загрузка регистра'                                      );
+  Add($01,  IGData,       3, IFRegPair,   'LXI',  'Непосредственная загрузка регистровой пары'                              );
+  Add($3A,  IGData,       3, IFOnly,      'LDA',  'Загрузка аккумулятора из памяти (прямая адресация)'                      );
+  Add($32,  IGData,       3, IFOnly,      'STA',  'Сохранение аккумулятора в память (прямая адресация)'                     );
+  Add($0A,  IGData,       1, IFRegPair,   'LDAX', 'Загрузка аккумулятора из памяти (косвенная адресация)'                   );
+  Add($02,  IGData,       1, IFRegPair,   'STAX', 'Сохранение аккумулятора в память (косвенная адресация)'                  );
+  //Обмены
+  Add($2A,  IGData,       3, IFOnly,      'LHLD', 'Загрузка регистровой пары HL из памяти'                                  );
+  Add($22,  IGData,       3, IFOnly,      'SHLD', 'Сохранение регистровой пары HL в память'                                 );
+  Add($EB,  IGData,       1, IFOnly,      'XCHG', 'Обмен регистровых пар DE и HL'                                           );
+  //Специальные обмены
+  Add($E9,  IGData,       1, IFOnly,      'PCHL', 'Загрузка счетчика команд из регистровой пары HL'                         );
+  Add($F9,  IGData,       1, IFOnly,      'SPHL', 'Загрука указателя стека из регистровой пары HL'                          );
+  Add($E3,  IGData,       1, IFOnly,      'XTHL', 'Обмен вершины стека с регистровой парой HL'                              );
   //Команды работы со стеком
-  Add($C1,  ICStack,      1, IFRegPair,   'POP',  'Загрузка регистровой пары из стека'                                      );
-  Add($C5,  ICStack,      1, IFRegPair,   'PUSH', 'Сохранение регистровой пары в стек'                                      );
-  Add($F9,  ICStack,      1, IFOnly,      'SPHL', 'Загрука указателя стека из регистровой пары HL'                          );
-  Add($E3,  ICStack,      1, IFOnly,      'XTHL', 'Обмен вершины стека с регистровой парой HL'                              );
+  Add($C1,  IGData,       1, IFRegPair,   'POP',  'Загрузка регистровой пары из стека'                                      );
+  Add($C5,  IGData,       1, IFRegPair,   'PUSH', 'Сохранение регистровой пары в стек'                                      );
+
   //Арифметические команды
   //Сложение
-  Add($80,  ICArithm,     1, IFRegEnd,    'ADD'   );
-  Add($88,  ICArithm,     1, IFRegEnd,    'ADC'   );
-  Add($C6,  ICArithm,     2, IFOnly,      'ADI'   );
-  Add($CE,  ICArithm,     2, IFOnly,      'ACI'   );
+  Add($80,  IGArithm,     1, IFRegEnd,    'ADD'   );
+  Add($88,  IGArithm,     1, IFRegEnd,    'ADC'   );
+  Add($C6,  IGArithm,     2, IFOnly,      'ADI'   );
+  Add($CE,  IGArithm,     2, IFOnly,      'ACI'   );
   //Вычитание
-  Add($90,  ICArithm,     1, IFRegEnd,    'SUB'   );
-  Add($98,  ICArithm,     1, IFRegEnd,    'SBB'   );
-  Add($D6,  ICArithm,     2, IFOnly,      'SUI'   );
-  Add($DE,  ICArithm,     2, IFOnly,      'SBI'   );
+  Add($90,  IGArithm,     1, IFRegEnd,    'SUB'   );
+  Add($98,  IGArithm,     1, IFRegEnd,    'SBB'   );
+  Add($D6,  IGArithm,     2, IFOnly,      'SUI'   );
+  Add($DE,  IGArithm,     2, IFOnly,      'SBI'   );
   //Инкремент/декремент
-  Add($04,  ICArithm,     1, IFRegCenter, 'INR'   );
-  Add($05,  ICArithm,     1, IFRegCenter, 'DCR'   );
-  Add($03,  ICArithm,     1, IFRegPair,   'INX'   );
-  Add($0B,  ICArithm,     1, IFRegPair,   'DCX'   );
+  Add($04,  IGArithm,     1, IFRegCenter, 'INR'   );
+  Add($05,  IGArithm,     1, IFRegCenter, 'DCR'   );
+  Add($03,  IGArithm,     1, IFRegPair,   'INX'   );
+  Add($0B,  IGArithm,     1, IFRegPair,   'DCX'   );
   //Специальные операции
-  Add($09,  ICArithm,     1, IFRegPair,   'DAD'   );
-  Add($27,  ICArithm,     1, IFOnly,      'DAA'   );
+  Add($09,  IGArithm,     1, IFRegPair,   'DAD'   );
+  Add($27,  IGArithm,     1, IFOnly,      'DAA'   );
+
   //Логические команды
   //Двоичная логика
-  Add($A0,  ICLogic,      1, IFRegEnd,    'ANA'   );
-  Add($B0,  ICLogic,      1, IFRegEnd,    'ORA'   );
-  Add($A8,  ICLogic,      1, IFRegEnd,    'XRA'   );
-  Add($E6,  ICLogic,      2, IFOnly,      'ANI'   );
-  Add($F6,  ICLogic,      2, IFOnly,      'ORI'   );
-  Add($EE,  ICLogic,      2, IFOnly,      'XRI'   );
+  Add($A0,  IGLogic,      1, IFRegEnd,    'ANA'   );
+  Add($B0,  IGLogic,      1, IFRegEnd,    'ORA'   );
+  Add($A8,  IGLogic,      1, IFRegEnd,    'XRA'   );
+  Add($E6,  IGLogic,      2, IFOnly,      'ANI'   );
+  Add($F6,  IGLogic,      2, IFOnly,      'ORI'   );
+  Add($EE,  IGLogic,      2, IFOnly,      'XRI'   );
   //Сравнение
-  Add($B8,  ICLogic,      1, IFRegEnd,    'CMP'   );
-  Add($FE,  ICLogic,      2, IFOnly,      'CPI'   );
+  Add($B8,  IGLogic,      1, IFRegEnd,    'CMP'   );
+  Add($FE,  IGLogic,      2, IFOnly,      'CPI'   );
   //Сдвиг
-  Add($07,  ICLogic,      1, IFOnly,      'RLC'   );
-  Add($0F,  ICLogic,      1, IFOnly,      'RRC'   );
-  Add($17,  ICLogic,      1, IFOnly,      'RAL'   );
-  Add($1F,  ICLogic,      1, IFOnly,      'RAR'   );
+  Add($07,  IGLogic,      1, IFOnly,      'RLC'   );
+  Add($0F,  IGLogic,      1, IFOnly,      'RRC'   );
+  Add($17,  IGLogic,      1, IFOnly,      'RAL'   );
+  Add($1F,  IGLogic,      1, IFOnly,      'RAR'   );
   //Специальные операции
-  Add($2F,  ICLogic,      1, IFOnly,      'CMA'   );
-  Add($3F,  ICLogic,      1, IFOnly,      'CMC'   );
-  Add($37,  ICLogic,      1, IFOnly,      'STC'   );
+  Add($2F,  IGLogic,      1, IFOnly,      'CMA'   );
+  Add($3F,  IGLogic,      1, IFOnly,      'CMC'   );
+  Add($37,  IGLogic,      1, IFOnly,      'STC'   );
+
   //Команды переходов и передачи управления
   //Безусловные переходы
-  Add($C3,  ICControl,    3, IFOnly,      'JMP'   );
-  Add($CD,  ICControl,    3, IFOnly,      'CALL'  );
-  Add($C9,  ICControl,    1, IFOnly,      'RET'   );
-  Add($E9,  ICControl,    1, IFOnly,      'PCHL'  );
+  Add($C3,  IGBranch,     3, IFOnly,      'JMP',  'Безусловный переход'                                                     );
+  Add($CD,  IGBranch,     3, IFOnly,      'CALL', 'Безусловный вызов подпрограммы'                                          );
+  Add($C9,  IGBranch,     1, IFOnly,      'RET',  'Безусловный возврат из подпрограммы'                                     );
   //Условные переходы
-  Add($C2,  ICBranch,     3, IFCondition, 'JCCC'  );
-  Add($C4,  ICBranch,     3, IFCondition, 'CCCC'  );
-  Add($C0,  ICBranch,     1, IFCondition, 'RCCC'  );
+  Add($C2,  IGBranch,     3, IFCondition, 'JCCC', 'Условный переход'                                                        );
+  Add($C4,  IGBranch,     3, IFCondition, 'CCCC', 'Условный вызов подпрограммы'                                             );
+  Add($C0,  IGBranch,     1, IFCondition, 'RCCC', 'Условный возврат из подпрограммы'                                        );
 end;
 
 end.

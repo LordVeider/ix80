@@ -11,8 +11,6 @@ uses
 type
   TNumSys = (SBIN, SDEC, SOCT, SHEX);
 
-function FormatAddrCode(Value: String; RP: Boolean = False): String;          //Получить двоичную строку (код регистра или пары)
-
 function HexToInt(Value: String): Integer;                                    //Строковый HEX в число
 function BinToInt(Value: String): Integer;                                    //Строковый BIN в число
 function IntToBin(Value: Integer; Digits: Integer): String;                   //Число в строковый BIN
@@ -27,6 +25,7 @@ function NumStrToIntAuto
   (Value: String): Integer;                                                   //Преобразование к числу (автовыбор исходной CC)
 function IntToNumStr
   (Value: Integer; Base: TNumSys; Digits: Integer = 0): String;               //Преобразование к строке
+
 function SwapBytes(Value: String): String;                                    //Поменять местами два байта в строке
 function MakeWord(HiByte, LoByte: Byte): Word;                                //Преобразовать два байта в Word
 
@@ -111,29 +110,6 @@ end;
 function MakeWord;
 begin
   Result := LoByte + (HiByte shl 8);
-end;
-
-function FormatAddrCode;
-begin
-  if RP then
-    case Value[1] of
-      'B': Result := '00';
-      'D': Result := '01';
-      'H': Result := '10';
-      else if (Value = 'PSW') or (Value = 'SP') then
-        Result := '11';
-    end
-  else
-    case Value[1] of
-      'B': Result := '000';
-      'C': Result := '001';
-      'D': Result := '010';
-      'E': Result := '011';
-      'H': Result := '100';
-      'L': Result := '101';
-      'M': Result := '110';
-      'A': Result := '111';
-    end;
 end;
 
 end.
