@@ -1,5 +1,8 @@
 unit InstructionSet;
 
+//ix80 Intel 8080 CPU Emulator & Demonstration Model
+//Система команд микропроцессора
+
 interface
 
 uses
