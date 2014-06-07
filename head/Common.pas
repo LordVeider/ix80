@@ -29,26 +29,7 @@ type
     (Value: Integer; Base: TNumSys; Digits: Integer = 0): String;               //Преобразование к строке
   function SwapBytes(Value: String): String;                                    //Поменять местами два байта в строке
 
-  function ExtractReg(Code: Byte; Tail: Boolean = False): Byte;
-  function ExtractRP(Code: Byte): Byte;
-
 implementation
-
-function ExtractReg;
-begin
-  if not Tail then
-    Code := Code shr 3;
-  Code := Code shl 5;
-  Code := Code shr 5;
-  Result := Code;
-end;
-
-function ExtractRP;
-begin
-  Code := Code shl 2;
-  Code := Code shr 6;
-  Result := Code;
-end;
 
 function HexToInt;
 begin
