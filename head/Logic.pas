@@ -28,16 +28,7 @@ type
     IR: Byte;                               //Регистр команд  (8 bit)
   end;
 
-  TProcessor = class;
-
-  TProcessorThread = class(TThread)
-  private
-    Processor: TProcessor;
-  public
-    procedure Execute; override;
-  end;
-
-  TProcessor = class
+  TProcessor = class(TThread)
   private
     HltState: Boolean;
     Memory: TMemory;                        //Память
@@ -45,12 +36,12 @@ type
     procedure InitDataRegisters;            //Инициализация регистров
     procedure InitFlags;                    //Инициализация регистра флагов
   public
-    ProcessorThread: TProcessorThread;
     StopSection: TEvent;
+
     constructor Create(Memory: TMemory);
-    procedure OnTerm(Sender: TObject);
+    procedure Execute; override;
+
     procedure InitCpu(EntryPoint: Word);                                        //Инициализация процессора
-    procedure Run;                                                              //Запустить выполнение
     procedure ShowRegisters;                                                    //Отобразить содержимое регистров на экране
     procedure PerformALU(Value: Int8);                                          //Выполнить операцию на АЛУ
 
@@ -90,6 +81,7 @@ uses
 
 constructor TProcessor.Create(Memory: TMemory);
 begin
+  inherited Create(True);
   Self.Memory := Memory;
 end;
 
@@ -282,26 +274,9 @@ begin
   HltState := False;
 end;
 
-procedure TProcessor.Run;
-var
-  s: string;
-  c: integer;
-begin
-  //Создаём и запускаем поток
-  ProcessorThread := TProcessorThread.Create(True);
-  ProcessorThread.OnTerminate := OnTerm;
-  ProcessorThread.Processor := Self;
-  ProcessorThread.Start;
-end;
-
 procedure TProcessor.ShowRegisters;
 begin
   frmScheme.DrawProcessor(Self);
-end;
-
-procedure TProcessor.OnTerm(Sender: TObject);
-begin
-  ProcessorThread := nil;
 end;
 
 procedure TProcessor.ExecuteCommand;
@@ -418,9 +393,7 @@ begin
 
 end;
 
-{ TProcessorThread }
-
-procedure TProcessorThread.Execute;
+procedure TProcessor.Execute;
 var
   s: string;
   c: integer;
@@ -431,7 +404,7 @@ var
 begin
   inherited;
   FreeOnTerminate := True;
-  with Processor do
+  //with Processor do
   begin
     //Пока не получили HLT или команду на уничтожение потока - читаем команды
     repeat
@@ -448,37 +421,37 @@ begin
       if Assigned(CurrentInstr) then
       begin
         //Если есть объект синхронизации потока - ждём его
-        if Assigned(Processor.StopSection) then
-          Processor.StopSection.WaitFor(INFINITE);
+        if Assigned(StopSection) then
+          StopSection.WaitFor(INFINITE);
 
         //Устанавливаем регистр команд
-        Processor.SetInstRegister(B1);
+        SetInstRegister(B1);
 
         //Читаем второй и третий байт инструкции (если есть)
         if CurrentInstr.Size > 1 then
         begin
           B2 := Memory.ReadMemory(CurrentAddr + 1);
-          Processor.SetDataReg(RW, B2);
+          SetDataReg(RW, B2);
           if CurrentInstr.Size > 2 then
           begin
             B3 := Memory.ReadMemory(CurrentAddr + 2);
-            Processor.SetDataReg(RZ, B3);
+            SetDataReg(RZ, B3);
           end
         end;
 
         //Устанавливаем счетчик команд
-        Processor.SetProgramCounter(CurrentAddr + CurrentInstr.Size);
+        SetProgramCounter(CurrentAddr + CurrentInstr.Size);
 
         //Обновляем вывод данных
-        Processor.ShowRegisters;
-        Processor.Memory.ShowNewMem;
+        ShowRegisters;
+        Memory.ShowNewMem;
 
         //Сбрасываем объект синхронизации потока
-        if Assigned(Processor.StopSection) then
-          Processor.StopSection.ResetEvent;
+        if Assigned(StopSection) then
+          StopSection.ResetEvent;
 
         //Исполняем команду
-        Processor.ExecuteCommand(CurrentInstr, B1, B2, B3);
+        ExecuteCommand(CurrentInstr, B1, B2, B3);
       end;
     until HltState or Terminated;
     //Уничтожаем объект синхронизации
