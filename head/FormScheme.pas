@@ -30,6 +30,7 @@ type
     imgSchemeBackground: TImage;
     grLog: TGroupBox;
     redtLog: TRichEdit;
+    procedure redtLogChange(Sender: TObject);
   private
     { Private declarations }
   public
@@ -87,6 +88,13 @@ begin
       Cells[7,1] := GetFlag(FCY).ToString;
     end;
   end;
+end;
+
+procedure TfrmScheme.redtLogChange(Sender: TObject);
+begin
+  redtLog.SetFocus;
+  redtLog.SelStart := redtLog.GetTextLen;
+  redtLog.Perform(EM_SCROLLCARET, 0, 0);
 end;
 
 end.
