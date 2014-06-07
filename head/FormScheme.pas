@@ -8,7 +8,7 @@ interface
 uses
   Winapi.Windows, Winapi.Messages, System.SysUtils, System.Variants, System.Classes, Vcl.Graphics,
   Vcl.Controls, Vcl.Forms, Vcl.Dialogs, Vcl.Imaging.pngimage, Vcl.ExtCtrls,
-  Vcl.Grids, Vcl.StdCtrls, Vcl.ComCtrls, Vcl.ImgList, Common, Logic;
+  Vcl.Grids, Vcl.StdCtrls, Vcl.ComCtrls, Vcl.ImgList, Common, Logic, InstructionSet;
 
 type
   TfrmScheme = class(TForm)
@@ -65,7 +65,7 @@ begin
     edtZ.Text := GetDataReg(RZ).ToString;
     edtSP.Text := IntToNumStr(GetStackPointer, SHEX, 4) + 'H';
     edtPC.Text := IntToNumStr(GetProgramCounter, SHEX, 4) + 'H';
-    edtIR.Text := GetInstRegister.ToString;
+    edtIR.Text := IntToNumStr(GetInstRegister, SHEX, 2) + 'H';
     with grdPSW do
     begin
       ColWidths[3] := 24;

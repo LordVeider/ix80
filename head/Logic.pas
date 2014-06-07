@@ -26,9 +26,6 @@ type
     function ReadMemory(Address: Word): Int8;                                   //Считать из памяти цифровое значение
   end;
 
-  TFlag = (FS, FZ, FAC, FP, FCY);
-  //TDataRegName = (RA, RF, RB, RC, RD, RE, RH, RL, RW, RZ);
-  TDataReg = (RB, RC, RD, RE, RH, RL, RM, RA, RW, RZ, RF);
   TDataRegisters = array [TDataReg] of Int8;
   TRegisters = record
     DataRegisters: TDataRegisters;          //Регистры данных (8 bit)
@@ -63,6 +60,7 @@ type
     procedure Run;                                                              //Запустить выполнение
     procedure ShowRegisters;                                                    //Отобразить содержимое регистров на экране
     procedure PerformALU(Value: Int8);                                          //Выполнить операцию на АЛУ
+
     procedure SetDataReg(DataRegName: TDataReg; Value: Int8);               //Установить значение регистра
     function GetDataReg(DataRegName: TDataReg): Int8;                       //Получить значение регистра
     procedure SetDataRP(DataRPName: TDataReg; Value: Word);                 //Установить значение регистровой пары
@@ -70,6 +68,14 @@ type
     function DataRegNameInt8xtName(TextName: String): TDataReg;             //Имя регистра по текстовому имени
     procedure SetRegAddrValue(Operand: String; Value: Int8);                    //Получить значение по регистровой адресации
     function GetRegAddrValue(Operand: String): Int8;                            //Установить значение по регистровой адресации
+
+    function NewGetDataReg(DataReg: TDataReg): Int8;                       //Получить значение регистра
+    function NewGetRegAddrValue(DataReg: TDataReg): Int8;                            //Установить значение по регистровой адресации
+    function NewGetRegPair(RegPair: TRegPair): Word;                         //Получить значение регистровой пары
+    procedure NewSetDataReg(DataReg: TDataReg; Value: Int8);               //Установить значение регистра
+    procedure NewSetRegAddrValue(DataReg: TDataReg; Value: Int8);                    //Получить значение по регистровой адресации
+    procedure NewSetRegPair(RegPair: TRegPair; Value: Word);                 //Установить значение регистровой пары
+
     procedure SetStackPointer(Value: Word);                                     //Установить значение указателя стека
     procedure SetProgramCounter(Value: Word);                                   //Установить значение счетчика команд
     procedure SetInstRegister(Value: Byte);                                     //Установить значение регистра команд
@@ -282,6 +288,66 @@ begin
     RD: Result := GetDataReg(RE) + (GetDataReg(RD) shl 8);
     RH: Result := GetDataReg(RL) + (GetDataReg(RH) shl 8);
     RW: Result := GetDataReg(RZ) + (GetDataReg(RW) shl 8);
+  end;
+end;
+
+function TProcessor.NewGetDataReg;
+begin
+  Result := Registers.DataRegisters[DataReg];
+end;
+
+function TProcessor.NewGetRegAddrValue;
+begin
+  if DataReg = RM then
+    Result := Memory.ReadMemory(NewGetRegPair(RPHL))
+  else
+    Result := NewGetDataReg(DataReg);
+end;
+
+function TProcessor.NewGetRegPair;
+begin
+  if RegPair = RPSP then
+    Result := GetStackPointer
+  else
+  begin
+    case RegPair of
+      RPBC: Result := Byte(Registers.DataRegisters[RC]) + (Registers.DataRegisters[RB] shl 8);
+      RPDE: Result := Byte(Registers.DataRegisters[RE]) + (Registers.DataRegisters[RD] shl 8);
+      RPHL: Result := Byte(Registers.DataRegisters[RL]) + (Registers.DataRegisters[RH] shl 8);
+      RPSW: Result := Byte(Registers.DataRegisters[RF]) + (Registers.DataRegisters[RA] shl 8);
+    end;
+  end;
+end;
+
+procedure TProcessor.NewSetDataReg;
+begin
+  Registers.DataRegisters[DataReg] := Value;
+end;
+
+procedure TProcessor.NewSetRegAddrValue;
+begin
+  if DataReg = RM then
+    Memory.WriteMemory(NewGetRegPair(RPHL), Value)
+  else
+    NewSetDataReg(DataReg, Value);
+end;
+
+procedure TProcessor.NewSetRegPair;
+var
+  HiReg, LoReg: TDataReg;
+begin
+  if RegPair = RPSP then
+    SetStackPointer(Value)
+  else
+  begin
+    case RegPair of
+      RPBC: begin HiReg := RB; LoReg := RC; end;
+      RPDE: begin HiReg := RD; LoReg := RE; end;
+      RPHL: begin HiReg := RH; LoReg := RL; end;
+      RPSW: begin HiReg := RA; LoReg := RF; end;
+    end;
+    Registers.DataRegisters[HiReg] := Hi(Value);
+    Registers.DataRegisters[LoReg] := Lo(Value);
   end;
 end;
 
@@ -499,10 +565,6 @@ begin
       //Инструкция найдена
       if Assigned(CurrentInstr) then
       begin
-        //Обновляем вывод данных
-        Processor.ShowRegisters;
-        Processor.Memory.ShowNewMem;
-
         //Если есть объект синхронизации потока - ждём его
         if Assigned(Processor.StopSection) then
           Processor.StopSection.WaitFor(INFINITE);
@@ -524,6 +586,10 @@ begin
 
         //Устанавливаем счетчик команд
         Processor.SetProgramCounter(CurrentAddr + CurrentInstr.Size);
+
+        //Обновляем вывод данных
+        Processor.ShowRegisters;
+        Processor.Memory.ShowNewMem;
 
         //Сбрасываем объект синхронизации потока
         if Assigned(Processor.StopSection) then

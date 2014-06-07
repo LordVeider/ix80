@@ -6,9 +6,16 @@ uses
   System.SysUtils, System.Generics.Collections, Classes, Common;
 
 type
+  TFlag = (FS, FZ, FAC, FP, FCY);
+  TDataReg = (RB, RC, RD, RE, RH, RL, RM, RA, RW, RZ, RF);
+  TRegPair = (RPBC, RPDE, RPHL, RPSP, RPSW);
+
   TInstrClass = (ICSystem, ICData, ICStack, ICArithm, ICLogic, ICControl, ICBranch);
   TInstrFormat = (IFOnly, IFRegCenter, IFRegEnd, IFRegDouble, IFRegPair, IFCondition);
+
   TInstruction = class
+  private
+    function Mask: String;
   public
     Code: Byte;
     Group: TInstrClass;
@@ -18,11 +25,13 @@ type
     Description: String;
     constructor Create
       (Code: Byte; Group: TInstrClass; Size: Byte; Format: TInstrFormat; Mnemonic: String; Description: String = '');
-    function Mask: String;
     function MainCode(Op1: String = ''; Op2: String = ''): String;
     function FullCode(Op1: String = ''; Op2: String = ''): String;
     function Summary: String;
+    function ExReg(Code: Byte; Tail: Boolean): TDataReg;
+    function ExPair(Code: Byte): TRegPair;
   end;
+
   TInstructionSet = class
   public
     List: TList<TInstruction>;
@@ -30,7 +39,6 @@ type
     procedure Add
       (Code: Byte; Group: TInstrClass; Size: Byte; Format: TInstrFormat; Mnemonic: String; Description: String = '');
     function FindByCode(Code: Byte; Masked: Boolean = False): TInstruction;
-    //function FindByMask(Mask: String): TInstruction;
     function FindByMnemonic(Mnemonic: String; Masked: Boolean = False): TInstruction;
   end;
 
@@ -85,61 +93,6 @@ begin
     if Value[Index] <> Mask[Index] then
       if not (Mask[Index] in ['D', 'S', 'R', 'P', 'C']) then
         Result := False;
-end;
-
-{ TInstructionSet }
-
-constructor TInstructionSet.Create;
-begin
-  List := TList<TInstruction>.Create;
-end;
-
-procedure TInstructionSet.Add;
-var
-  Instr: TInstruction;
-begin
-  Instr := TInstruction.Create(Code, Group, Size, Format, Mnemonic, Description);
-  List.Add(Instr);
-end;
-
-function TInstructionSet.FindByCode;
-var
-  CurrentInstr: TInstruction;
-begin
-  Result := nil;
-  for CurrentInstr in List do
-    if (CurrentInstr.Code = Code)
-    or (Masked and MaskCompare(IntToNumStr(Code, SBIN, 8), CurrentInstr.Mask)) then
-    begin
-      Result := CurrentInstr;
-      Break;
-    end;
-end;
-
-{function TInstructionSet.FindByMask;
-var
-  CurrentInstr: TInstruction;
-begin
-  Result := nil;
-  for CurrentInstr in List do
-    if MaskCompare(Mask, CurrentInstr.Mask) then
-    begin
-      Result := CurrentInstr;
-      Break;
-    end;
-end;}
-
-function TInstructionSet.FindByMnemonic;
-var
-  CurrentInstr: TInstruction;
-begin
-  Result := nil;
-  for CurrentInstr in List do
-    if CurrentInstr.Mnemonic = Mnemonic then
-    begin
-      Result := CurrentInstr;
-      Break;
-    end;
 end;
 
 { TInstruction }
@@ -199,6 +152,64 @@ end;
 function TInstruction.Summary: String;
 begin
   Result := 'Команда: ' + Mnemonic + ' - ' + Description;
+end;
+
+function TInstruction.ExReg;
+begin
+  if not Tail then
+    Code := Code shr 3;
+  Code := Code shl 5;
+  Code := Code shr 5;
+  Result := TDataReg(Code);
+end;
+
+function TInstruction.ExPair;
+begin
+  Code := Code shl 2;
+  Code := Code shr 6;
+  Result := TRegPair(Code);
+end;
+
+{ TInstructionSet }
+
+constructor TInstructionSet.Create;
+begin
+  List := TList<TInstruction>.Create;
+end;
+
+procedure TInstructionSet.Add;
+var
+  Instr: TInstruction;
+begin
+  Instr := TInstruction.Create(Code, Group, Size, Format, Mnemonic, Description);
+  List.Add(Instr);
+end;
+
+function TInstructionSet.FindByCode;
+var
+  CurrentInstr: TInstruction;
+begin
+  Result := nil;
+  for CurrentInstr in List do
+    if (CurrentInstr.Code = Code)
+    or (Masked and MaskCompare(IntToNumStr(Code, SBIN, 8), CurrentInstr.Mask)) then
+    begin
+      Result := CurrentInstr;
+      Break;
+    end;
+end;
+
+function TInstructionSet.FindByMnemonic;
+var
+  CurrentInstr: TInstruction;
+begin
+  Result := nil;
+  for CurrentInstr in List do
+    if CurrentInstr.Mnemonic = Mnemonic then
+    begin
+      Result := CurrentInstr;
+      Break;
+    end;
 end;
 
 initialization
