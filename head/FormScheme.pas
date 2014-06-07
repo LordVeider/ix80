@@ -6,9 +6,10 @@ unit FormScheme;
 interface
 
 uses
+  Common, Logic, Instructions,
   Winapi.Windows, Winapi.Messages, System.SysUtils, System.Variants, System.Classes, Vcl.Graphics,
   Vcl.Controls, Vcl.Forms, Vcl.Dialogs, Vcl.Imaging.pngimage, Vcl.ExtCtrls,
-  Vcl.Grids, Vcl.StdCtrls, Vcl.ComCtrls, Vcl.ImgList, Common, Logic, InstructionSet;
+  Vcl.Grids, Vcl.StdCtrls, Vcl.ComCtrls, Vcl.ImgList;
 
 type
   TfrmScheme = class(TForm)

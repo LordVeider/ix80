@@ -6,7 +6,7 @@ unit FormEditor;
 interface
 
 uses
-  FormMemory, FormScheme, Common, Logic, InstructionSet,
+  FormMemory, FormScheme, Common, Logic, Instructions, Parser,
   Winapi.Windows, Winapi.Messages, System.SysUtils, System.Variants, System.Classes, Vcl.Graphics,
   Vcl.Controls, Vcl.Forms, Vcl.Dialogs, Vcl.Menus, Vcl.ToolWin, Vcl.ComCtrls,
   Vcl.ImgList, Vcl.StdCtrls, SyncObjs, Vcl.Grids;
