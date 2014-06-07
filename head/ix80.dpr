@@ -9,7 +9,8 @@ uses
   Logic in 'Logic.pas',
   FormAbout in 'FormAbout.pas' {frmAbout},
   FormValue in 'FormValue.pas' {frmValue},
-  InstructionSet in 'InstructionSet.pas';
+  Instructions in 'Instructions.pas',
+  Parser in 'Parser.pas';
 
 {$R *.res}
 
