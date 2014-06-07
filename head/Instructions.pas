@@ -12,7 +12,7 @@ uses
 type
   TFlag = (FS, FZ, FAC, FP, FCY);
   TDataReg = (RB, RC, RD, RE, RH, RL, RM, RA, RW, RZ, RF);
-  TRegPair = (RPBC, RPDE, RPHL, RPSP, RPSW);
+  TRegPair = (RPBC, RPDE, RPHL, RPSP);
 
   TInstrClass = (ICSystem, ICData, ICStack, ICArithm, ICLogic, ICControl, ICBranch);
   TInstrFormat = (IFOnly, IFRegCenter, IFRegEnd, IFRegDouble, IFRegPair, IFCondition);
@@ -221,24 +221,24 @@ InstrSet := TInstructionSet.Create;
 with InstrSet do
 begin
   //Команды управления микропроцессором
-  Add($00,  ICSystem,     1, IFOnly,      'NOP'   );
-  Add($76,  ICSystem,     1, IFOnly,      'HLT',  'Останов'                                     );
+  Add($00,  ICSystem,     1, IFOnly,      'NOP',   'Нет операции'                                                           );
+  Add($76,  ICSystem,     1, IFOnly,      'HLT',  'Останов'                                                                 );
   //Команды пересылки данных
-  Add($40,  ICData,       1, IFRegDouble, 'MOV'   );
-  Add($06,  ICData,       2, IFRegCenter, 'MVI',  'Непосредственная загрузка числа в регистр'   );
-  Add($01,  ICData,       3, IFRegPair,   'LXI'   );
-  Add($3A,  ICData,       3, IFOnly,      'LDA'   );
-  Add($32,  ICData,       3, IFOnly,      'STA'   );
-  Add($0A,  ICData,       1, IFRegPair,   'LDAX'  );
-  Add($02,  ICData,       1, IFRegPair,   'STAX'  );
-  Add($2A,  ICData,       3, IFOnly,      'LHLD'  );
-  Add($22,  ICData,       3, IFOnly,      'SHLD'  );
-  Add($EB,  ICData,       1, IFOnly,      'XCHG'  );
+  Add($40,  ICData,       1, IFRegDouble, 'MOV',  'Межрегистровая пересылка'                                                );
+  Add($06,  ICData,       2, IFRegCenter, 'MVI',  'Непосредственная загрузка регистра'                                      );
+  Add($01,  ICData,       3, IFRegPair,   'LXI',  'Непосредственная загрузка регистровой пары'                              );
+  Add($3A,  ICData,       3, IFOnly,      'LDA',  'Загрузка аккумулятора из памяти (прямая адресация)'                      );
+  Add($32,  ICData,       3, IFOnly,      'STA',  'Сохранение аккумулятора в память (прямая адресация)'                     );
+  Add($0A,  ICData,       1, IFRegPair,   'LDAX', 'Загрузка аккумулятора из памяти (косвенная адресация)'                   );
+  Add($02,  ICData,       1, IFRegPair,   'STAX', 'Сохранение аккумулятора в память (косвенная адресация)'                  );
+  Add($2A,  ICData,       3, IFOnly,      'LHLD', 'Загрузка регистровой пары HL из памяти'                                  );
+  Add($22,  ICData,       3, IFOnly,      'SHLD', 'Сохранение регистровой пары HL в память'                                 );
+  Add($EB,  ICData,       1, IFOnly,      'XCHG', 'Обмен регистровых пар DE и HL'                                           );
   //Команды работы со стеком
-  Add($C1,  ICStack,      1, IFRegPair,   'POP'   );
-  Add($C5,  ICStack,      1, IFRegPair,   'PUSH'  );
-  Add($F9,  ICStack,      1, IFOnly,      'SPHL'  );
-  Add($E3,  ICStack,      1, IFOnly,      'XTHL'  );
+  Add($C1,  ICStack,      1, IFRegPair,   'POP',  'Загрузка регистровой пары из стека'                                      );
+  Add($C5,  ICStack,      1, IFRegPair,   'PUSH', 'Сохранение регистровой пары в стек'                                      );
+  Add($F9,  ICStack,      1, IFOnly,      'SPHL', 'Загрука указателя стека из регистровой пары HL'                          );
+  Add($E3,  ICStack,      1, IFOnly,      'XTHL', 'Обмен вершины стека с регистровой парой HL'                              );
   //Арифметические команды
   //Сложение
   Add($80,  ICArithm,     1, IFRegEnd,    'ADD'   );
@@ -283,7 +283,6 @@ begin
   Add($C3,  ICControl,    3, IFOnly,      'JMP'   );
   Add($CD,  ICControl,    3, IFOnly,      'CALL'  );
   Add($C9,  ICControl,    1, IFOnly,      'RET'   );
-  Add($C7,  ICControl,    1, IFOnly,      'RST'   );
   Add($E9,  ICControl,    1, IFOnly,      'PCHL'  );
   //Условные переходы
   //Добавим позже

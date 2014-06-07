@@ -77,6 +77,24 @@ implementation
 uses
   FormScheme, FormMemory, FormEditor;
 
+{ TMemory }
+
+procedure TMemory.ShowNewMem;
+begin
+  frmMemory.Memory := Self;
+  frmMemory.DrawMemory;
+end;
+
+function TMemory.ReadMemory(Address: Word): Int8;
+begin
+  Result := Cells[Address];
+end;
+
+procedure TMemory.WriteMemory(Address: Word; Value: Int8);
+begin
+  Cells[Address] := Value;
+end;
+
 { TProcessor }
 
 constructor TProcessor.Create(Memory: TMemory);
@@ -163,7 +181,6 @@ begin
       RPBC: Result := MakeWord(Registers.DataRegisters[RB], Registers.DataRegisters[RC]);
       RPDE: Result := MakeWord(Registers.DataRegisters[RD], Registers.DataRegisters[RE]);
       RPHL: Result := MakeWord(Registers.DataRegisters[RH], Registers.DataRegisters[RL]);
-      RPSW: Result := MakeWord(Registers.DataRegisters[RA], Registers.DataRegisters[RF]);
     end;
   end;
 end;
@@ -193,7 +210,6 @@ begin
       RPBC: begin HiReg := RB; LoReg := RC; end;
       RPDE: begin HiReg := RD; LoReg := RE; end;
       RPHL: begin HiReg := RH; LoReg := RL; end;
-      RPSW: begin HiReg := RA; LoReg := RF; end;
     end;
     Registers.DataRegisters[HiReg] := Hi(Value);
     Registers.DataRegisters[LoReg] := Lo(Value);
@@ -279,125 +295,8 @@ begin
   frmScheme.DrawProcessor(Self);
 end;
 
-procedure TProcessor.ExecuteCommand;
-begin
-  //Временный вывод данных
-  frmScheme.redtLog.Lines.Add(Instr.Summary);
-  //Выбор типа команды
-  case Instr.Group of
-    ICSystem:   ExecuteSystemCommand(Instr, B1, B2, B3);
-    ICData:     ExecuteDataCommand(Instr, B1, B2, B3);
-    ICStack:    ExecuteStackCommand(Instr, B1, B2, B3);
-    ICArithm:   ExecuteArithmCommand(Instr, B1, B2, B3);
-    ICLogic:    ExecuteLogicCommand(Instr, B1, B2, B3);
-    ICControl:  ExecuteControlCommand(Instr, B1, B2, B3);
-    ICBranch:   ExecuteBranchCommand(Instr, B1, B2, B3);
-  end;
-end;
-
-procedure TProcessor.ExecuteSystemCommand;
-begin
-  with Instr do
-  case Code of
-    $76: {HLT}  begin
-                  HltState := True;
-                end;
-  end;
-end;
-
-procedure TProcessor.ExecuteDataCommand;
-var
-  Temp16: Word;
-begin
-  with Instr, Memory do
-  case Code of
-    $40: {MOV}  begin
-                  SetRegAddrValue(ExReg(B1), GetRegAddrValue(ExReg(B1, True)));
-                end;
-    $06: {MVI}  begin
-                  SetRegAddrValue(ExReg(B1), B2);
-                end;
-    $01: {LXI}  begin
-                  SetRegPair(ExPair(B1), MakeWord(B3, B2));
-                end;
-    $3A: {LDA}  begin
-                  SetDataReg(RA, ReadMemory(MakeWord(B3, B2)));
-                end;
-    $32: {STA}  begin
-                  WriteMemory(MakeWord(B3, B2), GetDataReg(RA));
-                end;
-    $0A: {LDAX} begin
-                  SetDataReg(RA, ReadMemory(GetRegPair(RPHL)));
-                end;
-    $02: {STAX} begin
-                  WriteMemory(GetRegPair(RPHL), GetDataReg(RA));
-                end;
-    $2A: {LHLD} begin
-                  SetDataReg(RL, ReadMemory(MakeWord(B3, B2)));
-                  SetDataReg(RH, ReadMemory(MakeWord(B3, B2) + 1));
-                end;
-    $22: {SHLD} begin
-                  WriteMemory(MakeWord(B3, B2), GetDataReg(RL));
-                  WriteMemory(MakeWord(B3, B2) + 1, GetDataReg(RH));
-                end;
-    $EB: {XCHG} begin
-                  Temp16 := GetRegPair(RPHL);
-                  SetRegPair(RPHL, GetRegPair(RPDE));
-                  SetRegPair(RPDE, Temp16);
-                end;
-  end;
-end;
-
-procedure TProcessor.ExecuteStackCommand;
-var
-  Temp8: Int8;
-begin
-  with Instr, Memory do
-  case Code of
-    $F9: {SPHL} begin
-                  SetStackPointer(GetRegPair(RPHL));
-                end;
-    $E3: {XTHL} begin
-                  Temp8 := GetDataReg(RL);
-                  SetDataReg(RL, ReadMemory(GetStackPointer));
-                  WriteMemory(GetStackPointer, Temp8);
-                  Temp8 := GetDataReg(RH);
-                  SetDataReg(RH, ReadMemory(GetStackPointer + 1));
-                  WriteMemory(GetStackPointer + 1, Temp8);
-                end;
-  end;
-end;
-
-procedure TProcessor.ExecuteArithmCommand;
-begin
-  with Instr, Memory do
-  case Code of
-    $80: {ADD}  begin
-                  PerformALU(GetRegAddrValue(ExReg(B1)));
-                end;
-  end;
-end;
-
-procedure TProcessor.ExecuteLogicCommand;
-begin
-
-end;
-
-procedure TProcessor.ExecuteControlCommand;
-begin
-
-end;
-
-procedure TProcessor.ExecuteBranchCommand;
-begin
-
-end;
-
 procedure TProcessor.Execute;
 var
-  s: string;
-  c: integer;
-
   CurrentAddr: Word;
   CurrentInstr: TInstruction;
   B1, B2, B3: Byte;
@@ -470,22 +369,150 @@ begin
   end;
 end;
 
-{ TMemory }
-
-procedure TMemory.ShowNewMem;
+procedure TProcessor.ExecuteCommand;
 begin
-  frmMemory.Memory := Self;
-  frmMemory.DrawMemory;
+  //Временный вывод данных
+  frmScheme.redtLog.Lines.Add(Instr.Summary);
+  //Выбор типа команды
+  case Instr.Group of
+    ICSystem:   ExecuteSystemCommand(Instr, B1, B2, B3);
+    ICData:     ExecuteDataCommand(Instr, B1, B2, B3);
+    ICStack:    ExecuteStackCommand(Instr, B1, B2, B3);
+    ICArithm:   ExecuteArithmCommand(Instr, B1, B2, B3);
+    ICLogic:    ExecuteLogicCommand(Instr, B1, B2, B3);
+    ICControl:  ExecuteControlCommand(Instr, B1, B2, B3);
+    ICBranch:   ExecuteBranchCommand(Instr, B1, B2, B3);
+  end;
 end;
 
-function TMemory.ReadMemory(Address: Word): Int8;
+procedure TProcessor.ExecuteSystemCommand;
 begin
-  Result := Cells[Address];
+  with Instr do
+  case Code of
+    $00: {NOP}  begin
+                  //Нет операции
+                end;
+    $76: {HLT}  begin
+                  HltState := True;
+                end;
+  end;
 end;
 
-procedure TMemory.WriteMemory(Address: Word; Value: Int8);
+procedure TProcessor.ExecuteDataCommand;
+var
+  Temp16: Word;
 begin
-  Cells[Address] := Value;
+  with Instr, Memory do
+  case Code of
+    $40: {MOV}  begin
+                  SetRegAddrValue(ExReg(B1), GetRegAddrValue(ExReg(B1, True)));
+                end;
+    $06: {MVI}  begin
+                  SetRegAddrValue(ExReg(B1), B2);
+                end;
+    $01: {LXI}  begin
+                  SetRegPair(ExPair(B1), MakeWord(B3, B2));
+                end;
+    $3A: {LDA}  begin
+                  SetDataReg(RA, ReadMemory(MakeWord(B3, B2)));
+                end;
+    $32: {STA}  begin
+                  WriteMemory(MakeWord(B3, B2), GetDataReg(RA));
+                end;
+    $0A: {LDAX} begin
+                  SetDataReg(RA, ReadMemory(GetRegPair(RPHL)));
+                end;
+    $02: {STAX} begin
+                  WriteMemory(GetRegPair(RPHL), GetDataReg(RA));
+                end;
+    $2A: {LHLD} begin
+                  SetDataReg(RL, ReadMemory(MakeWord(B3, B2)));
+                  SetDataReg(RH, ReadMemory(MakeWord(B3, B2) + 1));
+                end;
+    $22: {SHLD} begin
+                  WriteMemory(MakeWord(B3, B2), GetDataReg(RL));
+                  WriteMemory(MakeWord(B3, B2) + 1, GetDataReg(RH));
+                end;
+    $EB: {XCHG} begin
+                  Temp16 := GetRegPair(RPHL);
+                  SetRegPair(RPHL, GetRegPair(RPDE));
+                  SetRegPair(RPDE, Temp16);
+                end;
+  end;
+end;
+
+procedure TProcessor.ExecuteStackCommand;
+var
+  CurrentAddr: Word;
+  Temp8: Int8;
+begin
+  with Instr, Memory do
+  case Code of
+    $C1: {POP}  begin
+                  CurrentAddr := GetStackPointer;
+                  if ExPair(B1) = RPSP then   //POP PSW
+                  begin
+                    SetDataReg(RF, ReadMemory(CurrentAddr));
+                    SetDataReg(RA, ReadMemory(CurrentAddr + 1));
+                  end
+                  else                        //POP RP
+                  begin
+                    SetRegPair(ExPair(B1), MakeWord(ReadMemory(CurrentAddr) + 1, ReadMemory(CurrentAddr)));
+                  end;
+                  SetStackPointer(CurrentAddr + 2);
+                end;
+    $C5: {PUSH} begin
+                  CurrentAddr := GetStackPointer;
+                  if ExPair(B1) = RPSP then   //PUSH PSW
+                  begin
+                    WriteMemory(CurrentAddr - 1, GetDataReg(RA));
+                    WriteMemory(CurrentAddr - 2, GetDataReg(RF));
+                  end
+                  else                        //PUSH RP
+                  begin
+                    WriteMemory(CurrentAddr - 1, Hi(GetRegPair(ExPair(B1))));
+                    WriteMemory(CurrentAddr - 2, Lo(GetRegPair(ExPair(B1))));
+                  end;
+                  SetStackPointer(CurrentAddr - 2);
+                end;
+    $F9: {SPHL} begin
+                  SetStackPointer(GetRegPair(RPHL));
+                end;
+    $E3: {XTHL} begin
+                  CurrentAddr := GetStackPointer;
+                  Temp8 := GetDataReg(RL);
+                  SetDataReg(RL, ReadMemory(CurrentAddr));
+                  WriteMemory(CurrentAddr, Temp8);
+                  Temp8 := GetDataReg(RH);
+                  SetDataReg(RH, ReadMemory(CurrentAddr + 1));
+                  WriteMemory(CurrentAddr + 1, Temp8);
+                end;
+  end;
+end;
+
+procedure TProcessor.ExecuteArithmCommand;
+begin
+  with Instr, Memory do
+  case Code of
+    $80: {ADD}  begin
+                  PerformALU(GetRegAddrValue(ExReg(B1)));
+                end;
+  end;
+end;
+
+procedure TProcessor.ExecuteLogicCommand;
+begin
+
+end;
+
+procedure TProcessor.ExecuteControlCommand;
+begin
+
+end;
+
+procedure TProcessor.ExecuteBranchCommand;
+begin
+
 end;
 
 end.
