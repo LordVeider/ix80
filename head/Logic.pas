@@ -71,11 +71,22 @@ type
     procedure SetRegAddrValue(Operand: String; Value: Int8);                    //Получить значение по регистровой адресации
     function GetRegAddrValue(Operand: String): Int8;                            //Установить значение по регистровой адресации
     procedure SetStackPointer(Value: Word);                                     //Установить значение указателя стека
+    procedure SetProgramCounter(Value: Word);                                   //Установить значение счетчика команд
+    procedure SetInstRegister(Value: Byte);                                     //Установить значение регистра команд
     function GetStackPointer: Word;                                             //Получить значение указателя стека
     function GetProgramCounter: Word;                                           //Получить значение счетчика команд
-    function GetInstRegister: Int8;                                             //Получить значение регистра команд
+    function GetInstRegister: Byte;                                             //Получить значение регистра команд
     procedure SetFlag(FlagName: TFlag);                                         //Установить флаг
     function GetFlag(FlagName: TFlag): Boolean;                                 //Получить состояние флага
+
+    procedure ExecuteCommand(Instr: TInstruction; B1, B2, B3: Byte);
+    procedure ExecuteSystemCommand(Instr: TInstruction; B1, B2, B3: Byte);
+    procedure ExecuteDataCommand(Instr: TInstruction; B1, B2, B3: Byte);
+    procedure ExecuteStackCommand(Instr: TInstruction; B1, B2, B3: Byte);
+    procedure ExecuteArithmCommand(Instr: TInstruction; B1, B2, B3: Byte);
+    procedure ExecuteLogicCommand(Instr: TInstruction; B1, B2, B3: Byte);
+    procedure ExecuteControlCommand(Instr: TInstruction; B1, B2, B3: Byte);
+    procedure ExecuteBranchCommand(Instr: TInstruction; B1, B2, B3: Byte);
   end;
 
   TCommand = class                          //Команда (базовый класс)
@@ -122,27 +133,6 @@ type
     constructor Create(Name: String; Op1, Op2: String);
     procedure Execute(Processor: TProcessor);
   end;
-
-  TMatrixCommand = class
-  private
-    Code: Byte;
-    B2, B3: Byte;
-    Instr: TInstruction;
-  public
-    constructor Create(Instr: TInstruction);
-    procedure Execute(Processor: TProcessor);
-  end;
-
-  TMatrixSystemCommand = class(TMatrixCommand);
-  TMatrixDataCommand = class(TMatrixCommand)
-  public
-    procedure Execute(Processor: TProcessor);
-  end;
-  TMatrixStackCommand = class(TMatrixCommand);
-  TMatrixArithmCommand = class(TMatrixCommand);
-  TMatrixLogicCommand = class(TMatrixCommand);
-  TMatrixControlCommand = class(TMatrixCommand);
-  TMatrixBranchCommand = class(TMatrixCommand);
 
   TMatrixParser = class
   public
@@ -295,22 +285,32 @@ begin
   end;
 end;
 
-procedure TProcessor.SetStackPointer(Value: Word);
+procedure TProcessor.SetStackPointer;
 begin
   Registers.SP := Value;
 end;
 
-function TProcessor.GetStackPointer: Word;
+procedure TProcessor.SetProgramCounter;
+begin
+  Registers.PC := Value;
+end;
+
+procedure TProcessor.SetInstRegister;
+begin
+  Registers.IR := Value;
+end;
+
+function TProcessor.GetStackPointer;
 begin
   Result := Registers.SP;
 end;
 
-function TProcessor.GetProgramCounter: Word;
+function TProcessor.GetProgramCounter;
 begin
   Result := Registers.PC;
 end;
 
-function TProcessor.GetInstRegister: Int8;
+function TProcessor.GetInstRegister;
 begin
   Result := Registers.IR;
 end;
@@ -381,6 +381,95 @@ begin
   ProcessorThread := nil;
 end;
 
+procedure TProcessor.ExecuteCommand;
+begin
+  //Временный вывод данных
+  frmScheme.redtLog.Lines.Add(Instr.Summary);
+  //Выбор типа команды
+  case Instr.Group of
+    ICSystem:   ExecuteSystemCommand(Instr, B1, B2, B3);
+    ICData:     ExecuteDataCommand(Instr, B1, B2, B3);
+    ICStack:    ExecuteStackCommand(Instr, B1, B2, B3);
+    ICArithm:   ExecuteArithmCommand(Instr, B1, B2, B3);
+    ICLogic:    ExecuteLogicCommand(Instr, B1, B2, B3);
+    ICControl:  ExecuteControlCommand(Instr, B1, B2, B3);
+    ICBranch:   ExecuteBranchCommand(Instr, B1, B2, B3);
+  end;
+end;
+
+procedure TProcessor.ExecuteSystemCommand;
+begin
+  case Instr.Code of
+    $76: {HLT} begin
+                 HltState := True;
+               end;
+  end;
+end;
+
+procedure TProcessor.ExecuteDataCommand;
+begin
+    {if Name = 'MOV' then
+      SetRegAddrValue(Op1, GetRegAddrValue(Op2))
+    else if Name = 'MVI' then
+      SetRegAddrValue(Op1, NumStrToIntAuto(Op2))
+    else if Name = 'LXI' then
+      SetDataRP(DataRegNameInt8xtName(Op1), NumStrToIntAuto(Op2))
+    else if Name = 'LDA' then
+      SetDataReg(RA, Memory.ReadMemory(NumStrToIntAuto(Op1)))
+    else if Name = 'LDAX' then
+      SetDataReg(RA, Memory.ReadMemory(GetDataRP(DataRegNameInt8xtName(Op1))))
+    else if Name = 'STA' then
+      Memory.WriteMemory(NumStrToIntAuto(Op1), GetDataReg(RA))
+    else if Name = 'STAX' then
+      Memory.WriteMemory(GetDataRP(DataRegNameInt8xtName(Op1)), GetDataReg(RA))
+    else if Name = 'LHLD' then
+    begin
+      SetDataReg(RL, Memory.ReadMemory(NumStrToIntAuto(Op1)));
+      SetDataReg(RH, Memory.ReadMemory(NumStrToIntAuto(Op1)+1));
+    end
+    else if Name = 'SHLD' then
+    begin
+      Memory.WriteMemory(NumStrToIntAuto(Op1), GetDataReg(RL));
+      Memory.WriteMemory(NumStrToIntAuto(Op1)+1, GetDataReg(RH));
+    end
+    else if Name = 'XCHG' then
+    begin
+      Temp16 := GetDataRP(RH);
+      SetDataRP(RH, GetDataRP(RD));
+      SetDataRP(RD, Temp16);
+    end;}
+  case Instr.Code of
+    $40: {MOV} begin
+                 //HltState := True;
+               end;
+  end;
+end;
+
+procedure TProcessor.ExecuteStackCommand;
+begin
+
+end;
+
+procedure TProcessor.ExecuteArithmCommand;
+begin
+
+end;
+
+procedure TProcessor.ExecuteLogicCommand;
+begin
+
+end;
+
+procedure TProcessor.ExecuteControlCommand;
+begin
+
+end;
+
+procedure TProcessor.ExecuteBranchCommand;
+begin
+
+end;
+
 { TProcessorThread }
 
 procedure TProcessorThread.Execute;
@@ -390,7 +479,7 @@ var
 
   CurrentAddr: Word;
   CurrentInstr: TInstruction;
-  CurrentCommand: TMatrixCommand;
+  B1, B2, B3: Byte;
 begin
   inherited;
   FreeOnTerminate := True;
@@ -398,42 +487,51 @@ begin
   begin
     //Пока не получили HLT или команду на уничтожение потока - читаем команды
     repeat
-      {if Assigned(Memory.Cells[Registers.PC].Command) then
-      begin
-        c := Registers.PC;
-        s := TCommand(Memory.Cells[Registers.PC].Command).ShowSummary;
-        if TCommand(Memory.Cells[Registers.PC].Command) is TDataCommand then
-          TDataCommand(Memory.Cells[Registers.PC].Command).Execute(Processor)
-        else if TCommand(Memory.Cells[Registers.PC].Command) is TStackCommand then
-          TStackCommand(Memory.Cells[Registers.PC].Command).Execute(Processor)
-        else if TCommand(Memory.Cells[Registers.PC].Command) is TArithmCommand then
-          TArithmCommand(Memory.Cells[Registers.PC].Command).Execute(Processor)
-        else if TCommand(Memory.Cells[Registers.PC].Command) is TLogicCommand then
-          TLogicCommand(Memory.Cells[Registers.PC].Command).Execute(Processor)
-        else if TCommand(Memory.Cells[Registers.PC].Command) is TCtrlCommand then
-          TCtrlCommand(Memory.Cells[Registers.PC].Command).Execute(Processor)
-        else if TCommand(Memory.Cells[Registers.PC].Command) is TSysCommand then
-          TSysCommand(Memory.Cells[Registers.PC].Command).Execute(Processor)
-      end;}
+      //Читаем первый байт инструкции
       CurrentAddr := GetProgramCounter;
-      CurrentInstr := InstrSet.FindByMask(IntToNumStr(Memory.ReadMemory(CurrentAddr), SBIN, 8));
+      B1 := Memory.ReadMemory(CurrentAddr);
+
+      //Ищем инструкцию в матрице
+      CurrentInstr := InstrSet.FindByCode(B1);
+      if not Assigned(CurrentInstr) then
+        CurrentInstr := InstrSet.FindByCode(B1, True);
+
+      //Инструкция найдена
       if Assigned(CurrentInstr) then
       begin
-        CurrentCommand := TMatrixCommand.Create(CurrentInstr);
-        case CurrentInstr.Group of
-          ICSystem:    TMatrixSystemCommand(CurrentCommand).Execute(Processor);
-          ICData:        TMatrixDataCommand(CurrentCommand).Execute(Processor);
-          ICStack:      TMatrixStackCommand(CurrentCommand).Execute(Processor);
-          ICArithm:    TMatrixArithmCommand(CurrentCommand).Execute(Processor);
-          ICLogic:      TMatrixLogicCommand(CurrentCommand).Execute(Processor);
-          ICControl:  TMatrixControlCommand(CurrentCommand).Execute(Processor);
-          ICBranch:    TMatrixBranchCommand(CurrentCommand).Execute(Processor);
-        end;
-        FreeAndNil(CurrentCommand);
-        //frmEditor.redtMsg.Lines.Add(CurrentInstr.Mnemonic);
-        //CurrentCommand.Execute(Processor);
-      end;
+        //Обновляем вывод данных
+        Processor.ShowRegisters;
+        Processor.Memory.ShowNewMem;
 
+        //Если есть объект синхронизации потока - ждём его
+        if Assigned(Processor.StopSection) then
+          Processor.StopSection.WaitFor(INFINITE);
+
+        //Устанавливаем регистр команд
+        Processor.SetInstRegister(B1);
+
+        //Читаем второй и третий байт инструкции (если есть)
+        if CurrentInstr.Size = 2 then
+        begin
+          B2 := Memory.ReadMemory(CurrentAddr + 1);
+          Processor.SetDataReg(RW, B2);
+          if CurrentInstr.Size = 3 then
+          begin
+            B3 := Memory.ReadMemory(CurrentAddr + 2);
+            Processor.SetDataReg(RZ, B3);
+          end
+        end;
+
+        //Устанавливаем счетчик команд
+        Processor.SetProgramCounter(CurrentAddr + CurrentInstr.Size);
+
+        //Сбрасываем объект синхронизации потока
+        if Assigned(Processor.StopSection) then
+          Processor.StopSection.ResetEvent;
+
+        //Исполняем команду
+        Processor.ExecuteCommand(CurrentInstr, B1, B2, B3);
+      end;
     until HltState or Terminated;
     //Уничтожаем объект синхронизации
     if Assigned(StopSection) then
@@ -868,28 +966,6 @@ begin
   except
     Result := False;
   end;
-end;
-
-{ TMatrixCommand }
-
-constructor TMatrixCommand.Create;
-begin
-  Self.Instr := Instr;
-  //Self.Code := Code;
-  //Instr := InstrSet.FindByMask(IntToNumStr(Code, SBIN, 8));
-end;
-
-procedure TMatrixCommand.Execute;
-begin
-  ShowMessage('Generic command');
-end;
-
-{ TMatrixDataCommand }
-
-procedure TMatrixDataCommand.Execute(Processor: TProcessor);
-begin
-  inherited;
-  ShowMessage('Data command');
 end;
 
 end.

@@ -21,6 +21,7 @@ type
     function Mask: String;
     function MainCode(Op1: String = ''; Op2: String = ''): String;
     function FullCode(Op1: String = ''; Op2: String = ''): String;
+    function Summary: String;
   end;
   TInstructionSet = class
   public
@@ -28,9 +29,9 @@ type
     constructor Create;
     procedure Add
       (Code: Byte; Group: TInstrClass; Size: Byte; Format: TInstrFormat; Mnemonic: String; Description: String = '');
-    function FindByCode(Code: Byte): TInstruction;
-    function FindByMask(Mask: String): TInstruction;
-    function FindByMnemonic(Mnemonic: String): TInstruction;
+    function FindByCode(Code: Byte; Masked: Boolean = False): TInstruction;
+    //function FindByMask(Mask: String): TInstruction;
+    function FindByMnemonic(Mnemonic: String; Masked: Boolean = False): TInstruction;
   end;
 
 var
@@ -75,7 +76,7 @@ begin
   else if Value = 'M'   then Result := '111';
 end;
 
-function Masked(Value, Mask: String): Boolean;
+function MaskCompare(Value, Mask: String): Boolean;
 var
   Index: Byte;
 begin
@@ -107,25 +108,26 @@ var
 begin
   Result := nil;
   for CurrentInstr in List do
-    if CurrentInstr.Code = Code then
+    if (CurrentInstr.Code = Code)
+    or (Masked and MaskCompare(IntToNumStr(Code, SBIN, 8), CurrentInstr.Mask)) then
     begin
       Result := CurrentInstr;
       Break;
     end;
 end;
 
-function TInstructionSet.FindByMask;
+{function TInstructionSet.FindByMask;
 var
   CurrentInstr: TInstruction;
 begin
   Result := nil;
   for CurrentInstr in List do
-    if Masked(Mask, CurrentInstr.Mask) then
+    if MaskCompare(Mask, CurrentInstr.Mask) then
     begin
       Result := CurrentInstr;
       Break;
     end;
-end;
+end;}
 
 function TInstructionSet.FindByMnemonic;
 var
@@ -194,6 +196,11 @@ begin
   end;
 end;
 
+function TInstruction.Summary: String;
+begin
+  Result := 'Команда: ' + Mnemonic + ' - ' + Description;
+end;
+
 initialization
 
 InstrSet := TInstructionSet.Create;
@@ -204,7 +211,7 @@ begin
   Add($76,  ICSystem,     1, IFOnly,      'HLT'   );
   //Команды пересылки данных
   Add($40,  ICData,       1, IFRegDouble, 'MOV'   );
-  Add($06,  ICData,       2, IFRegCenter, 'MVI'   );
+  Add($06,  ICData,       2, IFRegCenter, 'MVI',  'Непосредственная загрузка числа в регистр'   );
   Add($01,  ICData,       3, IFRegPair,   'LXI'   );
   Add($3A,  ICData,       3, IFOnly,      'LDA'   );
   Add($32,  ICData,       3, IFOnly,      'STA'   );

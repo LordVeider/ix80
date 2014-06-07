@@ -104,7 +104,7 @@ end;
 procedure TfrmEditor.btn9Click(Sender: TObject);
 begin
   //ShowMessage(IntToNumStr(ExtractReg($58), SBIN, 8));
-  ShowMessage(InstrSet.FindByMnemonic('LXI').FullCode('D', '256'));
+  //ShowMessage(InstrSet.FindByMnemonic('LXI').FullCode('D', '256'));
 end;
 
 procedure TfrmEditor.btnMemClearClick(Sender: TObject);
