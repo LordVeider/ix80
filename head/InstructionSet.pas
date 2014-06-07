@@ -28,7 +28,7 @@ type
     function MainCode(Op1: String = ''; Op2: String = ''): String;
     function FullCode(Op1: String = ''; Op2: String = ''): String;
     function Summary: String;
-    function ExReg(Code: Byte; Tail: Boolean): TDataReg;
+    function ExReg(Code: Byte; Second: Boolean = False): TDataReg;
     function ExPair(Code: Byte): TRegPair;
   end;
 
@@ -156,9 +156,8 @@ end;
 
 function TInstruction.ExReg;
 begin
-  if not Tail then
-    Code := Code shr 3;
-  Code := Code shl 5;
+  if (Format = IFRegEnd) or (Second = True) then Code := Code shl 5
+  else Code := Code shl 2;
   Code := Code shr 5;
   Result := TDataReg(Code);
 end;
@@ -219,7 +218,7 @@ with InstrSet do
 begin
   //Команды управления микропроцессором
   Add($00,  ICSystem,     1, IFOnly,      'NOP'   );
-  Add($76,  ICSystem,     1, IFOnly,      'HLT'   );
+  Add($76,  ICSystem,     1, IFOnly,      'HLT',  'Останов'                                     );
   //Команды пересылки данных
   Add($40,  ICData,       1, IFRegDouble, 'MOV'   );
   Add($06,  ICData,       2, IFRegCenter, 'MVI',  'Непосредственная загрузка числа в регистр'   );

@@ -11,23 +11,24 @@ uses
 type
   TNumSys = (SBIN, SDEC, SOCT, SHEX);
 
-  function FormatAddrCode(Value: String; RP: Boolean = False): String;          //Получить двоичную строку (код регистра или пары)
+function FormatAddrCode(Value: String; RP: Boolean = False): String;          //Получить двоичную строку (код регистра или пары)
 
-  function HexToInt(Value: String): Integer;                                    //Строковый HEX в число
-  function BinToInt(Value: String): Integer;                                    //Строковый BIN в число
-  function IntToBin(Value: Integer; Digits: Integer): String;                   //Число в строковый BIN
+function HexToInt(Value: String): Integer;                                    //Строковый HEX в число
+function BinToInt(Value: String): Integer;                                    //Строковый BIN в число
+function IntToBin(Value: Integer; Digits: Integer): String;                   //Число в строковый BIN
 
-  function ConvertNumStr
-    (Value: String; BaseIn, BaseOut: TNumSys; Digits: Integer = 0): String;     //Преобразование в систему счисления
-  function NumStrToInt
-    (Value: String; Base: TNumSys): Integer;                                    //Преобразование к числу
-  function ConvertNumStrAuto
-    (Value: String; Base: TNumSys; Digits: Integer = 0): String;                //Преобразование в систему счисления (автовыбор исходной CC)
-  function NumStrToIntAuto
-    (Value: String): Integer;                                                   //Преобразование к числу (автовыбор исходной CC)
-  function IntToNumStr
-    (Value: Integer; Base: TNumSys; Digits: Integer = 0): String;               //Преобразование к строке
-  function SwapBytes(Value: String): String;                                    //Поменять местами два байта в строке
+function ConvertNumStr
+  (Value: String; BaseIn, BaseOut: TNumSys; Digits: Integer = 0): String;     //Преобразование в систему счисления
+function NumStrToInt
+  (Value: String; Base: TNumSys): Integer;                                    //Преобразование к числу
+function ConvertNumStrAuto
+  (Value: String; Base: TNumSys; Digits: Integer = 0): String;                //Преобразование в систему счисления (автовыбор исходной CC)
+function NumStrToIntAuto
+  (Value: String): Integer;                                                   //Преобразование к числу (автовыбор исходной CC)
+function IntToNumStr
+  (Value: Integer; Base: TNumSys; Digits: Integer = 0): String;               //Преобразование к строке
+function SwapBytes(Value: String): String;                                    //Поменять местами два байта в строке
+function MakeWord(HiByte, LoByte: Byte): Word;                                //Преобразовать два байта в Word
 
 implementation
 
@@ -105,6 +106,11 @@ end;
 function SwapBytes;
 begin
   Result := Copy(Value, 9, 8) + Copy(Value, 1, 8);
+end;
+
+function MakeWord;
+begin
+  Result := LoByte + (HiByte shl 8);
 end;
 
 function FormatAddrCode;

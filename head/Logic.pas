@@ -311,10 +311,10 @@ begin
   else
   begin
     case RegPair of
-      RPBC: Result := Byte(Registers.DataRegisters[RC]) + (Registers.DataRegisters[RB] shl 8);
-      RPDE: Result := Byte(Registers.DataRegisters[RE]) + (Registers.DataRegisters[RD] shl 8);
-      RPHL: Result := Byte(Registers.DataRegisters[RL]) + (Registers.DataRegisters[RH] shl 8);
-      RPSW: Result := Byte(Registers.DataRegisters[RF]) + (Registers.DataRegisters[RA] shl 8);
+      RPBC: Result := MakeWord(Registers.DataRegisters[RB], Registers.DataRegisters[RC]);
+      RPDE: Result := MakeWord(Registers.DataRegisters[RD], Registers.DataRegisters[RE]);
+      RPHL: Result := MakeWord(Registers.DataRegisters[RH], Registers.DataRegisters[RL]);
+      RPSW: Result := MakeWord(Registers.DataRegisters[RA], Registers.DataRegisters[RF]);
     end;
   end;
 end;
@@ -465,60 +465,95 @@ end;
 
 procedure TProcessor.ExecuteSystemCommand;
 begin
-  case Instr.Code of
-    $76: {HLT} begin
-                 HltState := True;
-               end;
+  with Instr do
+  case Code of
+    $76: {HLT}  begin
+                  HltState := True;
+                end;
   end;
 end;
 
 procedure TProcessor.ExecuteDataCommand;
+var
+  Temp16: Word;
 begin
-    {if Name = 'MOV' then
-      SetRegAddrValue(Op1, GetRegAddrValue(Op2))
-    else if Name = 'MVI' then
-      SetRegAddrValue(Op1, NumStrToIntAuto(Op2))
-    else if Name = 'LXI' then
-      SetDataRP(DataRegNameInt8xtName(Op1), NumStrToIntAuto(Op2))
-    else if Name = 'LDA' then
-      SetDataReg(RA, Memory.ReadMemory(NumStrToIntAuto(Op1)))
-    else if Name = 'LDAX' then
-      SetDataReg(RA, Memory.ReadMemory(GetDataRP(DataRegNameInt8xtName(Op1))))
-    else if Name = 'STA' then
-      Memory.WriteMemory(NumStrToIntAuto(Op1), GetDataReg(RA))
-    else if Name = 'STAX' then
-      Memory.WriteMemory(GetDataRP(DataRegNameInt8xtName(Op1)), GetDataReg(RA))
-    else if Name = 'LHLD' then
-    begin
-      SetDataReg(RL, Memory.ReadMemory(NumStrToIntAuto(Op1)));
-      SetDataReg(RH, Memory.ReadMemory(NumStrToIntAuto(Op1)+1));
-    end
-    else if Name = 'SHLD' then
-    begin
-      Memory.WriteMemory(NumStrToIntAuto(Op1), GetDataReg(RL));
-      Memory.WriteMemory(NumStrToIntAuto(Op1)+1, GetDataReg(RH));
-    end
-    else if Name = 'XCHG' then
-    begin
-      Temp16 := GetDataRP(RH);
-      SetDataRP(RH, GetDataRP(RD));
-      SetDataRP(RD, Temp16);
-    end;}
-  case Instr.Code of
-    $40: {MOV} begin
-                 //HltState := True;
-               end;
+  with Instr, Memory do
+  case Code of
+    $40: {MOV}  begin
+                  NewSetRegAddrValue(ExReg(B1), NewGetRegAddrValue(ExReg(B1, True)));
+                end;
+    $06: {MVI}  begin
+                  NewSetRegAddrValue(ExReg(B1), B2);
+                end;
+    $01: {LXI}  begin
+                  NewSetRegPair(ExPair(B1), MakeWord(B3, B2));
+                end;
+    $3A: {LDA}  begin
+                  NewSetDataReg(RA, ReadMemory(MakeWord(B3, B2)));
+                end;
+    $32: {STA}  begin
+                  WriteMemory(MakeWord(B3, B2), NewGetDataReg(RA));
+                end;
+    $0A: {LDAX} begin
+                  NewSetDataReg(RA, ReadMemory(NewGetRegPair(RPHL)));
+                end;
+    $02: {STAX} begin
+                  WriteMemory(NewGetRegPair(RPHL), NewGetDataReg(RA));
+                end;
+    $2A: {LHLD} begin
+                  NewSetDataReg(RL, ReadMemory(MakeWord(B3, B2)));
+                  NewSetDataReg(RH, ReadMemory(MakeWord(B3, B2) + 1));
+                end;
+    $22: {SHLD} begin
+                  WriteMemory(MakeWord(B3, B2), NewGetDataReg(RL));
+                  WriteMemory(MakeWord(B3, B2) + 1, NewGetDataReg(RH));
+                end;
+    $EB: {XCHG} begin
+                  Temp16 := NewGetRegPair(RPHL);
+                  NewSetRegPair(RPHL, NewGetRegPair(RPDE));
+                  NewSetRegPair(RPDE, Temp16);
+                end;
   end;
 end;
 
 procedure TProcessor.ExecuteStackCommand;
+var
+  Temp8: Int8;
 begin
-
+    {if Name = 'SPHL' then
+      SetStackPointer(GetDataRP(RH))
+    else if Name = 'XTHL' then
+    begin
+      Temp16 := GetDataRP(RH);
+      SetDataReg(RH, Memory.ReadMemory(GetStackPointer));
+      SetDataReg(RL, Memory.ReadMemory(GetStackPointer + 1));
+      Memory.WriteMemory(GetStackPointer, Hi(Temp16));
+      Memory.WriteMemory(GetStackPointer + 1, Lo(Temp16));
+     end;}
+  with Instr, Memory do
+  case Code of
+    $F9: {SPHL} begin
+                  SetStackPointer(NewGetRegPair(RPHL));
+                end;
+    $E3: {XTHL} begin
+                  Temp8 := NewGetDataReg(RL);
+                  NewSetDataReg(RL, ReadMemory(GetStackPointer));
+                  WriteMemory(GetStackPointer, Temp8);
+                  Temp8 := NewGetDataReg(RH);
+                  NewSetDataReg(RH, ReadMemory(GetStackPointer + 1));
+                  WriteMemory(GetStackPointer + 1, Temp8);
+                end;
+  end;
 end;
 
 procedure TProcessor.ExecuteArithmCommand;
 begin
-
+  with Instr, Memory do
+  case Code of
+    $80: {ADD}  begin
+                  PerformALU(NewGetRegAddrValue(ExReg(B1)));
+                end;
+  end;
 end;
 
 procedure TProcessor.ExecuteLogicCommand;
@@ -573,11 +608,11 @@ begin
         Processor.SetInstRegister(B1);
 
         //Читаем второй и третий байт инструкции (если есть)
-        if CurrentInstr.Size = 2 then
+        if CurrentInstr.Size > 1 then
         begin
           B2 := Memory.ReadMemory(CurrentAddr + 1);
           Processor.SetDataReg(RW, B2);
-          if CurrentInstr.Size = 3 then
+          if CurrentInstr.Size > 2 then
           begin
             B3 := Memory.ReadMemory(CurrentAddr + 2);
             Processor.SetDataReg(RZ, B3);
