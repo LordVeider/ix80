@@ -165,7 +165,7 @@ begin
   if Assigned(MEM) then
   begin
     if not Assigned(CPU) then
-      CPU := TProcessor.Create(MEM);
+      CPU := TProcessor.Create(MEM, 5);
     CPU.OnTerminate := OnTerm;
     //CPU.StopSection := TEvent.Create(nil, False, False, '');
     //CPU.StopSection.Enter;
@@ -181,7 +181,6 @@ begin
 //  ProcessorThread.Processor := Self;
 //  ProcessorThread.Start;
 
-    CPU.InitCpu(5);
     CPU.Start;
     //CPU.InitCpu(5);
     //CPU.Run;
@@ -195,7 +194,7 @@ begin
   if Assigned(MEM) then
   begin
     if not Assigned(CPU) then
-      CPU := TProcessor.Create(MEM);
+      CPU := TProcessor.Create(MEM, 5);
     CPU.OnTerminate := OnTerm;
     CPU.StopSection := TEvent.Create(nil, False, False, '');
       btnRunReal.Enabled := False;
@@ -205,10 +204,10 @@ begin
       btnMemClear.Enabled := False;
       btnMemUnload.Enabled := False;
     //CPU.StopSection.Enter;
-    CPU.InitCpu(5);
     CPU.Start;
     //CPU.ShowRegisters;
     //MEM.ShowNewMem;
+
   end;
 end;
 
