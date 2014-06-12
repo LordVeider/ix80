@@ -44,11 +44,11 @@ type
     procedure ShowRegisters;                                                    //Отобразить содержимое регистров на экране
 
     procedure PerformALU(OpCode: TOpCode; Size: Byte; Op1, Op2: String;
-    var Op3: String; var Flags: TFlagArray);                                    //Выполнить операцию на АЛУ
-
+      var Op3: String; var Flags: TFlagArray);                                  //Выполнить операцию двоичной арифметики-логики
     procedure PerformALUOnReg
       (OpCode: TOpCode; Reg: TDataReg; Value: Int8; UseCarry: Boolean = False;
       AffectedFlags: TFlagSet = [FS, FZ, FAC, FP, FCY]);                        //Выполнить операцию на АЛУ над регистром
+    procedure PerformRotate(Right, ThroughCarry: Boolean);             //Выполнить сдвиг аккумулятора
 
     function GetDataReg(DataReg: TDataReg): Int8;                               //Получить значение регистра
     function GetRegAddrValue(DataReg: TDataReg): Int8;                          //Установить значение по регистровой адресации
@@ -176,6 +176,32 @@ begin
   if FCY  in AffectedFlags then SetFlag(FCY,  Flags[FCY]);
   //Обновляем аккумулятор
   SetRegAddrValue(Reg, NumStrToInt(Op3, SBIN));
+end;
+
+procedure TProcessor.PerformRotate;
+var
+  TempStr: String;
+begin
+  TempStr := IntToNumStr(GetDataReg(RA), SBIN, 8);
+  if Right then
+  begin
+    if ThroughCarry then
+      TempStr := IntToStr(GetFlag(FCY)) + TempStr
+    else
+      TempStr := TempStr[8] + TempStr;
+    SetFlag(FCY, StrToInt(TempStr[9]));
+    Delete(TempStr, 9, 1);
+  end
+  else
+  begin
+    if ThroughCarry then
+      TempStr := TempStr + IntToStr(GetFlag(FCY))
+    else
+      TempStr := TempStr + TempStr[8];
+    SetFlag(FCY, StrToInt(TempStr[1]));
+    Delete(TempStr, 1, 1);
+  end;
+  SetDataReg(RA, NumStrToInt(TempStr, SBIN));
 end;
 
 function TProcessor.GetDataReg;
@@ -526,6 +552,7 @@ procedure TProcessor.ExecuteArithmCommand;
 begin
   with Instr, Memory do
   case Code of
+    //Сложение
     $80: {ADD}  begin
                   PerformALUOnReg(OCSumm, RA, GetRegAddrValue(ExReg(B1)));
                 end;
@@ -538,6 +565,7 @@ begin
     $CE: {ACI}  begin
                   PerformALUOnReg(OCSumm, RA, B2, True);
                 end;
+    //Вычитание
     $90: {SUB}  begin
                   PerformALUOnReg(OCSumm, RA, -GetRegAddrValue(ExReg(B1)));
                 end;
@@ -550,6 +578,7 @@ begin
     $DE: {SBI}  begin
                   PerformALUOnReg(OCSumm, RA, -B2, True);
                 end;
+    //Инкремент/декремент
     $04: {INR}  begin
                   PerformALUOnReg(OCSumm, ExReg(B1), 1, False, [FZ, FS, FP, FAC]);
                 end;
@@ -561,7 +590,51 @@ end;
 
 procedure TProcessor.ExecuteLogicCommand;
 begin
-
+  with Instr, Memory do
+  case Code of
+    //Двоичная логика
+    $A0: {ANA}  begin
+                  PerformALUOnReg(OCAnd, RA, GetRegAddrValue(ExReg(B1)));
+                end;
+    $B0: {ORA}  begin
+                  PerformALUOnReg(OCLor, RA, GetRegAddrValue(ExReg(B1)));
+                end;
+    $A8: {XRA}  begin
+                  PerformALUOnReg(OCXor, RA, GetRegAddrValue(ExReg(B1)));
+                end;
+    $E6: {ANI}  begin
+                  PerformALUOnReg(OCAnd, RA, B2);
+                end;
+    $F6: {ORI}  begin
+                  PerformALUOnReg(OCLor, RA, B2);
+                end;
+    $EE: {XRI}  begin
+                  PerformALUOnReg(OCXor, RA, B2);
+                end;
+    //Сдвиг
+    $07: {RLC}  begin
+                  PerformRotate(False, False);
+                end;
+    $0F: {RRC}  begin
+                  PerformRotate(True, False);
+                end;
+    $17: {RAL}  begin
+                  PerformRotate(False, True);
+                end;
+    $1F: {RAR}  begin
+                  PerformRotate(True, True);
+                end;
+    //Специальные операции
+    $2F: {CMA}  begin
+                  SetDataReg(RA, NumStrToInt(InvertBits(IntToNumStr(GetDataReg(RA), SBIN, 8)), SBIN));
+                end;
+    $3F: {CMC}  begin
+                  SetFlag(FCY, IfThen(GetFlag(FCY) = 1, 0, 1));
+                end;
+    $37: {STC}  begin
+                  SetFlag(FCY, 1);
+                end;
+  end;
 end;
 
 procedure TProcessor.ExecuteBranchCommand;
