@@ -13,9 +13,12 @@ type
   TDataReg = (RB, RC, RD, RE, RH, RL, RM, RA, RW, RZ, RF);                      //Регистры
   TRegPair = (RPBC, RPDE, RPHL, RPSP);                                          //Регистровые пары
   TFlag = (FS, FZ, FAC, FP, FCY);                                               //Флаги
+  TCondition = (FCNZ, FCZ, FCNC, FCC, FCPO, FCPE, FCP, FCM);                    //Состояния
+
   TFlagSet = set of TFlag;
   TFlagArray = array [TFlag] of Byte;
-  TCondition = (FCNZ, FCZ, FCNC, FCC, FCPO, FCPE, FCP, FCM);                    //Состояния
+
+  TOpCode = (OCSumm, OCAnd, OCLor, OCXor);
 
   TInstrGroup = (IGSystem, IGData, IGArithm, IGLogic, IGBranch);                        //Группы инструкций
   TInstrFormat = (IFOnly, IFRegCenter, IFRegEnd, IFRegDouble, IFRegPair, IFCondition);  //Форматы инструкций

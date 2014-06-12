@@ -43,11 +43,12 @@ type
 
     procedure ShowRegisters;                                                    //Отобразить содержимое регистров на экране
 
-    procedure PerformSummator
-      (Op1, Op2: String; var Op3: String; Size: Byte; var Flags: TFlagArray);  //Выполнить операцию на сумматоре
-    procedure PerformALU
-      (Reg: TDataReg; Value: Int8; UseCarry: Boolean = False;
-      AffectedFlags: TFlagSet = [FS, FZ, FAC, FP, FCY]);                        //Выполнить операцию на АЛУ
+    procedure PerformALU(OpCode: TOpCode; Size: Byte; Op1, Op2: String;
+    var Op3: String; var Flags: TFlagArray);                                    //Выполнить операцию на АЛУ
+
+    procedure PerformALUOnReg
+      (OpCode: TOpCode; Reg: TDataReg; Value: Int8; UseCarry: Boolean = False;
+      AffectedFlags: TFlagSet = [FS, FZ, FAC, FP, FCY]);                        //Выполнить операцию на АЛУ над регистром
 
     function GetDataReg(DataReg: TDataReg): Int8;                               //Получить значение регистра
     function GetRegAddrValue(DataReg: TDataReg): Int8;                          //Установить значение по регистровой адресации
@@ -117,7 +118,7 @@ begin
     Registers.DataRegisters[CurReg] := 0;
 end;
 
-procedure TProcessor.PerformSummator;
+procedure TProcessor.PerformALU;
 var
   Digit: Byte;
   NewBit: Byte;
@@ -128,16 +129,23 @@ begin
   Parity := 0;
   for Digit := Size downto 1 do
   begin
-    //Считаем сумму
-    NewBit := StrToInt(Op1[Digit]) + (StrToInt(Op2[Digit]) + Carry);
-    //Считаем перенос и пересчитываем бит
-    Carry := IfThen(NewBit > 1, 1, 0);
-    NewBit := NewBit mod 2;
+    case OpCode of
+      OCSumm: begin
+                //Считаем сумму
+                NewBit := StrToInt(Op1[Digit]) + (StrToInt(Op2[Digit]) + Carry);
+                //Считаем перенос и пересчитываем бит
+                Carry := IfThen(NewBit > 1, 1, 0);
+                NewBit := NewBit mod 2;
+                //Выставляем флаг вспомогательного переноса из 3 в 4 разряд
+                if Digit = 5 then
+                  Flags[FAC] := Carry;
+              end;
+      OCAnd: NewBit := StrToInt(Op1[Digit]) and StrToInt(Op2[Digit]);
+      OCLor: NewBit := StrToInt(Op1[Digit]) or  StrToInt(Op2[Digit]);
+      OCXor: NewBit := StrToInt(Op1[Digit]) xor StrToInt(Op2[Digit]);
+    end;
     //Считаем количество единиц
     Parity := Parity + NewBit;
-    //Выставляем флаг вспомогательного переноса из 3 в 4 разряд
-    if Digit = 5 then
-      Flags[FAC] := Carry;
     //Конечный результат
     Op3 := IntToStr(NewBit) + Op3;
   end;
@@ -145,10 +153,11 @@ begin
   Flags[FS]   := NewBit;
   Flags[FZ]   := IfThen(Parity = 0, 1, 0);
   Flags[FP]   := IfThen(Parity mod 2 = 0, 1, 0);
-  Flags[FCY]  := Carry;
+  Flags[FAC]  := IfThen(OpCode = OCSumm, Flags[FAC], 0);
+  Flags[FCY]  := IfThen(OpCode = OCSumm, Carry, 0);
 end;
 
-procedure TProcessor.PerformALU;
+procedure TProcessor.PerformALUOnReg;
 var
   Op1, Op2, Op3: String;
   Flags: TFlagArray;
@@ -158,7 +167,7 @@ begin
   Op2 := IntToNumStr(Value, SBIN, 8);
   Flags[FCY] := IfThen(UseCarry, GetFlag(FCY), 0);
   //Выполняем операцию на сумматоре
-  PerformSummator(Op1, Op2, Op3, 8, Flags);
+  PerformALU(OpCode, 8, Op1, Op2, Op3, Flags);
   //Выставляем флаги
   if FS   in AffectedFlags then SetFlag(FS,   Flags[FS]);
   if FZ   in AffectedFlags then SetFlag(FZ,   Flags[FZ]);
@@ -518,34 +527,34 @@ begin
   with Instr, Memory do
   case Code of
     $80: {ADD}  begin
-                  PerformALU(RA, GetRegAddrValue(ExReg(B1)));
+                  PerformALUOnReg(OCSumm, RA, GetRegAddrValue(ExReg(B1)));
                 end;
     $88: {ADC}  begin
-                  PerformALU(RA, GetRegAddrValue(ExReg(B1)), True);
+                  PerformALUOnReg(OCSumm, RA, GetRegAddrValue(ExReg(B1)), True);
                 end;
     $C6: {ADI}  begin
-                  PerformALU(RA, B2);
+                  PerformALUOnReg(OCSumm, RA, B2);
                 end;
     $CE: {ACI}  begin
-                  PerformALU(RA, B2, True);
+                  PerformALUOnReg(OCSumm, RA, B2, True);
                 end;
     $90: {SUB}  begin
-                  PerformALU(RA, -GetRegAddrValue(ExReg(B1)));
+                  PerformALUOnReg(OCSumm, RA, -GetRegAddrValue(ExReg(B1)));
                 end;
     $98: {SBB}  begin
-                  PerformALU(RA, -GetRegAddrValue(ExReg(B1)), True);
+                  PerformALUOnReg(OCSumm, RA, -GetRegAddrValue(ExReg(B1)), True);
                 end;
     $D6: {SUI}  begin
-                  PerformALU(RA, -B2);
+                  PerformALUOnReg(OCSumm, RA, -B2);
                 end;
     $DE: {SBI}  begin
-                  PerformALU(RA, -B2, True);
+                  PerformALUOnReg(OCSumm, RA, -B2, True);
                 end;
     $04: {INR}  begin
-                  PerformALU(ExReg(B1), 1, False, [FZ, FS, FP, FAC]);
+                  PerformALUOnReg(OCSumm, ExReg(B1), 1, False, [FZ, FS, FP, FAC]);
                 end;
     $05: {DCR}  begin
-                  PerformALU(ExReg(B1), -1, False, [FZ, FS, FP, FAC]);
+                  PerformALUOnReg(OCSumm, ExReg(B1), -1, False, [FZ, FS, FP, FAC]);
                 end;
   end;
 end;
