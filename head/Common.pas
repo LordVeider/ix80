@@ -28,7 +28,8 @@ function IntToNumStr
 
 function SwapBytes(Value: String): String;                                      //Поменять местами два байта в строке
 function MakeWord(HiByte, LoByte: Byte): Word;                                  //Преобразовать два байта в Word
-function InvertBits(Value: String): String;                                     //Инвертировать двоичный код числа
+
+function InvertBits(Value: String): String;                                  //Инвертировать двоичный код числа
 
 implementation
 
