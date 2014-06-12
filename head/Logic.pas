@@ -7,7 +7,7 @@ interface
 
 uses
   Common, Instructions,
-  Classes, SyncObjs, SysUtils, Dialogs, TypInfo;
+  Classes, SyncObjs, SysUtils, Dialogs, TypInfo, Math;
 
 type
   TMemory = class
@@ -38,12 +38,16 @@ type
   public
     StopSection: TEvent;
 
-    constructor Create(Memory: TMemory);
+    constructor Create(Memory: TMemory; EntryPoint: Word);
     procedure Execute; override;
 
-    procedure InitCpu(EntryPoint: Word);                                        //Инициализация процессора
     procedure ShowRegisters;                                                    //Отобразить содержимое регистров на экране
-    procedure PerformALU(Value: Int8);                                          //Выполнить операцию на АЛУ
+
+    procedure PerformSummator
+      (Op1, Op2: String; var Op3: String; Size: Byte; var Flags: TFlagArray);  //Выполнить операцию на сумматоре
+    procedure PerformALU
+      (Reg: TDataReg; Value: Int8; UseCarry: Boolean = False;
+      AffectedFlags: TFlagSet = [FS, FZ, FAC, FP, FCY]);                        //Выполнить операцию на АЛУ
 
     function GetDataReg(DataReg: TDataReg): Int8;                               //Получить значение регистра
     function GetRegAddrValue(DataReg: TDataReg): Int8;                          //Установить значение по регистровой адресации
@@ -59,8 +63,8 @@ type
     procedure SetProgramCounter(Value: Word);                                   //Установить значение счетчика команд
     procedure SetInstRegister(Value: Byte);                                     //Установить значение регистра команд
 
-    function GetFlag(FlagName: TFlag): Boolean;                                 //Получить состояние флага
-    procedure SetFlag(FlagName: TFlag);                                         //Установить флаг
+    function GetFlag(FlagName: TFlag): Byte;                                    //Получить состояние флага
+    procedure SetFlag(FlagName: TFlag; Value: Byte);                            //Установить флаг
     function CheckCondition(Condition: TCondition): Boolean;                    //Проверить условие
 
     procedure ExecuteCommand(Instr: TInstruction; B1, B2, B3: Byte);
@@ -84,22 +88,25 @@ begin
   frmMemory.DrawMemory;
 end;
 
-function TMemory.ReadMemory(Address: Word): Int8;
+function TMemory.ReadMemory;
 begin
   Result := Cells[Address];
 end;
 
-procedure TMemory.WriteMemory(Address: Word; Value: Int8);
+procedure TMemory.WriteMemory;
 begin
   Cells[Address] := Value;
 end;
 
 { TProcessor }
 
-constructor TProcessor.Create(Memory: TMemory);
+constructor TProcessor.Create;
 begin
   inherited Create(True);
   Self.Memory := Memory;
+  InitDataRegisters;                //Инициализируем регистры данных
+  Registers.PC := EntryPoint;       //Инициализируем счетчик команд на указанную точку входа
+  HltState := False;
 end;
 
 procedure TProcessor.InitDataRegisters;
@@ -110,51 +117,56 @@ begin
     Registers.DataRegisters[CurReg] := 0;
 end;
 
-procedure TProcessor.PerformALU;
+procedure TProcessor.PerformSummator;
 var
-  Op1, Op2, Op3: String;
-  i: Integer;
-  NewBit: Int8;
-  Carry, Parity: Int8;
+  Digit: Byte;
+  NewBit: Byte;
+  Carry, Parity: Byte;
 begin
-  InitFlags;
-  Op1 := IntToNumStr(GetDataReg(RA), SBIN, 8);
-  Op2 := IntToNumStr(Value, SBIN, 8);
   Op3 := '';
-  Carry := 0;
+  Carry := Flags[FCY];
   Parity := 0;
-  for i := 8 downto 1 do
+  for Digit := Size downto 1 do
   begin
-    //Считаем бит
-    NewBit := StrToInt(Op1[i]) + StrToInt(Op2[i]) + Carry;
-    //Если получили 2 - переносим
-    if NewBit > 1 then
-    begin
-      Carry := 1;
-      NewBit := NewBit mod 2;
-    end
-    else
-      Carry := 0;
+    //Считаем сумму
+    NewBit := StrToInt(Op1[Digit]) + (StrToInt(Op2[Digit]) + Carry);
+    //Считаем перенос и пересчитываем бит
+    Carry := IfThen(NewBit > 1, 1, 0);
+    NewBit := NewBit mod 2;
     //Считаем количество единиц
-    if NewBit = 1 then
-      Inc(Parity);
-    //Выставляем флаг вспомогательного переноса
-    if (i = 4) and (Carry = 1) then
-      SetFlag(FAC);
+    Parity := Parity + NewBit;
+    //Выставляем флаг вспомогательного переноса из 3 в 4 разряд
+    if Digit = 5 then
+      Flags[FAC] := Carry;
     //Конечный результат
     Op3 := IntToStr(NewBit) + Op3;
   end;
   //Выставляем флаги
-  if NewBit = 1 then                    //Отрицательный результат
-    SetFlag(FS);
-  if Parity = 0 then                    //Нулевой результат
-    SetFlag(FZ)
-  else if Parity mod 2 = 0 then         //Четное количество единиц
-    SetFlag(FP);
-  if Carry = 1 then                     //Перенос из старшего разряда
-    SetFlag(FCY);
+  Flags[FS]   := NewBit;
+  Flags[FZ]   := IfThen(Parity = 0, 1, 0);
+  Flags[FP]   := IfThen(Parity mod 2 = 0, 1, 0);
+  Flags[FCY]  := Carry;
+end;
+
+procedure TProcessor.PerformALU;
+var
+  Op1, Op2, Op3: String;
+  Flags: TFlagArray;
+begin
+  //Инициализируем переменные
+  Op1 := IntToNumStr(GetRegAddrValue(Reg), SBIN, 8);
+  Op2 := IntToNumStr(Value, SBIN, 8);
+  Flags[FCY] := IfThen(UseCarry, GetFlag(FCY), 0);
+  //Выполняем операцию на сумматоре
+  PerformSummator(Op1, Op2, Op3, 8, Flags);
+  //Выставляем флаги
+  if FS   in AffectedFlags then SetFlag(FS,   Flags[FS]);
+  if FZ   in AffectedFlags then SetFlag(FZ,   Flags[FZ]);
+  if FP   in AffectedFlags then SetFlag(FP,   Flags[FP]);
+  if FAC  in AffectedFlags then SetFlag(FAC,  Flags[FAC]);
+  if FCY  in AffectedFlags then SetFlag(FCY,  Flags[FCY]);
   //Обновляем аккумулятор
-  SetDataReg(RA, NumStrToInt(Op3, SBIN));
+  SetRegAddrValue(Reg, NumStrToInt(Op3, SBIN));
 end;
 
 function TProcessor.GetDataReg;
@@ -263,7 +275,8 @@ begin
     FCY: Shift := 0;
   end;
   //Считываем бит
-  Result := (Registers.DataRegisters[RF] shr Shift) and 1 = 1;
+  with Registers do
+    Result := (DataRegisters[RF] shr Shift) and 1;
 end;
 
 procedure TProcessor.SetFlag;
@@ -279,28 +292,25 @@ begin
     FCY: Shift := 0;
   end;
   //Меняем бит
-  Registers.DataRegisters[RF] := Registers.DataRegisters[RF] or (1 shl Shift);
+  with Registers do
+    if Value = 1 then
+      DataRegisters[RF] := DataRegisters[RF] or (1 shl Shift)
+    else
+      DataRegisters[RF] := DataRegisters[RF] and not (1 shl Shift);
 end;
 
 function TProcessor.CheckCondition(Condition: TCondition): Boolean;
 begin
   case Condition of
-    FCNZ: Result := not GetFlag(FZ);
-    FCZ:  Result := GetFlag(FZ);
-    FCNC: Result := not GetFlag(FCY);
-    FCC:  Result := GetFlag(FCY);
-    FCPO: Result := not GetFlag(FP);
-    FCPE: Result := GetFlag(FP);
-    FCP:  Result := not GetFlag(FS);
-    FCM:  Result := GetFlag(FS);
+    FCNZ: Result := GetFlag(FZ)   = 0;
+    FCZ:  Result := GetFlag(FZ)   = 1;
+    FCNC: Result := GetFlag(FCY)  = 0;
+    FCC:  Result := GetFlag(FCY)  = 1;
+    FCPO: Result := GetFlag(FP)   = 0;
+    FCPE: Result := GetFlag(FP)   = 1;
+    FCP:  Result := GetFlag(FS)   = 0;
+    FCM:  Result := GetFlag(FS)   = 1;
   end;
-end;
-
-procedure TProcessor.InitCpu(EntryPoint: Word);
-begin
-  InitDataRegisters;                //Инициализируем регистры данных
-  Registers.PC := EntryPoint;       //Инициализируем счетчик команд на указанную точку входа
-  HltState := False;
 end;
 
 procedure TProcessor.ShowRegisters;
@@ -508,7 +518,34 @@ begin
   with Instr, Memory do
   case Code of
     $80: {ADD}  begin
-                  PerformALU(GetRegAddrValue(ExReg(B1)));
+                  PerformALU(RA, GetRegAddrValue(ExReg(B1)));
+                end;
+    $88: {ADC}  begin
+                  PerformALU(RA, GetRegAddrValue(ExReg(B1)), True);
+                end;
+    $C6: {ADI}  begin
+                  PerformALU(RA, B2);
+                end;
+    $CE: {ACI}  begin
+                  PerformALU(RA, B2, True);
+                end;
+    $90: {SUB}  begin
+                  PerformALU(RA, -GetRegAddrValue(ExReg(B1)));
+                end;
+    $98: {SBB}  begin
+                  PerformALU(RA, -GetRegAddrValue(ExReg(B1)), True);
+                end;
+    $D6: {SUI}  begin
+                  PerformALU(RA, -B2);
+                end;
+    $DE: {SBI}  begin
+                  PerformALU(RA, -B2, True);
+                end;
+    $04: {INR}  begin
+                  PerformALU(ExReg(B1), 1, False, [FZ, FS, FP, FAC]);
+                end;
+    $05: {DCR}  begin
+                  PerformALU(ExReg(B1), -1, False, [FZ, FS, FP, FAC]);
                 end;
   end;
 end;

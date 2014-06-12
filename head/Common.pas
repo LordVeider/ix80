@@ -11,23 +11,24 @@ uses
 type
   TNumSys = (SBIN, SDEC, SOCT, SHEX);
 
-function HexToInt(Value: String): Integer;                                    //Строковый HEX в число
-function BinToInt(Value: String): Integer;                                    //Строковый BIN в число
-function IntToBin(Value: Integer; Digits: Integer): String;                   //Число в строковый BIN
+function HexToInt(Value: String): Integer;                                      //Строковый HEX в число
+function BinToInt(Value: String): Integer;                                      //Строковый BIN в число
+function IntToBin(Value: Integer; Digits: Integer): String;                     //Число в строковый BIN
 
 function ConvertNumStr
-  (Value: String; BaseIn, BaseOut: TNumSys; Digits: Integer = 0): String;     //Преобразование в систему счисления
+  (Value: String; BaseIn, BaseOut: TNumSys; Digits: Integer = 0): String;       //Преобразование в систему счисления
 function NumStrToInt
-  (Value: String; Base: TNumSys): Integer;                                    //Преобразование к числу
+  (Value: String; Base: TNumSys): Integer;                                      //Преобразование к числу
 function ConvertNumStrAuto
-  (Value: String; Base: TNumSys; Digits: Integer = 0): String;                //Преобразование в систему счисления (автовыбор исходной CC)
+  (Value: String; Base: TNumSys; Digits: Integer = 0): String;                  //Преобразование в систему счисления (автовыбор исходной CC)
 function NumStrToIntAuto
-  (Value: String): Integer;                                                   //Преобразование к числу (автовыбор исходной CC)
+  (Value: String): Integer;                                                     //Преобразование к числу (автовыбор исходной CC)
 function IntToNumStr
-  (Value: Integer; Base: TNumSys; Digits: Integer = 0): String;               //Преобразование к строке
+  (Value: Integer; Base: TNumSys; Digits: Integer = 0): String;                 //Преобразование к строке
 
-function SwapBytes(Value: String): String;                                    //Поменять местами два байта в строке
-function MakeWord(HiByte, LoByte: Byte): Word;                                //Преобразовать два байта в Word
+function SwapBytes(Value: String): String;                                      //Поменять местами два байта в строке
+function MakeWord(HiByte, LoByte: Byte): Word;                                  //Преобразовать два байта в Word
+function InvertBits(Value: String): String;                                     //Инвертировать двоичный код числа
 
 implementation
 
@@ -110,6 +111,15 @@ end;
 function MakeWord;
 begin
   Result := LoByte + (HiByte shl 8);
+end;
+
+function InvertBits;
+var
+  Digit: Byte;
+begin
+  Result := '';
+  for Digit := 1 to Value.Length do
+    Result := Result + IntToStr(IfThen(Value[Digit] = '1', 0, 1));
 end;
 
 end.
