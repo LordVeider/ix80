@@ -207,6 +207,7 @@ end;
 function TProcessor.GetDataReg;
 begin
   Result := Registers.DataRegisters[DataReg];
+  //frmScheme.redtLog.Lines.Add('Обращение к регистру: ' + GetEnumName(TypeInfo(TDataReg), Ord(DataReg)));
 end;
 
 function TProcessor.GetRegAddrValue;

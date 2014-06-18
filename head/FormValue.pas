@@ -79,7 +79,7 @@ begin
   if Assigned(FMemory) then
     with TfrmMemory(FMemory) do
     begin
-      Memory.WriteMemory(Address, StrToInt(edtValue.Text));
+      Memory.WriteMemory(Address, NumStrToIntAuto(edtValue.Text));
     end;
 end;
 
