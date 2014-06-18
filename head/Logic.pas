@@ -24,7 +24,6 @@ type
     DataRegisters: TDataRegisters;          //Регистры данных (8 bit)
     SP: Word;                               //Указатель стека (16 bit)
     PC: Word;                               //Счетчик команд  (16 bit)
-    AB: Word;                               //Буфер адреса    (16 bit)
     IR: Byte;                               //Регистр команд  (8 bit)
   end;
 
@@ -36,7 +35,8 @@ type
     procedure InitDataRegisters;            //Инициализация регистров
     procedure InitFlags;                    //Инициализация регистра флагов
   public
-    StopSection: TEvent;
+    StopCmd, StopStep: TEvent;              //Объекты синхронизации потоков
+    SkipToNext: Boolean;                    //Флаг пропуска визуализации шагов до следующей команды
 
     constructor Create(Memory: TMemory; EntryPoint: Word);
     procedure Execute; override;
@@ -48,7 +48,7 @@ type
     procedure PerformALUOnReg
       (OpCode: TOpCode; Reg: TDataReg; Value: Int8; UseCarry: Boolean = False;
       AffectedFlags: TFlagSet = [FS, FZ, FAC, FP, FCY]);                        //Выполнить операцию на АЛУ над регистром
-    procedure PerformRotate(Right, ThroughCarry: Boolean);             //Выполнить сдвиг аккумулятора
+    procedure PerformRotate(Right, ThroughCarry: Boolean);                      //Выполнить сдвиг аккумулятора
 
     function GetDataReg(DataReg: TDataReg): Int8;                               //Получить значение регистра
     function GetRegAddrValue(DataReg: TDataReg): Int8;                          //Установить значение по регистровой адресации
@@ -379,8 +379,8 @@ begin
       if Assigned(CurrentInstr) then
       begin
         //Если есть объект синхронизации потока - ждём его
-        if Assigned(StopSection) then
-          StopSection.WaitFor(INFINITE);
+        if Assigned(StopCmd) then
+          StopCmd.WaitFor(INFINITE);
 
         //Устанавливаем регистр команд
         SetInstRegister(B1);
@@ -405,8 +405,8 @@ begin
         Memory.ShowNewMem;
 
         //Сбрасываем объект синхронизации потока
-        if Assigned(StopSection) then
-          StopSection.ResetEvent;
+        if Assigned(StopCmd) then
+          StopCmd.ResetEvent;
 
         //Исполняем команду
         ExecuteCommand(CurrentInstr, B1, B2, B3);
@@ -414,8 +414,8 @@ begin
     until HltState or Terminated;
 
     //Уничтожаем объект синхронизации
-    if Assigned(StopSection) then
-      FreeAndNil(StopSection);
+    if Assigned(StopCmd) then
+      FreeAndNil(StopCmd);
 
     //TODO: вынести в отдельный метод
     with frmEditor do

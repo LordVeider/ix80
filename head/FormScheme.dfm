@@ -2069,7 +2069,6 @@ object frmScheme: TfrmScheme
       ParentFont = False
       ReadOnly = True
       TabOrder = 7
-      Text = '00000000'
     end
     object edtL: TEdit
       Left = 732

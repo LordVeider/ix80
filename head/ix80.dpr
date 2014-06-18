@@ -10,7 +10,8 @@ uses
   FormAbout in 'FormAbout.pas' {frmAbout},
   FormValue in 'FormValue.pas' {frmValue},
   Instructions in 'Instructions.pas',
-  Parser in 'Parser.pas';
+  Parser in 'Parser.pas',
+  Visualizer in 'Visualizer.pas';
 
 {$R *.res}
 
