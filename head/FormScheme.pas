@@ -69,24 +69,18 @@ begin
     edtIR.Text := IntToNumStr(GetInstRegister, SHEX, 2) + 'H';
     with grdPSW do
     begin
-      ColWidths[3] := 24;
-      ColWidths[7] := 24;
+      ColWidths[3] := 26;
+      ColWidths[4] := 26;
       Cells[0,0] := 'S';
       Cells[1,0] := 'Z';
-      Cells[2,0] := '0';
+      Cells[2,0] := 'P';
       Cells[3,0] := 'AC';
-      Cells[4,0] := '0';
-      Cells[5,0] := 'P';
-      Cells[6,0] := '1';
-      Cells[7,0] := 'CY';
+      Cells[4,0] := 'CY';
       Cells[0,1] := GetFlag(FS).ToString;
       Cells[1,1] := GetFlag(FZ).ToString;
-      Cells[2,1] := '0';
+      Cells[2,1] := GetFlag(FP).ToString;
       Cells[3,1] := GetFlag(FAC).ToString;
-      Cells[4,1] := '0';
-      Cells[5,1] := GetFlag(FP).ToString;
-      Cells[6,1] := '1';
-      Cells[7,1] := GetFlag(FCY).ToString;
+      Cells[4,1] := GetFlag(FCY).ToString;
     end;
   end;
 end;

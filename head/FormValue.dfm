@@ -96,7 +96,6 @@ object frmValue: TfrmValue
     Images = ilButtons
     TabOrder = 0
     OnClick = btnCancelClick
-    ExplicitTop = 108
   end
   object edtValue: TEdit
     Left = 8
@@ -118,14 +117,13 @@ object frmValue: TfrmValue
     Images = ilButtons
     TabOrder = 2
     OnClick = btnApplyClick
-    ExplicitTop = 108
   end
   object ilButtons: TImageList
     ColorDepth = cd32Bit
     Left = 440
     Top = 200
     Bitmap = {
-      494C0101020008001C0010001000FFFFFFFF2110FFFFFFFFFFFFFFFF424D3600
+      494C010102000800200010001000FFFFFFFF2110FFFFFFFFFFFFFFFF424D3600
       0000000000003600000028000000400000001000000001002000000000000010
       00000000000000000000000000000000000000000000000000020000000C0000
       00160000001A0000001A0000001A0000001A0000001A0000001A0000001A0000
