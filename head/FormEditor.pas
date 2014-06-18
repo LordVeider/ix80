@@ -6,7 +6,7 @@ unit FormEditor;
 interface
 
 uses
-  FormMemory, FormScheme, Common, Logic, Instructions, Parser,
+  FormMemory, FormScheme, Common, Logic, Instructions, Parser, Visualizer,
   Winapi.Windows, Winapi.Messages, System.SysUtils, System.Variants, System.Classes, Vcl.Graphics,
   Vcl.Controls, Vcl.Forms, Vcl.Dialogs, Vcl.Menus, Vcl.ToolWin, Vcl.ComCtrls,
   Vcl.ImgList, Vcl.StdCtrls, SyncObjs, Vcl.Grids;
@@ -99,11 +99,15 @@ uses FormAbout, FormValue;
 
 procedure TfrmEditor.btn8Click(Sender: TObject);
 begin
-  frmValue.Show;
+  //frmValue.Show;
 end;
 
 procedure TfrmEditor.btn9Click(Sender: TObject);
+var
+  vis: TVisualizer;
 begin
+  vis := TVisualizer.Create;
+  vis.ShowReg(RA);
   //ShowMessage(IntToNumStr(ExtractReg($58), SBIN, 8));
   //ShowMessage(InstrSet.FindByMnemonic('LXI').FullCode('D', '256'));
 end;
@@ -196,7 +200,7 @@ begin
     if not Assigned(CPU) then
       CPU := TProcessor.Create(MEM, 5);
     CPU.OnTerminate := OnTerm;
-    CPU.StopSection := TEvent.Create(nil, False, False, '');
+    CPU.StopCmd := TEvent.Create(nil, False, False, '');
       btnRunReal.Enabled := False;
       btnRunStep.Enabled := False;
       btnStop. Enabled := True;
@@ -213,11 +217,11 @@ end;
 
 procedure TfrmEditor.btnNextCommandClick(Sender: TObject);
 begin
-  if Assigned(CPU.StopSection) then
+  if Assigned(CPU.StopCmd) then
   begin
     //CPU.StopSection.Leave;
     //CPU.StopSection.Enter;
-    CPU.StopSection.SetEvent;
+    CPU.StopCmd.SetEvent;
   end;
 end;
 
@@ -229,8 +233,8 @@ end;
 procedure TfrmEditor.btnStopClick(Sender: TObject);
 begin
   CPU.Terminate;
-  if Assigned(CPU.StopSection) then
-    CPU.StopSection.SetEvent;
+  if Assigned(CPU.StopCmd) then
+    CPU.StopCmd.SetEvent;
 end;
 
 procedure TfrmEditor.btnShowMemoryClick(Sender: TObject);
