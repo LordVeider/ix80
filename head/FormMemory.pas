@@ -23,6 +23,7 @@ type
   public
     { Public declarations }
     MemoryCells: TMemoryCells;
+    SelectedCells: array [Word] of Boolean;
     CompactMode: Boolean;
     procedure SwitchMode(CompactMode: Boolean);
   end;
@@ -53,7 +54,11 @@ begin
       else if ACol = 0 then
         OutValue := IntToNumStr((ARow-1)*16, SHEX, 4)
       else
+      begin
+        if SelectedCells[(ACol-1)+(ARow-1)*16] then
+          Brush.Color := clHighlight;
         OutValue := IntToNumStr(MemoryCells[(ACol-1)+(ARow-1)*16], SHEX, 2);
+      end;
     end
     else
     begin
@@ -66,16 +71,21 @@ begin
         4: OutValue := 'Unsigned';
       end
       else
-      case ACol of
-        0: OutValue := IntToNumStr(ARow-1, SHEX, 4) + 'H';
-        1: OutValue := IntToNumStr(MemoryCells[ARow-1], SHEX, 2);
-        2: OutValue := IntToNumStr(MemoryCells[ARow-1], SBIN, 8);
-        3: OutValue := IntToStr(MemoryCells[ARow-1]);
-        4: OutValue := IntToStr(Byte(MemoryCells[ARow-1]));
+      begin
+        if SelectedCells[ARow-1] then
+          Brush.Color := clHighlight;
+        case ACol of
+          0: OutValue := IntToNumStr(ARow-1, SHEX, 4) + 'H';
+          1: OutValue := IntToNumStr(MemoryCells[ARow-1], SHEX, 2);
+          2: OutValue := IntToNumStr(MemoryCells[ARow-1], SBIN, 8);
+          3: OutValue := IntToStr(MemoryCells[ARow-1]);
+          4: OutValue := IntToStr(Byte(MemoryCells[ARow-1]));
+        end;
       end;
     end;
+    Rect.Left := Rect.Left-4;
     FillRect(Rect);
-    TextOut(Rect.Left+2, Rect.Top+2, OutValue);
+    TextOut(Rect.Left+6, Rect.Top+2, OutValue);
   end;
 end;
 

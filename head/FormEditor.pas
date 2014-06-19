@@ -109,10 +109,10 @@ end;
 procedure TfrmEditor.btn9Click(Sender: TObject);
 begin
   //vis := TVisualizer.Create;
-  //vis.ShowReg(RA);
+  vis.ShowDataReg(RA);
   //ShowMessage(IntToNumStr(ExtractReg($58), SBIN, 8));
   //ShowMessage(InstrSet.FindByMnemonic('LXI').FullCode('D', '256'));
-  frmMemory.SwitchMode(not frmMemory.CompactMode);
+  //frmMemory.SwitchMode(not frmMemory.CompactMode);
 end;
 
 procedure TfrmEditor.btnMemClearClick(Sender: TObject);
@@ -133,6 +133,7 @@ var
   Parser: TCommandParser;
   Success: Boolean;
 begin
+  VIS.SetVisLevel(0);
   if not Assigned(MEM) then
     MEM := TMemory.Create(VIS);
   redtMsg.Lines.Clear;
@@ -170,6 +171,7 @@ end;
 
 procedure TfrmEditor.btnRunRealClick(Sender: TObject);
 begin
+  VIS.SetVisLevel(1);
   if Assigned(MEM) then
   begin
     //if not Assigned(VIS) then
@@ -201,6 +203,7 @@ end;
 
 procedure TfrmEditor.btnRunStepClick(Sender: TObject);
 begin
+  VIS.SetVisLevel(2);
   if Assigned(MEM) then
   begin
     if not Assigned(CPU) then

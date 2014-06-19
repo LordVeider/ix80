@@ -2,7 +2,7 @@ object frmEditor: TfrmEditor
   Left = 10
   Top = 10
   Caption = 'ix80'
-  ClientHeight = 533
+  ClientHeight = 631
   ClientWidth = 624
   Color = clWindow
   Font.Charset = DEFAULT_CHARSET
@@ -292,7 +292,7 @@ object frmEditor: TfrmEditor
     Left = 41
     Top = 24
     Width = 583
-    Height = 384
+    Height = 482
     Align = alClient
     Font.Charset = RUSSIAN_CHARSET
     Font.Color = clWindowText
@@ -316,10 +316,11 @@ object frmEditor: TfrmEditor
     WordWrap = False
     Zoom = 100
     ExplicitWidth = 613
+    ExplicitHeight = 384
   end
   object redtMsg: TRichEdit
     Left = 0
-    Top = 408
+    Top = 506
     Width = 624
     Height = 106
     Align = alBottom
@@ -333,11 +334,12 @@ object frmEditor: TfrmEditor
     ScrollBars = ssVertical
     TabOrder = 2
     Zoom = 100
+    ExplicitTop = 408
     ExplicitWidth = 654
   end
   object sbarMain: TStatusBar
     Left = 0
-    Top = 514
+    Top = 612
     Width = 624
     Height = 19
     Panels = <
@@ -345,13 +347,14 @@ object frmEditor: TfrmEditor
         Text = #1043#1086#1090#1086#1074
         Width = 50
       end>
+    ExplicitTop = 514
     ExplicitWidth = 654
   end
   object grdLines: TStringGrid
     Left = 0
     Top = 24
     Width = 41
-    Height = 384
+    Height = 482
     Margins.Left = 0
     Margins.Right = 0
     Margins.Bottom = 0
@@ -366,6 +369,7 @@ object frmEditor: TfrmEditor
     Options = [goFixedVertLine, goFixedHorzLine, goVertLine, goHorzLine, goRowSelect]
     ScrollBars = ssNone
     TabOrder = 4
+    ExplicitHeight = 384
   end
   object menuMain: TMainMenu
     Left = 8
