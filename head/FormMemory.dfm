@@ -31,6 +31,5 @@ object frmMemory: TfrmMemory
     ScrollBars = ssVertical
     TabOrder = 0
     OnDrawCell = grdMemoryDrawCell
-    ExplicitHeight = 861
   end
 end

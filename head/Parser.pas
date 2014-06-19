@@ -75,7 +75,7 @@ begin
     Bits := 0;
     //«аписываем в пам€ть двоичный код команды
     repeat
-      Memory.WriteMemory(Address, NumStrToInt(Copy(CommandCode, Bits + 1, 8), SBIN));
+      Memory.Write(Address, NumStrToInt(Copy(CommandCode, Bits + 1, 8), SBIN));
       Address := Address + 1;
       Bits := Bits + 8;
     until Bits = CommandCode.Length;

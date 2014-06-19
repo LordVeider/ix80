@@ -159,8 +159,20 @@ begin
 end;
 
 function TInstruction.Summary;
+const
+  F_SUMMARY = 'КОМАНДА %s: %s (группа: %s, размер: %d байт)';
+var
+  GroupText, FormatBase: String;
 begin
-  Result := 'Команда: ' + Mnemonic + ' - ' + Description;
+  case Group of
+    IGSystem:   GroupText := 'системные команды';
+    IGData:     GroupText := 'команды пересылки';
+    IGArithm:   GroupText := 'арифметические операции';
+    IGLogic:    GroupText := 'логические операции';
+    IGBranch:   GroupText := 'команды переходов';
+  end;
+  //Result := 'Команда: ' + Mnemonic + ' - ' + Description;
+  Result := System.SysUtils.Format(F_SUMMARY, [Mnemonic, Description, GroupText, Size]);
 end;
 
 function TInstruction.ExReg;

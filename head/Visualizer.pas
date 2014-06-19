@@ -22,6 +22,7 @@ type
     procedure OnlyUpdateMem(Cells: TMemoryCells);
     procedure ShowDataReg(DataReg: TDataReg);
     procedure ShowRegPair(RegPair: TRegPair);
+    procedure ShowFlag(Flag: TFlag);
     procedure ShowStackPointer;
     procedure ShowProgramCounter;
     procedure ShowInstrRegister;
@@ -106,7 +107,7 @@ begin
         TEdit(Components[Cnt]).Color := clWindow
       else if Components[Cnt] is TImage then
         if TImage(Components[Cnt]) <> imgSchemeBackground then
-          TImage(Components[Cnt]).SendToBack;
+          TImage(Components[Cnt]).Hide;
   end;
 end;
 
@@ -117,14 +118,14 @@ begin
   if VisLevel > 1 then
   begin
     frmScheme.edtBuf.Color := HL_COLOR;
-    frmScheme.imgData.BringToFront;
+    frmScheme.imgData.Show;
   end;
 end;
 
 procedure TVisualizer.ShowALU;
 begin
   if VisLevel > 1 then
-    frmScheme.imgALU.BringToFront;
+    frmScheme.imgALU.Show;
 end;
 
 procedure TVisualizer.ShowMemoryCell(Addr: Word);
@@ -153,16 +154,35 @@ begin
       end;
       CurrentEdit.Color := HL_COLOR;
       if DataReg = RA then
-        imgAcc.BringToFront
+        imgAcc.Show
       else
-        imgReg.BringToFront;
+        imgReg.Show;
     end;
 end;
 
 procedure TVisualizer.ShowDecoder;
 begin
   if VisLevel > 1 then
-    frmScheme.imgCD.BringToFront;
+    frmScheme.imgCD.Show;
+end;
+
+procedure TVisualizer.ShowFlag(Flag: TFlag);
+var
+  CurrentEdit: TEdit;
+begin
+  if VisLevel > 1 then
+    with frmScheme do
+    begin
+      case Flag of
+        FS:   CurrentEdit := edtFS;
+        FZ:   CurrentEdit := edtFZ;
+        FP:   CurrentEdit := edtFP;
+        FAC:  CurrentEdit := edtFAC;
+        FCY:  CurrentEdit := edtFCY;
+      end;
+      CurrentEdit.Color := HL_COLOR;
+      imgFlags.Show;
+    end;
 end;
 
 procedure TVisualizer.ShowRegPair(RegPair: TRegPair);
@@ -191,7 +211,7 @@ begin
     with frmScheme do
     begin
       edtSP.Color := HL_COLOR;
-      imgReg.BringToFront;
+      imgReg.Show;
     end;
 end;
 
@@ -201,7 +221,7 @@ begin
     with frmScheme do
     begin
       edtPC.Color := HL_COLOR;
-      imgReg.BringToFront;
+      imgReg.Show;
     end;
 end;
 
@@ -211,7 +231,7 @@ begin
     with frmScheme do
     begin
       edtIR.Color := HL_COLOR;
-      imgIR.BringToFront;
+      imgIR.Show;
     end;
 end;
 
