@@ -7,10 +7,12 @@ interface
 
 uses
   FormScheme, FormMemory, Instructions, Common,
-  Classes, StdCtrls, Graphics, SysUtils;
+  Classes, StdCtrls, ExtCtrls, Graphics, SysUtils;
 
 const
   HL_COLOR = clHighlight;
+  LOG_NEW = #13#10;
+  LOG_LINE = '--------------------------------------------------------------------------------';
 
 type
   TVisualizer = class
@@ -18,6 +20,7 @@ type
     VisLevel: Byte;                               //уровень визуализации (0 - ничего, 1 - логи, 2 - хайлайты)
   public
     procedure SetVisLevel(VisLevel: Byte);
+    procedure CleanLog;
     procedure CleanSelection;
     procedure CleanSelectionMem;
     procedure OnlyUpdate(Regs: TRegisters);
@@ -29,6 +32,7 @@ type
     procedure ShowInstrRegister;
     procedure ShowAddrBuf(Addr: Word);
     procedure ShowALU;
+    procedure ShowDecoder;
     procedure ShowMemoryCell(Addr: Word);
     procedure AddLog(Value: String);
   end;
@@ -86,7 +90,14 @@ end;
 procedure TVisualizer.AddLog(Value: String);
 begin
   if VisLevel > 0 then
+  begin
     frmScheme.redtLog.Lines.Add(Value);
+  end;
+end;
+
+procedure TVisualizer.CleanLog;
+begin
+  frmScheme.redtLog.Lines.Clear;
 end;
 
 procedure TVisualizer.CleanSelection;
@@ -94,9 +105,14 @@ var
   Cnt: Integer;
 begin
   with frmScheme do
+  begin
     for Cnt := 0 to ComponentCount - 1 do
       if Components[Cnt] is TEdit then
-        TEdit(Components[Cnt]).Color := clWindow;
+        TEdit(Components[Cnt]).Color := clWindow
+      else if Components[Cnt] is TImage then
+        if TImage(Components[Cnt]) <> imgSchemeBackground then
+          TImage(Components[Cnt]).SendToBack;
+  end;
 end;
 
 procedure TVisualizer.ShowAddrBuf(Addr: Word);
@@ -104,7 +120,10 @@ begin
   if VisLevel > 0 then
     frmScheme.edtBuf.Text := IntToNumStr(Addr, SHEX, 4) + 'H';
   if VisLevel > 1 then
+  begin
     frmScheme.edtBuf.Color := HL_COLOR;
+    frmScheme.imgData.BringToFront;
+  end;
 end;
 
 procedure TVisualizer.ShowALU;
@@ -124,8 +143,8 @@ var
   CurrentEdit: TEdit;
 begin
   if VisLevel > 1 then
-  begin
     with frmScheme do
+    begin
       case DataReg of
         RA: CurrentEdit := edtA;
         RB: CurrentEdit := edtB;
@@ -137,8 +156,18 @@ begin
         RW: CurrentEdit := edtW;
         RZ: CurrentEdit := edtZ;
       end;
-    CurrentEdit.Color := HL_COLOR;
-  end;
+      CurrentEdit.Color := HL_COLOR;
+      if DataReg = RA then
+        imgAcc.BringToFront
+      else
+        imgReg.BringToFront;
+    end;
+end;
+
+procedure TVisualizer.ShowDecoder;
+begin
+  if VisLevel > 1 then
+    frmScheme.imgCD.BringToFront;
 end;
 
 procedure TVisualizer.ShowRegPair(RegPair: TRegPair);
@@ -165,21 +194,30 @@ procedure TVisualizer.ShowStackPointer;
 begin
   if VisLevel > 1 then
     with frmScheme do
+    begin
       edtSP.Color := HL_COLOR;
+      imgReg.BringToFront;
+    end;
 end;
 
 procedure TVisualizer.ShowProgramCounter;
 begin
   if VisLevel > 1 then
     with frmScheme do
+    begin
       edtPC.Color := HL_COLOR;
+      imgReg.BringToFront;
+    end;
 end;
 
 procedure TVisualizer.ShowInstrRegister;
 begin
   if VisLevel > 1 then
     with frmScheme do
+    begin
       edtIR.Color := HL_COLOR;
+      imgIR.BringToFront;
+    end;
 end;
 
 end.
