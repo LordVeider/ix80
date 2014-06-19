@@ -6,11 +6,10 @@ unit FormEditor;
 interface
 
 uses
-  Common, Logic, Instructions, Parser, Visualizer,
+  Common, Processor, Memory, Instructions, Parser, Visualizer,
   Winapi.Windows, Winapi.Messages, System.SysUtils, System.Variants, System.Classes, Vcl.Graphics,
   Vcl.Controls, Vcl.Forms, Vcl.Dialogs, Vcl.Menus, Vcl.ToolWin, Vcl.ComCtrls,
   Vcl.ImgList, Vcl.StdCtrls, SyncObjs, Vcl.Grids;
-
 type
   TfrmEditor = class(TForm)
     tlbMain: TToolBar;
@@ -155,7 +154,7 @@ begin
   end;
   if Success then
     redtMsg.Lines.Add('Программа успешно транслирована в память');
-  MEM.ShowNewMem;
+  //MEM.ShowNewMem;
 end;
 
 procedure TfrmEditor.btnTextOpenClick(Sender: TObject);
