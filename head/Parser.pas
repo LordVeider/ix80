@@ -6,7 +6,7 @@ unit Parser;
 interface
 
 uses
-  Logic, Instructions, Common,
+  Memory, Instructions, Common,
   Classes, SysUtils;
 
 type

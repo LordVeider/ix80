@@ -1,4 +1,4 @@
-unit Logic;
+unit Processor;
 
 //ix80 Intel 8080 CPU Emulator & Demonstration Model
 //Основная программная логика эмуляции микропроцессора
@@ -6,20 +6,11 @@ unit Logic;
 interface
 
 uses
-  Common, Instructions, Visualizer,
+  Common, Instructions, Visualizer, Memory,
   Classes, SyncObjs, SysUtils, Dialogs, TypInfo, Math,
   Winapi.Windows, Winapi.Messages, Vcl.Forms;
 
 type
-  TMemory = class
-  private
-    Cells: array [Word] of Int8;            //Массив данных
-  public
-    procedure ShowNewMem;                                                       //Отобразить содержимое памяти на экране
-    procedure WriteMemory(Address: Word; Value: Int8);                          //Записать в память цифровое значение
-    function ReadMemory(Address: Word): Int8;                                   //Считать из памяти цифровое значение
-  end;
-
   TProcessor = class(TThread)
   private
     HltState: Boolean;
@@ -69,24 +60,6 @@ type
   end;
 
 implementation
-
-{ TMemory }
-
-procedure TMemory.ShowNewMem;
-begin
-  {frmMemory.Memory := Self;
-  frmMemory.DrawMemory; }
-end;
-
-function TMemory.ReadMemory;
-begin
-  Result := Cells[Address];
-end;
-
-procedure TMemory.WriteMemory;
-begin
-  Cells[Address] := Value;
-end;
 
 { TProcessor }
 
@@ -388,7 +361,7 @@ begin
         //Обновляем вывод данных
         //ShowRegisters;
         Vis.OnlyUpdate(Registers);
-        Memory.ShowNewMem;
+        //Memory.ShowNewMem;
 
         //Сбрасываем объект синхронизации потока
         if Assigned(StopCmd) then

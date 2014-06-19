@@ -17,6 +17,7 @@ type
     constructor Create(FullVisMode: Boolean = False);
     procedure CleanSelection;
     procedure OnlyUpdate(Regs: TRegisters);
+    //procedure OnlyUpdateMem(Memory: TMemoryStream)
     procedure ShowReg(Reg: TDataReg);
   end;
 
