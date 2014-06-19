@@ -23,7 +23,6 @@ type
     HltState: Boolean;
     Memory: TMemory;                        //Память
     Vis: TVisualizer;
-    Registers: TRegisters;                  //Регистры
 
     StopCmd, StopStep: TEvent;              //Объекты синхронизации потоков
     StopFlag: Boolean;                      //Флаг пропуска визуализации шагов до следующей команды
@@ -43,6 +42,7 @@ type
     procedure ExecuteLogicCommand(Instr: TInstruction; B1, B2, B3: Byte);
     procedure ExecuteBranchCommand(Instr: TInstruction; B1, B2, B3: Byte);
   public
+    Registers: TRegisters;                  //Регистры
     constructor Create(Vis: TVisualizer; Memory: TMemory; EntryPoint: Word);
     procedure Execute; override;
 
@@ -260,14 +260,14 @@ begin
   Flags[FCY] := IfThen(UseCarry, GetFlag(FCY), 0);
   //Выполняем операцию на сумматоре
   PerformALU(OpCode, 8, Op1, Op2, Op3, Flags);
+  //Обновляем аккумулятор
+  SetRegAddrValue(Reg, NumStrToInt(Op3, SBIN));
   //Выставляем флаги
   if FS   in AffectedFlags then SetFlag(FS,   Flags[FS]);
   if FZ   in AffectedFlags then SetFlag(FZ,   Flags[FZ]);
   if FP   in AffectedFlags then SetFlag(FP,   Flags[FP]);
   if FAC  in AffectedFlags then SetFlag(FAC,  Flags[FAC]);
   if FCY  in AffectedFlags then SetFlag(FCY,  Flags[FCY]);
-  //Обновляем аккумулятор
-  SetRegAddrValue(Reg, NumStrToInt(Op3, SBIN));
 end;
 
 procedure TProcessor.PerformRotate;

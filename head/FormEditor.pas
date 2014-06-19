@@ -82,6 +82,7 @@ type
   private
     { Private declarations }
     procedure ManageControls(var Message: TMessage); message WM_CONTROLS;
+    procedure UpdateValue(var Message: TMessage); message WM_VALUE;
   public
     { Public declarations }
     procedure OnTerm(Sender: TObject);
@@ -265,6 +266,50 @@ begin
   btnNextStep.Enabled := not NewState;
   btnMemClear.Enabled := NewState;
   btnMemUnload.Enabled := NewState;
+end;
+
+procedure TfrmEditor.UpdateValue(var Message: TMessage);
+begin
+  //WParamHi - код
+  //WParamLo - значение
+  //LParamLo - адрес
+  with Message do
+    case WParamHi of
+      6:          begin     //Память
+                    if Assigned(MEM) then
+                    begin
+                      MEM.Write(LParamLo, Lo(WParamLo));
+                      VIS.UpdateMemory(MEM.Cells);
+                      VIS.HighlightMemoryCell(LParamLo);
+                      end;
+                  end;
+      0..5, 7..9: begin     //Регистры общего назначения, временные, аккумулятор
+                    if Assigned(CPU) then
+                    begin
+                      //CPU.SetDataReg(TDataReg(WParamHi), Lo(WParamLo));
+                      CPU.Registers.DataRegisters[TDataReg(WParamHi)] := Lo(WParamLo);
+                      VIS.UpdateScheme(CPU.Registers);
+                      VIS.HighlightDataReg(TDataReg(WParamHi));
+                    end;
+                    //VIS.HighlightMemoryCell(LParamLo);
+                  end;
+      11:         begin     //Stack Pointer
+                    if Assigned(CPU) then
+                    begin
+                      CPU.Registers.SP := WParamLo;
+                      VIS.UpdateScheme(CPU.Registers);
+                      VIS.HighlightStackPointer;
+                    end;
+                  end;
+      12:         begin     //Program Counter
+                    if Assigned(CPU) then
+                    begin
+                      CPU.Registers.PC := WParamLo;
+                      VIS.UpdateScheme(CPU.Registers);
+                      VIS.HighlightProgramCounter;
+                    end;
+                  end;
+    end;
 end;
 
 end.

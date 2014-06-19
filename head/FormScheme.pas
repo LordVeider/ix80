@@ -6,7 +6,7 @@ unit FormScheme;
 interface
 
 uses
-  Common,
+  Common, Typelib,
   Winapi.Windows, Winapi.Messages, System.SysUtils, System.Variants, System.Classes, Vcl.Graphics,
   Vcl.Controls, Vcl.Forms, Vcl.Dialogs, Vcl.Imaging.pngimage, Vcl.ExtCtrls,
   Vcl.Grids, Vcl.StdCtrls, Vcl.ComCtrls, Vcl.ImgList;
@@ -46,6 +46,7 @@ type
     grLog: TGroupBox;
     redtLog: TRichEdit;
     procedure redtLogChange(Sender: TObject);
+    procedure RegDblClick(Sender: TObject);
   private
     { Private declarations }
   public
@@ -60,9 +61,34 @@ implementation
 {$R *.dfm}
 
 uses
-  FormEditor;
+  FormValue;
 
 { TfrmScheme }
+
+procedure TfrmScheme.RegDblClick(Sender: TObject);
+var
+  Code: Byte;
+begin
+  with frmValue do
+  begin
+    edtValue.Text := TEdit(Sender).Text;
+    if ShowModal = mrOk then
+    begin
+      if TEdit(Sender) = edtA then Code := 7;
+      if TEdit(Sender) = edtB then Code := 0;
+      if TEdit(Sender) = edtC then Code := 1;
+      if TEdit(Sender) = edtD then Code := 2;
+      if TEdit(Sender) = edtE then Code := 3;
+      if TEdit(Sender) = edtH then Code := 4;
+      if TEdit(Sender) = edtL then Code := 5;
+      if TEdit(Sender) = edtW then Code := 8;
+      if TEdit(Sender) = edtZ then Code := 9;
+      if TEdit(Sender) = edtSP then Code := 11;
+      if TEdit(Sender) = edtPC then Code := 12;
+      SendMessage(Application.MainForm.Handle, WM_VALUE, MakeWParam(NumStrToIntAuto(edtValue.Text), Code), 0);
+    end;
+  end;
+end;
 
 procedure TfrmScheme.redtLogChange(Sender: TObject);
 begin

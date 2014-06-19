@@ -23,19 +23,13 @@ type
     lblDecValue: TLabel;
     btnApply: TButton;
     procedure edtValueChange(Sender: TObject);
-    procedure FormShow(Sender: TObject);
     procedure btnCancelClick(Sender: TObject);
     procedure btnApplyClick(Sender: TObject);
-    procedure FormClose(Sender: TObject; var Action: TCloseAction);
   private
     { Private declarations }
     Verified: Boolean;
   public
     { Public declarations }
-    FMemory: TForm;
-    Address: Word;
-    procedure LoadValue;
-    procedure UnloadValue;
     procedure UpdateValue;
   end;
 
@@ -49,39 +43,9 @@ implementation
 uses
   FormScheme, FormMemory;
 
-procedure TfrmValue.FormShow(Sender: TObject);
-begin
-  LoadValue;
-end;
-
-procedure TfrmValue.FormClose(Sender: TObject; var Action: TCloseAction);
-begin
-  edtValue.Text := '0';
-  Address := 0;
-end;
-
 procedure TfrmValue.edtValueChange(Sender: TObject);
 begin
   UpdateValue;
-end;
-
-procedure TfrmValue.LoadValue;
-begin
-  {if Assigned(FMemory) then
-    with TfrmMemory(FMemory) do
-    begin
-      Address := grdNewMem.Row - 1;
-      edtValue.Text := IntToStr(Memory.ReadMemory(Address));
-    end;}
-end;
-
-procedure TfrmValue.UnloadValue;
-begin
-  {if Assigned(FMemory) then
-    with TfrmMemory(FMemory) do
-    begin
-      Memory.WriteMemory(Address, NumStrToIntAuto(edtValue.Text));
-    end;}
 end;
 
 procedure TfrmValue.UpdateValue;
@@ -99,21 +63,17 @@ begin
   end;
 end;
 
-procedure TfrmValue.btnCancelClick(Sender: TObject);
-begin
-  Close;
-end;
-
 procedure TfrmValue.btnApplyClick(Sender: TObject);
 begin
-  {if Verified then
-  begin
-    UnloadValue;
-    Close;
-    if Assigned(FMemory) then
-      with TfrmMemory(FMemory) do
-          DrawMemory;
-  end;}
+  if Verified then
+    ModalResult := mrOk
+  else
+    ModalResult := mrNone;
+end;
+
+procedure TfrmValue.btnCancelClick(Sender: TObject);
+begin
+  ModalResult := mrCancel;
 end;
 
 end.
