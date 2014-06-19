@@ -87,6 +87,7 @@ var
   NewBit: Byte;
   Carry, Parity: Byte;
 begin
+  Vis.ShowALU;
   Op3 := '';
   Carry := Flags[FCY];
   Parity := 0;
