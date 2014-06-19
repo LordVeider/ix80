@@ -27,10 +27,15 @@ type
     edtSP: TEdit;
     edtW: TEdit;
     edtZ: TEdit;
-    grdPSW: TStringGrid;
     imgSchemeBackground: TImage;
     grLog: TGroupBox;
     redtLog: TRichEdit;
+    edtFP: TEdit;
+    edtFAC: TEdit;
+    edtFCY: TEdit;
+    edtFS: TEdit;
+    edtFZ: TEdit;
+    imgALU: TImage;
     procedure redtLogChange(Sender: TObject);
   private
     { Private declarations }
