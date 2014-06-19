@@ -6,7 +6,12 @@ unit Common;
 interface
 
 uses
-  Math, SysUtils;
+  Math, SysUtils,
+  Winapi.Windows, Winapi.Messages;
+
+const
+  WM_BUT_EN = WM_USER + 1;
+  WM_BUT_DIS = WM_USER + 2;
 
 type
   TNumSys = (SBIN, SDEC, SOCT, SHEX);

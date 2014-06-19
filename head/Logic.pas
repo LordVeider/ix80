@@ -6,8 +6,9 @@ unit Logic;
 interface
 
 uses
-  Common, Instructions,
-  Classes, SyncObjs, SysUtils, Dialogs, TypInfo, Math;
+  Common, Instructions, Visualizer,
+  Classes, SyncObjs, SysUtils, Dialogs, TypInfo, Math,
+  Winapi.Windows, Winapi.Messages, Vcl.Forms;
 
 type
   TMemory = class
@@ -19,18 +20,11 @@ type
     function ReadMemory(Address: Word): Int8;                                   //Считать из памяти цифровое значение
   end;
 
-  TDataRegisters = array [TDataReg] of Int8;
-  TRegisters = record
-    DataRegisters: TDataRegisters;          //Регистры данных (8 bit)
-    SP: Word;                               //Указатель стека (16 bit)
-    PC: Word;                               //Счетчик команд  (16 bit)
-    IR: Byte;                               //Регистр команд  (8 bit)
-  end;
-
   TProcessor = class(TThread)
   private
     HltState: Boolean;
     Memory: TMemory;                        //Память
+    Vis: TVisualizer;
     Registers: TRegisters;                  //Регистры
     procedure InitDataRegisters;            //Инициализация регистров
     procedure InitFlags;                    //Инициализация регистра флагов
@@ -38,10 +32,8 @@ type
     StopCmd, StopStep: TEvent;              //Объекты синхронизации потоков
     SkipToNext: Boolean;                    //Флаг пропуска визуализации шагов до следующей команды
 
-    constructor Create(Memory: TMemory; EntryPoint: Word);
+    constructor Create(Memory: TMemory; EntryPoint: Word; Vis: TVisualizer);
     procedure Execute; override;
-
-    procedure ShowRegisters;                                                    //Отобразить содержимое регистров на экране
 
     procedure PerformALU(OpCode: TOpCode; Size: Byte; Op1, Op2: String;
       var Op3: String; var Flags: TFlagArray);                                  //Выполнить операцию двоичной арифметики-логики
@@ -78,15 +70,12 @@ type
 
 implementation
 
-uses
-  FormScheme, FormMemory, FormEditor;
-
 { TMemory }
 
 procedure TMemory.ShowNewMem;
 begin
-  frmMemory.Memory := Self;
-  frmMemory.DrawMemory;
+  {frmMemory.Memory := Self;
+  frmMemory.DrawMemory; }
 end;
 
 function TMemory.ReadMemory;
@@ -105,6 +94,7 @@ constructor TProcessor.Create;
 begin
   inherited Create(True);
   Self.Memory := Memory;
+  Self.Vis := Vis;
   InitDataRegisters;                //Инициализируем регистры данных
   Registers.PC := EntryPoint;       //Инициализируем счетчик команд на указанную точку входа
   HltState := False;
@@ -306,8 +296,8 @@ begin
   case FlagName of
     FS:  Shift := 7;
     FZ:  Shift := 6;
-    FAC: Shift := 4;
     FP:  Shift := 2;
+    FAC: Shift := 4;
     FCY: Shift := 0;
   end;
   //Считываем бит
@@ -323,8 +313,8 @@ begin
   case FlagName of
     FS:  Shift := 7;
     FZ:  Shift := 6;
-    FAC: Shift := 4;
     FP:  Shift := 2;
+    FAC: Shift := 4;
     FCY: Shift := 0;
   end;
   //Меняем бит
@@ -347,11 +337,6 @@ begin
     FCP:  Result := GetFlag(FS)   = 0;
     FCM:  Result := GetFlag(FS)   = 1;
   end;
-end;
-
-procedure TProcessor.ShowRegisters;
-begin
-  frmScheme.DrawProcessor(Self);
 end;
 
 procedure TProcessor.Execute;
@@ -401,7 +386,8 @@ begin
         SetProgramCounter(CurrentAddr + CurrentInstr.Size);
 
         //Обновляем вывод данных
-        ShowRegisters;
+        //ShowRegisters;
+        Vis.OnlyUpdate(Registers);
         Memory.ShowNewMem;
 
         //Сбрасываем объект синхронизации потока
@@ -418,7 +404,8 @@ begin
       FreeAndNil(StopCmd);
 
     //TODO: вынести в отдельный метод
-    with frmEditor do
+    SendMessage(Application.MainForm.Handle, WM_BUT_EN, 0, 0);
+    {with frmEditor do
     begin
       btnRunReal.Enabled := True;
       btnRunStep.Enabled := True;
@@ -426,14 +413,14 @@ begin
       btnNextCommand.Enabled := False;
       btnMemClear.Enabled := True;
       btnMemUnload.Enabled := True;
-    end;
+    end;}
   end;
 end;
 
 procedure TProcessor.ExecuteCommand;
 begin
   //Временный вывод данных
-  frmScheme.redtLog.Lines.Add(Instr.Summary);
+  //frmScheme.redtLog.Lines.Add(Instr.Summary);
   //Выбор типа команды
   case Instr.Group of
     IGSystem:   ExecuteSystemCommand(Instr, B1, B2, B3);
