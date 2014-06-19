@@ -6,13 +6,13 @@ uses
   FormMemory in 'FormMemory.pas' {frmMemory},
   FormScheme in 'FormScheme.pas' {frmScheme},
   Common in 'Common.pas',
-  Processor in 'Processor.pas',
+  Logic in 'Logic.pas',
   FormAbout in 'FormAbout.pas' {frmAbout},
   FormValue in 'FormValue.pas' {frmValue},
   Instructions in 'Instructions.pas',
   Parser in 'Parser.pas',
   Visualizer in 'Visualizer.pas',
-  Memory in 'Memory.pas';
+  Typelib in 'Typelib.pas';
 
 {$R *.res}
 

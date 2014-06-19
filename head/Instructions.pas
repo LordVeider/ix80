@@ -6,33 +6,10 @@
 interface
 
 uses
-  Common,
+  Common, Typelib,
   Classes, TypInfo, System.SysUtils, System.Generics.Collections;
 
 type
-  TDataReg = (RB, RC, RD, RE, RH, RL, RM, RA, RW, RZ, RF);                      //Регистры
-  TRegPair = (RPBC, RPDE, RPHL, RPSP);                                          //Регистровые пары
-  TFlag = (FS, FZ, FAC, FP, FCY);                                               //Флаги
-  TCondition = (FCNZ, FCZ, FCNC, FCC, FCPO, FCPE, FCP, FCM);                    //Состояния
-
-  TFlagSet = set of TFlag;
-  TFlagArray = array [TFlag] of Byte;
-
-  TDataRegisters = array [TDataReg] of Int8;
-  TRegisters = record
-    DataRegisters: TDataRegisters;          //Регистры данных (8 bit)
-    SP: Word;                               //Указатель стека (16 bit)
-    PC: Word;                               //Счетчик команд  (16 bit)
-    IR: Byte;                               //Регистр команд  (8 bit)
-  end;
-
-  TMemoryCells = array [Word] of Int8;
-
-  TOpCode = (OCSumm, OCAnd, OCLor, OCXor);
-
-  TInstrGroup = (IGSystem, IGData, IGArithm, IGLogic, IGBranch);                        //Группы инструкций
-  TInstrFormat = (IFOnly, IFRegCenter, IFRegEnd, IFRegDouble, IFRegPair, IFCondition);  //Форматы инструкций
-
   TInstruction = class                                                          //Инструкция
   private
     function Mask: String;                                                      //Маска кода инструкции

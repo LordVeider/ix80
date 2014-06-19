@@ -1,4 +1,4 @@
-unit Processor;
+unit Logic;
 
 //ix80 Intel 8080 CPU Emulator & Demonstration Model
 //Основная программная логика эмуляции микропроцессора
@@ -6,11 +6,21 @@ unit Processor;
 interface
 
 uses
-  Common, Instructions, Visualizer, Memory,
+  Common, Instructions, Visualizer, Typelib,
   Classes, SyncObjs, SysUtils, Dialogs, TypInfo, Math,
   Winapi.Windows, Winapi.Messages, Vcl.Forms;
 
 type
+  TMemory = class
+  private
+    Vis: TVisualizer;
+  public
+    Cells: TMemoryCells;                                                        //Массив данных
+    constructor Create(Vis: TVisualizer);
+    procedure WriteMemory(Address: Word; Value: Int8);                          //Записать в память цифровое значение
+    function ReadMemory(Address: Word): Int8;                                   //Считать из памяти цифровое значение
+  end;
+
   TProcessor = class(TThread)
   private
     HltState: Boolean;
@@ -60,6 +70,29 @@ type
   end;
 
 implementation
+
+{ TMemory }
+
+constructor TMemory.Create(Vis: TVisualizer);
+begin
+  Self.Vis := Vis;
+end;
+
+function TMemory.ReadMemory;
+begin
+  Result := Cells[Address];
+  Vis.ShowAddrBuf(Address);
+  Vis.ShowMemoryCell(Address);
+  Vis.AddLog(Format('ЧТЕНИЕ ПАМЯТИ; Адрес: %sH; Значение: %sH;', [IntToNumStr(Address, SHEX, 4), IntToNumStr(Result, SHEX, 2)]));
+end;
+
+procedure TMemory.WriteMemory;
+begin
+  Cells[Address] := Value;
+  Vis.ShowAddrBuf(Address);
+  Vis.ShowMemoryCell(Address);
+  Vis.AddLog(Format('ЗАПИСЬ В ПАМЯТЬ; Адрес: %sH; Значение: %sH;', [IntToNumStr(Address, SHEX, 4), IntToNumStr(Value, SHEX, 2)]));
+end;
 
 { TProcessor }
 
@@ -419,7 +452,7 @@ begin
       FreeAndNil(StopCmd);
 
     //TODO: вынести в отдельный метод
-    SendMessage(Application.MainForm.Handle, WM_BUT_EN, 0, 0);
+    SendMessage(Application.MainForm.Handle, WM_CONTROLS, 1, 0);
     {with frmEditor do
     begin
       btnRunReal.Enabled := True;

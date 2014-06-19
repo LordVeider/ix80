@@ -5,6 +5,8 @@ object frmEditor: TfrmEditor
   ClientHeight = 631
   ClientWidth = 624
   Color = clWindow
+  Constraints.MinHeight = 600
+  Constraints.MinWidth = 420
   Font.Charset = DEFAULT_CHARSET
   Font.Color = clWindowText
   Font.Height = -11

@@ -6,13 +6,8 @@ unit Visualizer;
 interface
 
 uses
-  FormScheme, FormMemory, Instructions, Common,
+  FormScheme, FormMemory, Instructions, Common, Typelib,
   Classes, StdCtrls, ExtCtrls, Graphics, SysUtils;
-
-const
-  HL_COLOR = clHighlight;
-  LOG_NEW = #13#10;
-  LOG_LINE = '--------------------------------------------------------------------------------';
 
 type
   TVisualizer = class

@@ -6,6 +6,7 @@ object frmScheme: TfrmScheme
   ClientWidth = 812
   Color = clWindow
   Constraints.MaxWidth = 828
+  Constraints.MinHeight = 600
   Constraints.MinWidth = 828
   Font.Charset = DEFAULT_CHARSET
   Font.Color = clWindowText
