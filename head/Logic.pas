@@ -27,11 +27,17 @@ type
     Memory: TMemory;                        //Память
     Vis: TVisualizer;
     Registers: TRegisters;                  //Регистры
-    procedure InitDataRegisters;            //Инициализация регистров
-    procedure InitFlags;                    //Инициализация регистра флагов
 
+    StopCmd, StopStep: TEvent;              //Объекты синхронизации потоков
+    StopFlag: Boolean;                      //Флаг пропуска визуализации шагов до следующей команды
+
+    procedure CmdWait;
+    procedure CmdDone;
     procedure StepWait;
     procedure StepDone;
+
+    procedure InitDataRegisters;            //Инициализация регистров
+    procedure InitFlags;                    //Инициализация регистра флагов
 
     procedure ExecuteCommand(Instr: TInstruction; B1, B2, B3: Byte);
     procedure ExecuteSystemCommand(Instr: TInstruction; B1, B2, B3: Byte);
@@ -40,11 +46,13 @@ type
     procedure ExecuteLogicCommand(Instr: TInstruction; B1, B2, B3: Byte);
     procedure ExecuteBranchCommand(Instr: TInstruction; B1, B2, B3: Byte);
   public
-    StopCmd, StopStep: TEvent;              //Объекты синхронизации потоков
-    SkipToNext: Boolean;                    //Флаг пропуска визуализации шагов до следующей команды
-
     constructor Create(Vis: TVisualizer; Memory: TMemory; EntryPoint: Word);
     procedure Execute; override;
+
+    procedure CmdInit;
+    procedure StepInit;
+    procedure CmdSkip;
+    procedure StepSkip;
 
     procedure PerformALU(OpCode: TOpCode; Size: Byte; Op1, Op2: String;
       var Op3: String; var Flags: TFlagArray);                                  //Выполнить операцию двоичной арифметики-логики
@@ -109,10 +117,54 @@ begin
   HltState := False;
 end;
 
+procedure TProcessor.CmdInit;
+begin
+  StopCmd := TEvent.Create(nil, False, False, '');
+end;
+
+procedure TProcessor.CmdWait;
+begin
+  if Assigned(StopCmd) then
+    StopCmd.WaitFor(INFINITE);
+end;
+
+procedure TProcessor.CmdDone;
+begin
+  if Assigned(StopCmd) then
+  begin
+    StopCmd.ResetEvent;
+    if Assigned(StopStep) then
+    begin
+      StopFlag := True;
+      StopStep.ResetEvent;
+    end;
+  end;
+end;
+
+procedure TProcessor.CmdSkip;
+begin
+  if Assigned(StopCmd) then
+  begin
+    StopCmd.SetEvent;
+    if Assigned(StopStep) then
+    begin
+      StopFlag := False;
+      StopStep.SetEvent;
+    end;
+  end;
+end;
+
+procedure TProcessor.StepInit;
+begin
+  StopStep := TEvent.Create(nil, False, False, '');
+  StopFlag := True;
+end;
+
 procedure TProcessor.StepWait;
 begin
-  if Assigned(StopStep) then
-    StopStep.WaitFor(INFINITE);
+  if StopFlag then
+    if Assigned(StopStep) then
+      StopStep.WaitFor(INFINITE);
   Vis.CleanSelection;
   Vis.CleanSelectionMem;
 end;
@@ -121,6 +173,14 @@ procedure TProcessor.StepDone;
 begin
   if Assigned(StopStep) then
     StopStep.ResetEvent;
+end;
+
+procedure TProcessor.StepSkip;
+begin
+  if Assigned(StopStep) then
+    StopStep.SetEvent;
+  if Assigned(StopCmd) then
+    StopCmd.SetEvent;
 end;
 
 procedure TProcessor.NotOperation;
@@ -476,8 +536,7 @@ begin
       Vis.AddLog('ВЫБОРКА КОМАНДЫ:');
 
       //Если есть объект синхронизации потока - ждём его
-      if Assigned(StopCmd) then
-        StopCmd.WaitFor(INFINITE);
+      CmdWait;
 
       //Читаем первый байт инструкции
       CurrentAddr := GetProgramCounter;
@@ -517,13 +576,14 @@ begin
         //Memory.ShowNewMem;
         Vis.OnlyUpdateMem(Memory.Cells);
 
-        //Сбрасываем объект синхронизации потока
-        if Assigned(StopCmd) then
-          StopCmd.ResetEvent;
 
         //Исполняем команду
         ExecuteCommand(CurrentInstr, B1, B2, B3);
         Vis.AddLog(LOG_LINE);
+
+        //Сбрасываем объект синхронизации потока
+        CmdDone;
+
       end;
     until HltState or Terminated;
 

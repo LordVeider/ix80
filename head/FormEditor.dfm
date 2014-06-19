@@ -29,7 +29,6 @@ object frmEditor: TfrmEditor
     ParentShowHint = False
     ShowHint = True
     TabOrder = 0
-    ExplicitWidth = 654
     object btnNew: TToolButton
       Left = 0
       Top = 0
@@ -317,8 +316,6 @@ object frmEditor: TfrmEditor
     TabOrder = 1
     WordWrap = False
     Zoom = 100
-    ExplicitWidth = 613
-    ExplicitHeight = 384
   end
   object redtMsg: TRichEdit
     Left = 0
@@ -336,8 +333,6 @@ object frmEditor: TfrmEditor
     ScrollBars = ssVertical
     TabOrder = 2
     Zoom = 100
-    ExplicitTop = 408
-    ExplicitWidth = 654
   end
   object sbarMain: TStatusBar
     Left = 0
@@ -349,8 +344,6 @@ object frmEditor: TfrmEditor
         Text = #1043#1086#1090#1086#1074
         Width = 50
       end>
-    ExplicitTop = 514
-    ExplicitWidth = 654
   end
   object grdLines: TStringGrid
     Left = 0
@@ -371,7 +364,6 @@ object frmEditor: TfrmEditor
     Options = [goFixedVertLine, goFixedHorzLine, goVertLine, goHorzLine, goRowSelect]
     ScrollBars = ssNone
     TabOrder = 4
-    ExplicitHeight = 384
   end
   object menuMain: TMainMenu
     Left = 8
@@ -424,7 +416,7 @@ object frmEditor: TfrmEditor
     Left = 8
     Top = 80
     Bitmap = {
-      494C01011800F000940010001000FFFFFFFF2110FFFFFFFFFFFFFFFF424D3600
+      494C01011800F000980010001000FFFFFFFF2110FFFFFFFFFFFFFFFF424D3600
       0000000000003600000028000000400000007000000001002000000000000070
       0000000000000000000000000000000000000000000000000000000000000000
       0000000000000000000000000000000000000000000000000000000000000000

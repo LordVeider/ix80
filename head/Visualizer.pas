@@ -37,7 +37,7 @@ implementation
 
 { TVisualizer }
 
-procedure TVisualizer.SetVisLevel(VisLevel: Byte);
+procedure TVisualizer.SetVisLevel;
 begin
   Self.VisLevel := VisLevel;
 end;
