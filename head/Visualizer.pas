@@ -61,7 +61,7 @@ begin
   with frmMemory do
   begin
     MemoryCells := Cells;
-    grdVisMem.Repaint;
+    grdMemory.Repaint;
   end;
 end;
 

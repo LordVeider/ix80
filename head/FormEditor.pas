@@ -112,6 +112,7 @@ begin
   //vis.ShowReg(RA);
   //ShowMessage(IntToNumStr(ExtractReg($58), SBIN, 8));
   //ShowMessage(InstrSet.FindByMnemonic('LXI').FullCode('D', '256'));
+  frmMemory.SwitchMode(not frmMemory.CompactMode);
 end;
 
 procedure TfrmEditor.btnMemClearClick(Sender: TObject);
@@ -244,9 +245,11 @@ end;
 
 procedure TfrmEditor.btnShowMemoryClick(Sender: TObject);
 begin
-  frmMemory.Hide;
-  frmMemory.TrueMem := not frmMemory.TrueMem;
-  frmMemory.Show;
+  with frmMemory do
+  begin
+    SwitchMode(not CompactMode);
+    Show;
+  end;
 end;
 
 procedure TfrmEditor.btnShowSchemeClick(Sender: TObject);
@@ -269,7 +272,7 @@ begin
       Cells[0, i] := IntToStr(i+1);
   end;
   frmScheme.Show;
-  frmMemory.TrueMem := True;
+  //frmMemory.TrueMem := True;
   frmMemory.Show;
 end;
 

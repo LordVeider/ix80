@@ -1,9 +1,9 @@
 object frmEditor: TfrmEditor
-  Left = 25
-  Top = 25
+  Left = 10
+  Top = 10
   Caption = 'ix80'
   ClientHeight = 533
-  ClientWidth = 654
+  ClientWidth = 624
   Color = clWindow
   Font.Charset = DEFAULT_CHARSET
   Font.Color = clWindowText
@@ -20,13 +20,14 @@ object frmEditor: TfrmEditor
   object tlbMain: TToolBar
     Left = 0
     Top = 0
-    Width = 654
+    Width = 624
     Height = 24
     Caption = 'tlbMain'
     Images = ilToolbar
     ParentShowHint = False
     ShowHint = True
     TabOrder = 0
+    ExplicitWidth = 654
     object btnNew: TToolButton
       Left = 0
       Top = 0
@@ -290,7 +291,7 @@ object frmEditor: TfrmEditor
   object redtCode: TRichEdit
     Left = 41
     Top = 24
-    Width = 613
+    Width = 583
     Height = 384
     Align = alClient
     Font.Charset = RUSSIAN_CHARSET
@@ -314,11 +315,12 @@ object frmEditor: TfrmEditor
     TabOrder = 1
     WordWrap = False
     Zoom = 100
+    ExplicitWidth = 613
   end
   object redtMsg: TRichEdit
     Left = 0
     Top = 408
-    Width = 654
+    Width = 624
     Height = 106
     Align = alBottom
     Font.Charset = RUSSIAN_CHARSET
@@ -331,17 +333,19 @@ object frmEditor: TfrmEditor
     ScrollBars = ssVertical
     TabOrder = 2
     Zoom = 100
+    ExplicitWidth = 654
   end
   object sbarMain: TStatusBar
     Left = 0
     Top = 514
-    Width = 654
+    Width = 624
     Height = 19
     Panels = <
       item
         Text = #1043#1086#1090#1086#1074
         Width = 50
       end>
+    ExplicitWidth = 654
   end
   object grdLines: TStringGrid
     Left = 0
