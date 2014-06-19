@@ -272,44 +272,44 @@ begin
 
   //Арифметические команды
   //Сложение
-  Add($80,  IGArithm,     1, IFRegEnd,    'ADD'   );
-  Add($88,  IGArithm,     1, IFRegEnd,    'ADC'   );
-  Add($C6,  IGArithm,     2, IFOnly,      'ADI'   );
-  Add($CE,  IGArithm,     2, IFOnly,      'ACI'   );
+  Add($80,  IGArithm,     1, IFRegEnd,    'ADD',  'Сложение с регистром'                                                    );
+  Add($88,  IGArithm,     1, IFRegEnd,    'ADC',  'Сложение с регистром (с учетом переноса)'                                );
+  Add($C6,  IGArithm,     2, IFOnly,      'ADI',  'Сложение с непосредственным операндом'                                   );
+  Add($CE,  IGArithm,     2, IFOnly,      'ACI',  'Сложение с непосредственным операндом (с учетом переноса)'               );
   //Вычитание
-  Add($90,  IGArithm,     1, IFRegEnd,    'SUB'   );
-  Add($98,  IGArithm,     1, IFRegEnd,    'SBB'   );
-  Add($D6,  IGArithm,     2, IFOnly,      'SUI'   );
-  Add($DE,  IGArithm,     2, IFOnly,      'SBI'   );
+  Add($90,  IGArithm,     1, IFRegEnd,    'SUB',  'Вычитание регистра'                                                      );
+  Add($98,  IGArithm,     1, IFRegEnd,    'SBB',  'Вычитание регистра (с учетом заема)'                                     );
+  Add($D6,  IGArithm,     2, IFOnly,      'SUI',  'Вычитание непосредственного операнда'                                    );
+  Add($DE,  IGArithm,     2, IFOnly,      'SBI',  'Вычитание непосредственного операнда (с учетом заема)'                   );
   //Инкремент/декремент
-  Add($04,  IGArithm,     1, IFRegCenter, 'INR'   );
-  Add($05,  IGArithm,     1, IFRegCenter, 'DCR'   );
-  Add($03,  IGArithm,     1, IFRegPair,   'INX'   );
-  Add($0B,  IGArithm,     1, IFRegPair,   'DCX'   );
+  Add($04,  IGArithm,     1, IFRegCenter, 'INR',  'Инкремент регистра'                                                      );
+  Add($05,  IGArithm,     1, IFRegCenter, 'DCR',  'Декремент регистра'                                                      );
+  Add($03,  IGArithm,     1, IFRegPair,   'INX',  'Инкремент регистровой пары'                                              );
+  Add($0B,  IGArithm,     1, IFRegPair,   'DCX',  'Декремент регистровой пары'                                              );
   //Специальные операции
-  Add($09,  IGArithm,     1, IFRegPair,   'DAD'   );
-  Add($27,  IGArithm,     1, IFOnly,      'DAA'   );
+  Add($09,  IGArithm,     1, IFRegPair,   'DAD',  'Двойное сложение регистровых пар'                                        );
+  Add($27,  IGArithm,     1, IFOnly,      'DAA',  'Двоично-десятичная (BCD) коррекция аккумулятора'                         );
 
   //Логические команды
   //Двоичная логика
-  Add($A0,  IGLogic,      1, IFRegEnd,    'ANA'   );
-  Add($B0,  IGLogic,      1, IFRegEnd,    'ORA'   );
-  Add($A8,  IGLogic,      1, IFRegEnd,    'XRA'   );
-  Add($E6,  IGLogic,      2, IFOnly,      'ANI'   );
-  Add($F6,  IGLogic,      2, IFOnly,      'ORI'   );
-  Add($EE,  IGLogic,      2, IFOnly,      'XRI'   );
+  Add($A0,  IGLogic,      1, IFRegEnd,    'ANA',  'Логическое "И" с регистром'                                              );
+  Add($B0,  IGLogic,      1, IFRegEnd,    'ORA',  'Логическое "ИЛИ" с регистром'                                            );
+  Add($A8,  IGLogic,      1, IFRegEnd,    'XRA',  'Логическое "Исключающее ИЛИ" с регистром'                                );
+  Add($E6,  IGLogic,      2, IFOnly,      'ANI',  'Логическое "И" с непосредственным операндом'                             );
+  Add($F6,  IGLogic,      2, IFOnly,      'ORI',  'Логическое "ИЛИ" с непосредственным операндом'                           );
+  Add($EE,  IGLogic,      2, IFOnly,      'XRI',  'Логическое "Исключающее ИЛИ" с непосредственным операндом'               );
   //Сравнение
-  Add($B8,  IGLogic,      1, IFRegEnd,    'CMP'   );
-  Add($FE,  IGLogic,      2, IFOnly,      'CPI'   );
+  Add($B8,  IGLogic,      1, IFRegEnd,    'CMP',  'Сравнение с регистром'                                                   );
+  Add($FE,  IGLogic,      2, IFOnly,      'CPI',  'Сравнение с непосредственным операндом'                                  );
   //Сдвиг
-  Add($07,  IGLogic,      1, IFOnly,      'RLC'   );
-  Add($0F,  IGLogic,      1, IFOnly,      'RRC'   );
-  Add($17,  IGLogic,      1, IFOnly,      'RAL'   );
-  Add($1F,  IGLogic,      1, IFOnly,      'RAR'   );
+  Add($07,  IGLogic,      1, IFOnly,      'RLC',  'Сдвиг аккумулятора влево'                                                );
+  Add($0F,  IGLogic,      1, IFOnly,      'RRC',  'Сдвиг аккумулятора вправо'                                               );
+  Add($17,  IGLogic,      1, IFOnly,      'RAL',  'Сдвиг аккумулятора влево через флаг переноса'                            );
+  Add($1F,  IGLogic,      1, IFOnly,      'RAR',  'Сдвиг аккумулятора вправо через флаг переноса'                           );
   //Специальные операции
-  Add($2F,  IGLogic,      1, IFOnly,      'CMA'   );
-  Add($3F,  IGLogic,      1, IFOnly,      'CMC'   );
-  Add($37,  IGLogic,      1, IFOnly,      'STC'   );
+  Add($2F,  IGLogic,      1, IFOnly,      'CMA',  'Инвертирование аккумулятора'                                             );
+  Add($3F,  IGLogic,      1, IFOnly,      'CMC',  'Инвертирование флага переноса'                                           );
+  Add($37,  IGLogic,      1, IFOnly,      'STC',  'Установка флага переноса'                                                );
 
   //Команды переходов и передачи управления
   //Безусловные переходы

@@ -188,37 +188,26 @@ begin
     if not Assigned(CPU) then
       CPU := TProcessor.Create(VIS, MEM, 5);
     CPU.OnTerminate := OnTerm;
-    CPU.StopCmd := TEvent.Create(nil, False, False, '');
-    CPU.StopStep := TEvent.Create(nil, False, False, '');
+    CPU.CmdInit;
+    CPU.StepInit;
     CPU.Start;
   end;
 end;
 
 procedure TfrmEditor.btnNextCommandClick(Sender: TObject);
 begin
-  if Assigned(CPU.StopCmd) then
-  begin
-    CPU.StopCmd.SetEvent;
-  end;
+  CPU.CmdSkip;
 end;
 
 procedure TfrmEditor.btnNextStepClick(Sender: TObject);
 begin
-  if Assigned(CPU.StopStep) then
-  begin
-    CPU.StopStep.SetEvent;
-    CPU.StopCmd.SetEvent;
-  end;
+  CPU.StepSkip;
 end;
 
 procedure TfrmEditor.btnStopClick(Sender: TObject);
 begin
   CPU.Terminate;
-  if Assigned(CPU.StopCmd) then
-  begin
-    CPU.StopStep.SetEvent;
-    CPU.StopCmd.SetEvent;
-  end;
+  CPU.CmdSkip;
 end;
 
 procedure TfrmEditor.btnShowMemoryClick(Sender: TObject);
