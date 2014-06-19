@@ -1,6 +1,6 @@
 object frmScheme: TfrmScheme
-  Left = 720
-  Top = 25
+  Left = 660
+  Top = 10
   Caption = #1057#1093#1077#1084#1072' '#1087#1088#1086#1094#1077#1089#1089#1086#1088#1072
   ClientHeight = 611
   ClientWidth = 824
