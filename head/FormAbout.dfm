@@ -433,4 +433,20 @@ object frmAbout: TfrmAbout
     AutoSize = False
     Caption = #1042#1077#1088#1089#1080#1103' 0.0.0.0'
   end
+  object lblLink: TLabel
+    Left = 207
+    Top = 120
+    Width = 440
+    Height = 17
+    Cursor = crHandPoint
+    AutoSize = False
+    Caption = 'http://code.google.com/p/ix80/'
+    Font.Charset = DEFAULT_CHARSET
+    Font.Color = clHotLight
+    Font.Height = -11
+    Font.Name = 'Tahoma'
+    Font.Style = [fsUnderline]
+    ParentFont = False
+    OnClick = lblLinkClick
+  end
 end

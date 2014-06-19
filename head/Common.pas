@@ -1,20 +1,13 @@
 unit Common;
 
 //ix80 Intel 8080 CPU Emulator & Demonstration Model
-//Функции общего назначения
+//Библиотека функций общего назначения
 
 interface
 
 uses
-  Math, SysUtils,
-  Winapi.Windows, Winapi.Messages;
-
-const
-  WM_BUT_EN = WM_USER + 1;
-  WM_BUT_DIS = WM_USER + 2;
-
-type
-  TNumSys = (SBIN, SDEC, SOCT, SHEX);
+  Typelib,
+  Math, SysUtils;
 
 function HexToInt(Value: String): Integer;                                      //Строковый HEX в число
 function BinToInt(Value: String): Integer;                                      //Строковый BIN в число
@@ -32,9 +25,9 @@ function IntToNumStr
   (Value: Integer; Base: TNumSys; Digits: Integer = 0): String;                 //Преобразование к строке
 
 function SwapBytes(Value: String): String;                                      //Поменять местами два байта в строке
-function MakeWordHL(HiByte, LoByte: Byte): Word;                                  //Преобразовать два байта в Word
+function MakeWordHL(HiByte, LoByte: Byte): Word;                                //Преобразовать два байта в Word
 
-function InvertBits(Value: String): String;                                  //Инвертировать двоичный код числа
+function InvertBits(Value: String): String;                                     //Инвертировать двоичный код числа
 
 implementation
 

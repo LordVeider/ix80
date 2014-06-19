@@ -6,7 +6,7 @@ unit FormMemory;
 interface
 
 uses
-  Common, Instructions,
+  Common, Typelib,
   Winapi.Windows, Winapi.Messages, System.SysUtils, System.Variants, System.Classes, Vcl.Graphics,
   Vcl.Controls, Vcl.Forms, Vcl.Dialogs, Vcl.Grids;
 
@@ -16,8 +16,6 @@ type
     procedure FormShow(Sender: TObject);
     procedure grdMemoryDrawCell(Sender: TObject; ACol, ARow: Integer;
       Rect: TRect; State: TGridDrawState);
-    procedure FormCanResize(Sender: TObject; var NewWidth, NewHeight: Integer;
-      var Resize: Boolean);
   private
     { Private declarations }
   public
@@ -92,7 +90,6 @@ end;
 procedure TfrmMemory.SwitchMode(CompactMode: Boolean);
 begin
   Self.CompactMode := CompactMode;
-  Self.Width := 0;
   with grdMemory do
     if CompactMode then
     begin
@@ -102,6 +99,8 @@ begin
       FixedCols := 1;
       DefaultColWidth := 20;
       ColWidths[0] := 36;
+      Self.Constraints.MinWidth := 409;
+      Self.Constraints.MaxWidth := 409;
     end
     else
     begin
@@ -110,14 +109,9 @@ begin
       ColCount := 5;
       FixedCols := 0;
       DefaultColWidth := 60;
+      Self.Constraints.MinWidth := 341;
+      Self.Constraints.MaxWidth := 341;
     end;
-end;
-
-procedure TfrmMemory.FormCanResize(Sender: TObject; var NewWidth,
-  NewHeight: Integer; var Resize: Boolean);
-begin
-  if CompactMode then NewWidth := 409
-  else NewWidth := 341;
 end;
 
 procedure TfrmMemory.FormShow(Sender: TObject);

@@ -1,10 +1,11 @@
 object frmMemory: TfrmMemory
-  Left = 1510
+  Left = 1498
   Top = 10
   Caption = #1055#1072#1084#1103#1090#1100
   ClientHeight = 651
   ClientWidth = 278
   Color = clBtnFace
+  Constraints.MinHeight = 600
   Font.Charset = DEFAULT_CHARSET
   Font.Color = clWindowText
   Font.Height = -11
@@ -12,7 +13,6 @@ object frmMemory: TfrmMemory
   Font.Style = []
   OldCreateOrder = False
   Position = poDesigned
-  OnCanResize = FormCanResize
   OnShow = FormShow
   PixelsPerInch = 96
   TextHeight = 13

@@ -6,7 +6,7 @@ unit FormEditor;
 interface
 
 uses
-  Common, Processor, Memory, Instructions, Parser, Visualizer,
+  Common, Logic, Instructions, Parser, Visualizer, Typelib,
   Winapi.Windows, Winapi.Messages, System.SysUtils, System.Variants, System.Classes, Vcl.Graphics,
   Vcl.Controls, Vcl.Forms, Vcl.Dialogs, Vcl.Menus, Vcl.ToolWin, Vcl.ComCtrls,
   Vcl.ImgList, Vcl.StdCtrls, SyncObjs, Vcl.Grids;
@@ -81,8 +81,7 @@ type
     procedure FormCreate(Sender: TObject);
   private
     { Private declarations }
-    procedure EnableButtons(var Message: TMessage); message WM_BUT_EN;
-    procedure DisableButtons(var Message: TMessage); message WM_BUT_DIS;
+    procedure ManageControls(var Message: TMessage); message WM_CONTROLS;
   public
     { Public declarations }
     procedure OnTerm(Sender: TObject);
@@ -118,12 +117,10 @@ end;
 
 procedure TfrmEditor.btnMemClearClick(Sender: TObject);
 begin
-  {if Assigned(MEM) then
-  begin
+  if Assigned(MEM) then
     FreeAndNil(MEM);
-    frmMemory.Memory := MEM;
-    frmMemory.DrawMemory;
-  end;}
+  MEM := TMemory.Create(VIS);
+  VIS.OnlyUpdateMem(MEM.Cells);
 end;
 
 procedure TfrmEditor.btnMemUnloadClick(Sender: TObject);
@@ -158,7 +155,6 @@ begin
   end;
   if Success then
     redtMsg.Lines.Add('Программа успешно транслирована в память');
-  //MEM.ShowNewMem;
   Vis.OnlyUpdateMem(MEM.Cells);
 end;
 
@@ -175,30 +171,11 @@ begin
   VIS.SetVisLevel(1);
   if Assigned(MEM) then
   begin
-    //if not Assigned(VIS) then
-    //  VIS := TVisualizer.Create;
+    SendMessage(Application.MainForm.Handle, WM_CONTROLS, 0, 0);
     if not Assigned(CPU) then
       CPU := TProcessor.Create(VIS, MEM, 5);
     CPU.OnTerminate := OnTerm;
-    //CPU.StopSection := TEvent.Create(nil, False, False, '');
-    //CPU.StopSection.Enter;
-      btnRunReal.Enabled := False;
-      btnRunStep.Enabled := False;
-      btnStop. Enabled := True;
-      btnNextCommand.Enabled := False;
-      btnMemClear.Enabled := False;
-      btnMemUnload.Enabled := False;
-
-//  ProcessorThread := TProcessorThread.Create(True);
-//  ProcessorThread.OnTerminate := OnTerm;
-//  ProcessorThread.Processor := Self;
-//  ProcessorThread.Start;
-
     CPU.Start;
-    //CPU.InitCpu(5);
-    //CPU.Run;
-    //CPU.ShowRegisters;
-    //MEM.ShowNewMem;
   end;
 end;
 
@@ -207,21 +184,13 @@ begin
   VIS.SetVisLevel(2);
   if Assigned(MEM) then
   begin
+    SendMessage(Application.MainForm.Handle, WM_CONTROLS, 0, 0);
     if not Assigned(CPU) then
       CPU := TProcessor.Create(VIS, MEM, 5);
     CPU.OnTerminate := OnTerm;
     CPU.StopCmd := TEvent.Create(nil, False, False, '');
-      btnRunReal.Enabled := False;
-      btnRunStep.Enabled := False;
-      btnStop. Enabled := True;
-      btnNextCommand.Enabled := True;
-      btnMemClear.Enabled := False;
-      btnMemUnload.Enabled := False;
-    //CPU.StopSection.Enter;
+    CPU.StopStep := TEvent.Create(nil, False, False, '');
     CPU.Start;
-    //CPU.ShowRegisters;
-    //MEM.ShowNewMem;
-
   end;
 end;
 
@@ -229,22 +198,27 @@ procedure TfrmEditor.btnNextCommandClick(Sender: TObject);
 begin
   if Assigned(CPU.StopCmd) then
   begin
-    //CPU.StopSection.Leave;
-    //CPU.StopSection.Enter;
     CPU.StopCmd.SetEvent;
   end;
 end;
 
 procedure TfrmEditor.btnNextStepClick(Sender: TObject);
 begin
-  //CPU.StopSection.Leave;
+  if Assigned(CPU.StopStep) then
+  begin
+    CPU.StopStep.SetEvent;
+    CPU.StopCmd.SetEvent;
+  end;
 end;
 
 procedure TfrmEditor.btnStopClick(Sender: TObject);
 begin
   CPU.Terminate;
   if Assigned(CPU.StopCmd) then
+  begin
+    CPU.StopStep.SetEvent;
     CPU.StopCmd.SetEvent;
+  end;
 end;
 
 procedure TfrmEditor.btnShowMemoryClick(Sender: TObject);
@@ -276,7 +250,6 @@ begin
       Cells[0, i] := IntToStr(i+1);
   end;
   frmScheme.Show;
-  //frmMemory.TrueMem := True;
   frmMemory.Show;
 end;
 
@@ -290,19 +263,18 @@ begin
   CPU := nil;
 end;
 
-procedure TfrmEditor.EnableButtons(var Message: TMessage);
+procedure TfrmEditor.ManageControls;
+var
+  NewState: Boolean;
 begin
-      btnRunReal.Enabled := True;
-      btnRunStep.Enabled := True;
-      btnStop. Enabled := False;
-      btnNextCommand.Enabled := False;
-      btnMemClear.Enabled := True;
-      btnMemUnload.Enabled := True;
-end;
-
-procedure TfrmEditor.DisableButtons(var Message: TMessage);
-begin
-
+  NewState := Boolean(Message.WParam);
+  btnRunReal.Enabled := NewState;
+  btnRunStep.Enabled := NewState;
+  btnStop. Enabled := not NewState;
+  btnNextCommand.Enabled := not NewState;
+  btnNextStep.Enabled := not NewState;
+  btnMemClear.Enabled := NewState;
+  btnMemUnload.Enabled := NewState;
 end;
 
 end.
