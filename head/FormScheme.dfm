@@ -2,7 +2,7 @@ object frmScheme: TfrmScheme
   Left = 660
   Top = 10
   Caption = #1057#1093#1077#1084#1072' '#1087#1088#1086#1094#1077#1089#1089#1086#1088#1072
-  ClientHeight = 611
+  ClientHeight = 651
   ClientWidth = 824
   Color = clWindow
   Font.Charset = DEFAULT_CHARSET
@@ -2172,14 +2172,14 @@ object frmScheme: TfrmScheme
     Left = 8
     Top = 495
     Width = 809
-    Height = 110
+    Height = 148
     Caption = #1051#1086#1075
     TabOrder = 1
     object redtLog: TRichEdit
       Left = 2
       Top = 15
       Width = 805
-      Height = 93
+      Height = 131
       Align = alClient
       Font.Charset = RUSSIAN_CHARSET
       Font.Color = clWindowText
@@ -2187,20 +2187,13 @@ object frmScheme: TfrmScheme
       Font.Name = 'Tahoma'
       Font.Style = []
       HideScrollBars = False
-      Lines.Strings = (
-        
-          #1050#1086#1084#1072#1085#1076#1072': MOV B, M - '#1087#1077#1088#1077#1089#1099#1083#1082#1072' '#1080#1079' '#1087#1072#1084#1103#1090#1080' ('#1089' '#1082#1086#1089#1074#1077#1085#1085#1086#1081' '#1072#1076#1088#1077#1089#1072#1094#1080#1077#1081')' +
-          ' '#1074' '#1088#1077#1075#1080#1089#1090#1088' B'
-        #1054#1073#1088#1072#1097#1077#1085#1080#1077' '#1082' '#1088#1077#1075#1080#1089#1090#1088#1086#1074#1086#1081' '#1087#1072#1088#1077' HL'
-        #1054#1073#1088#1072#1097#1077#1085#1080#1077' '#1082' '#1103#1095#1077#1081#1082#1077' '#1087#1072#1084#1103#1090#1080' '#1087#1086' '#1072#1076#1088#1077#1089#1091' 0172H'
-        #1047#1072#1087#1080#1089#1100' '#1079#1085#1072#1095#1077#1085#1080#1103' '#1074' '#1088#1077#1075#1080#1089#1090#1088' B'
-        #1055#1077#1088#1077#1093#1086#1076' '#1082' '#1089#1083#1077#1076#1091#1102#1097#1077#1081' '#1082#1086#1084#1072#1085#1076#1077)
       ParentFont = False
       ScrollBars = ssVertical
       TabOrder = 0
       Zoom = 100
       OnChange = redtLogChange
       ExplicitWidth = 781
+      ExplicitHeight = 93
     end
   end
 end

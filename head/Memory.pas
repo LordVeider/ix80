@@ -3,7 +3,7 @@ unit Memory;
 interface
 
 uses
-  Instructions, Visualizer;
+  Common, Instructions, Visualizer, SysUtils;
 
 type
   TMemory = class
@@ -28,11 +28,17 @@ end;
 function TMemory.ReadMemory;
 begin
   Result := Cells[Address];
+  Vis.ShowAddrBuf(Address);
+  Vis.ShowMemoryCell(Address);
+  Vis.AddLog(Format('ЧТЕНИЕ ПАМЯТИ; Адрес: %sH; Значение: %sH;', [IntToNumStr(Address, SHEX, 4), IntToNumStr(Result, SHEX, 2)]));
 end;
 
 procedure TMemory.WriteMemory;
 begin
   Cells[Address] := Value;
+  Vis.ShowAddrBuf(Address);
+  Vis.ShowMemoryCell(Address);
+  Vis.AddLog(Format('ЗАПИСЬ В ПАМЯТЬ; Адрес: %sH; Значение: %sH;', [IntToNumStr(Address, SHEX, 4), IntToNumStr(Value, SHEX, 2)]));
 end;
 
 end.

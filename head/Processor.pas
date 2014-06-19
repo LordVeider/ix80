@@ -23,7 +23,7 @@ type
     StopCmd, StopStep: TEvent;              //Объекты синхронизации потоков
     SkipToNext: Boolean;                    //Флаг пропуска визуализации шагов до следующей команды
 
-    constructor Create(Vis: TVisualizer; Memory: TMemory; EntryPoint: Word; FullVisMode: Boolean = False);
+    constructor Create(Vis: TVisualizer; Memory: TMemory; EntryPoint: Word);
     procedure Execute; override;
 
     procedure PerformALU(OpCode: TOpCode; Size: Byte; Op1, Op2: String;
@@ -170,7 +170,10 @@ end;
 function TProcessor.GetDataReg;
 begin
   Result := Registers.DataRegisters[DataReg];
-  //frmScheme.redtLog.Lines.Add('Обращение к регистру: ' + GetEnumName(TypeInfo(TDataReg), Ord(DataReg)));
+  Vis.OnlyUpdate(Registers);
+  Vis.ShowDataReg(DataReg);
+  Vis.AddLog(Format('ЧТЕНИЕ РЕГИСТРА; Регистр: %s; Значение: %sH;',
+    [Copy(GetEnumName(TypeInfo(TDataReg), Ord(DataReg)), 2, 1), IntToNumStr(Result, SHEX, 2)]));
 end;
 
 function TProcessor.GetRegAddrValue;
@@ -192,12 +195,20 @@ begin
       RPDE: Result := MakeWordHL(Registers.DataRegisters[RD], Registers.DataRegisters[RE]);
       RPHL: Result := MakeWordHL(Registers.DataRegisters[RH], Registers.DataRegisters[RL]);
     end;
+    Vis.OnlyUpdate(Registers);
+    Vis.ShowRegPair(RegPair);
+    Vis.AddLog(Format('ЧТЕНИЕ РЕГИСТРОВОЙ ПАРЫ; Регистры: %s; Значение: %sH;',
+      [Copy(GetEnumName(TypeInfo(TRegPair), Ord(RegPair)), 3, 2), IntToNumStr(Result, SHEX, 2)]));
   end;
 end;
 
 procedure TProcessor.SetDataReg;
 begin
   Registers.DataRegisters[DataReg] := Value;
+  Vis.OnlyUpdate(Registers);
+  Vis.ShowDataReg(DataReg);
+  Vis.AddLog(Format('ЗАПИСЬ В РЕГИСТР; Регистр: %s; Значение: %sH;',
+    [Copy(GetEnumName(TypeInfo(TDataReg), Ord(DataReg)), 2, 1), IntToNumStr(Value, SHEX, 2)]));
 end;
 
 procedure TProcessor.SetRegAddrValue;
@@ -223,17 +234,27 @@ begin
     end;
     Registers.DataRegisters[HiReg] := Hi(Value);
     Registers.DataRegisters[LoReg] := Lo(Value);
+    Vis.OnlyUpdate(Registers);
+    Vis.ShowRegPair(RegPair);
+    Vis.AddLog(Format('ЗАПИСЬ В РЕГИСТРОВУЮ ПАРУ; Регистры: %s; Значение: %sH;',
+      [Copy(GetEnumName(TypeInfo(TRegPair), Ord(RegPair)), 3, 2), IntToNumStr(Value, SHEX, 2)]));
   end;
 end;
 
 function TProcessor.GetStackPointer;
 begin
   Result := Registers.SP;
+  Vis.OnlyUpdate(Registers);
+  Vis.ShowStackPointer;
+  Vis.AddLog(Format('ЧТЕНИЕ УКАЗАТЕЛЯ СТЕКА; Значение: %sH;', [IntToNumStr(Result, SHEX, 4)]));
 end;
 
 function TProcessor.GetProgramCounter;
 begin
   Result := Registers.PC;
+  Vis.OnlyUpdate(Registers);
+  Vis.ShowProgramCounter;
+  Vis.AddLog(Format('ЧТЕНИЕ СЧЕТЧИКА КОМАНД; Значение: %sH;', [IntToNumStr(Result, SHEX, 4)]));
 end;
 
 function TProcessor.GetInstRegister;
@@ -244,16 +265,25 @@ end;
 procedure TProcessor.SetStackPointer;
 begin
   Registers.SP := Value;
+  Vis.OnlyUpdate(Registers);
+  Vis.ShowStackPointer;
+  Vis.AddLog(Format('ЗАПИСЬ УКАЗАТЕЛЯ СТЕКА; Значение: %sH;', [IntToNumStr(Value, SHEX, 4)]));
 end;
 
 procedure TProcessor.SetProgramCounter;
 begin
   Registers.PC := Value;
+  Vis.OnlyUpdate(Registers);
+  Vis.ShowStackPointer;
+  Vis.AddLog(Format('ЗАПИСЬ СЧЕТЧИКА КОМАНД; Значение: %sH;', [IntToNumStr(Value, SHEX, 4)]));
 end;
 
 procedure TProcessor.SetInstRegister;
 begin
   Registers.IR := Value;
+  Vis.OnlyUpdate(Registers);
+  Vis.ShowStackPointer;
+  Vis.AddLog(Format('УСТАНОВКА РЕГИСТРА КОМАНД; Значение: %sH;', [IntToNumStr(Value, SHEX, 2)]));
 end;
 
 procedure TProcessor.InitFlags;
