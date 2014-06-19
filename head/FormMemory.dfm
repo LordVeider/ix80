@@ -30,6 +30,7 @@ object frmMemory: TfrmMemory
     Options = [goFixedVertLine, goFixedHorzLine, goVertLine, goHorzLine, goRowSelect]
     ScrollBars = ssVertical
     TabOrder = 0
+    OnDblClick = grdMemoryDblClick
     OnDrawCell = grdMemoryDrawCell
   end
 end

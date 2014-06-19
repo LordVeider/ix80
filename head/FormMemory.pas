@@ -16,6 +16,7 @@ type
     procedure FormShow(Sender: TObject);
     procedure grdMemoryDrawCell(Sender: TObject; ACol, ARow: Integer;
       Rect: TRect; State: TGridDrawState);
+    procedure grdMemoryDblClick(Sender: TObject);
   private
     { Private declarations }
   public
@@ -36,6 +37,23 @@ implementation
 uses
   FormValue;
 
+procedure TfrmMemory.grdMemoryDblClick(Sender: TObject);
+var
+  Addr: Word;
+begin
+  with grdMemory do
+    if CompactMode then
+      Addr := (Col-1) + (Row-1)*16
+    else
+      Addr := Row-1;
+  with frmValue do
+  begin
+    edtValue.Text := IntToStr(MemoryCells[Addr]);
+    if ShowModal = mrOk then
+      SendMessage(Application.MainForm.Handle, WM_VALUE, MakeWParam(NumStrToIntAuto(edtValue.Text), 6), MakeLParam(Addr, 0));
+  end;
+end;
+
 procedure TfrmMemory.grdMemoryDrawCell(Sender: TObject; ACol, ARow: Integer;
   Rect: TRect; State: TGridDrawState);
 var
@@ -53,9 +71,9 @@ begin
         OutValue := IntToNumStr((ARow-1)*16, SHEX, 4)
       else
       begin
-        if SelectedCells[(ACol-1)+(ARow-1)*16] then
+        if SelectedCells[(ACol-1) + (ARow-1)*16] then
           Brush.Color := COLOR_HL;
-        OutValue := IntToNumStr(MemoryCells[(ACol-1)+(ARow-1)*16], SHEX, 2);
+        OutValue := IntToNumStr(MemoryCells[(ACol-1) + (ARow-1)*16], SHEX, 2);
       end;
     end
     else

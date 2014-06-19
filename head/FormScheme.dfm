@@ -4202,6 +4202,7 @@ object frmScheme: TfrmScheme
         ParentFont = False
         ReadOnly = True
         TabOrder = 0
+        OnDblClick = RegDblClick
       end
       object edtB: TEdit
         Left = 644
@@ -4217,6 +4218,7 @@ object frmScheme: TfrmScheme
         ParentFont = False
         ReadOnly = True
         TabOrder = 1
+        OnDblClick = RegDblClick
       end
       object edtBuf: TEdit
         Left = 725
@@ -4247,6 +4249,7 @@ object frmScheme: TfrmScheme
         ParentFont = False
         ReadOnly = True
         TabOrder = 3
+        OnDblClick = RegDblClick
       end
       object edtD: TEdit
         Left = 644
@@ -4262,6 +4265,7 @@ object frmScheme: TfrmScheme
         ParentFont = False
         ReadOnly = True
         TabOrder = 4
+        OnDblClick = RegDblClick
       end
       object edtE: TEdit
         Left = 732
@@ -4277,6 +4281,7 @@ object frmScheme: TfrmScheme
         ParentFont = False
         ReadOnly = True
         TabOrder = 5
+        OnDblClick = RegDblClick
       end
       object edtH: TEdit
         Left = 644
@@ -4292,6 +4297,7 @@ object frmScheme: TfrmScheme
         ParentFont = False
         ReadOnly = True
         TabOrder = 6
+        OnDblClick = RegDblClick
       end
       object edtIR: TEdit
         Left = 469
@@ -4322,6 +4328,7 @@ object frmScheme: TfrmScheme
         ParentFont = False
         ReadOnly = True
         TabOrder = 8
+        OnDblClick = RegDblClick
       end
       object edtPC: TEdit
         Left = 725
@@ -4337,6 +4344,7 @@ object frmScheme: TfrmScheme
         ParentFont = False
         ReadOnly = True
         TabOrder = 9
+        OnDblClick = RegDblClick
       end
       object edtSP: TEdit
         Left = 725
@@ -4352,6 +4360,7 @@ object frmScheme: TfrmScheme
         ParentFont = False
         ReadOnly = True
         TabOrder = 10
+        OnDblClick = RegDblClick
       end
       object edtW: TEdit
         Left = 644
@@ -4367,6 +4376,7 @@ object frmScheme: TfrmScheme
         ParentFont = False
         ReadOnly = True
         TabOrder = 11
+        OnDblClick = RegDblClick
       end
       object edtZ: TEdit
         Left = 732
@@ -4382,6 +4392,7 @@ object frmScheme: TfrmScheme
         ParentFont = False
         ReadOnly = True
         TabOrder = 12
+        OnDblClick = RegDblClick
       end
       object edtFP: TEdit
         Left = 308
