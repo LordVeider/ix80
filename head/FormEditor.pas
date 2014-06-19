@@ -112,15 +112,16 @@ begin
   //ShowMessage(IntToNumStr(ExtractReg($58), SBIN, 8));
   //ShowMessage(InstrSet.FindByMnemonic('LXI').FullCode('D', '256'));
   //frmMemory.SwitchMode(not frmMemory.CompactMode);
-  vis.CleanSelection;
+  //vis.CleanSelection;
+  vis.HighlightMemoryCell(5);
 end;
 
 procedure TfrmEditor.btnMemClearClick(Sender: TObject);
 begin
   if Assigned(MEM) then
     FreeAndNil(MEM);
-  MEM := TMemory.Create(VIS);
-  VIS.OnlyUpdateMem(MEM.Cells);
+  MEM := TMemory.Create;
+  VIS.UpdateMemory(MEM.Cells);
 end;
 
 procedure TfrmEditor.btnMemUnloadClick(Sender: TObject);
@@ -133,7 +134,7 @@ var
 begin
   VIS.SetVisLevel(0);
   if not Assigned(MEM) then
-    MEM := TMemory.Create(VIS);
+    MEM := TMemory.Create;
   redtMsg.Lines.Clear;
   Parser := TCommandParser.Create;
   Success := True;
@@ -155,7 +156,7 @@ begin
   end;
   if Success then
     redtMsg.Lines.Add('Программа успешно транслирована в память');
-  Vis.OnlyUpdateMem(MEM.Cells);
+  Vis.UpdateMemory(MEM.Cells);
 end;
 
 procedure TfrmEditor.btnTextOpenClick(Sender: TObject);

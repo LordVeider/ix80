@@ -7,9 +7,8 @@ interface
 
 const
   WM_CONTROLS = $0410;
-  HL_COLOR = -16777203;
-  LOG_NEW = #13#10;
-  LOG_LINE = '--------------------------------------------------------------------------------';
+  COLOR_HL = -16777203{12639424};
+  LOG_LINE = '---------------------------------------------------------------------------------------------------------------';
 
 
 type
@@ -18,7 +17,7 @@ type
   TDataReg = (RB, RC, RD, RE, RH, RL, RM, RA, RW, RZ, RF);                      //Регистры
   TRegPair = (RPBC, RPDE, RPHL, RPSP);                                          //Регистровые пары
 
-  TDataRegisters = array [TDataReg] of Int8;
+  TDataRegisters = array [TDataReg] of Int8;                                    //Регистры данных
   TRegisters = record
     DataRegisters: TDataRegisters;                                              //Регистры данных (8 bit)
     SP: Word;                                                                   //Указатель стека (16 bit)
@@ -27,10 +26,10 @@ type
   end;
 
   TFlag = (FS, FZ, FAC, FP, FCY);                                               //Флаги
-  TFlagSet = set of TFlag;
-  TFlagArray = array [TFlag] of Byte;
+  TFlagSet = set of TFlag;                                                      //Набор флагов
+  TFlagArray = array [TFlag] of Byte;                                           //Массив флагов
 
-  TMemoryCells = array [Word] of Int8;
+  TMemoryCells = array [Word] of Int8;                                          //Массив ячеек памяти
 
   TOpCode = (OCSumm, OCAnd, OCLor, OCXor);
 

@@ -54,7 +54,7 @@ begin
       else
       begin
         if SelectedCells[(ACol-1)+(ARow-1)*16] then
-          Brush.Color := HL_COLOR;
+          Brush.Color := COLOR_HL;
         OutValue := IntToNumStr(MemoryCells[(ACol-1)+(ARow-1)*16], SHEX, 2);
       end;
     end
@@ -71,7 +71,7 @@ begin
       else
       begin
         if SelectedCells[ARow-1] then
-          Brush.Color := HL_COLOR;
+          Brush.Color := COLOR_HL;
         case ACol of
           0: OutValue := IntToNumStr(ARow-1, SHEX, 4) + 'H';
           1: OutValue := IntToNumStr(MemoryCells[ARow-1], SHEX, 2);

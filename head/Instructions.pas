@@ -21,7 +21,8 @@ type
     Mnemonic: String;                                                           //Мнемоника
     Description: String;                                                        //Описание
     constructor Create
-      (Code: Byte; Group: TInstrGroup; Size: Byte; Format: TInstrFormat; Mnemonic: String; Description: String = '');
+      (Code: Byte; Group: TInstrGroup; Size: Byte; Format: TInstrFormat;
+      Mnemonic: String; Description: String = '');
     function MainCode(Op1: String = ''; Op2: String = ''): String;              //Двоичный код первого байта
     function FullCode(Op1: String = ''; Op2: String = ''): String;              //Двоичный код всей команды
     function Summary: String;                                                   //Сводная информация
@@ -35,9 +36,11 @@ type
     List: TList<TInstruction>;                                                  //Список инструкций
     constructor Create;
     procedure Add
-      (Code: Byte; Group: TInstrGroup; Size: Byte; Format: TInstrFormat; Mnemonic: String; Description: String = '');
-    function FindByCode(Code: Byte; Masked: Boolean = False): TInstruction;                 //Поиск по коду или маске
-    function FindByMnemonic(Mnemonic: String; Conditioned: Boolean = False): TInstruction;  //Поиск по мнемонике
+      (Code: Byte; Group: TInstrGroup; Size: Byte; Format: TInstrFormat;
+      Mnemonic: String; Description: String = '');
+    function FindByCode(Code: Byte; Masked: Boolean = False): TInstruction;     //Поиск по коду или маске
+    function FindByMnemonic
+      (Mnemonic: String; Conditioned: Boolean = False): TInstruction;           //Поиск по мнемонике
   end;
 
 var
@@ -92,7 +95,7 @@ begin
   Result := True;
   for Index := 1 to 8 do
     if Value[Index] <> Mask[Index] then
-      if not (Mask[Index] in ['D', 'S', 'R', 'P', 'C']) then
+      if not CharInSet(Mask[Index], ['D', 'S', 'R', 'P', 'C']) then
         Result := False;
 end;
 
@@ -162,7 +165,7 @@ function TInstruction.Summary;
 const
   F_SUMMARY = 'КОМАНДА %s: %s (группа: %s, размер: %d байт)';
 var
-  GroupText, FormatBase: String;
+  GroupText: String;
 begin
   case Group of
     IGSystem:   GroupText := 'системные команды';
@@ -171,7 +174,6 @@ begin
     IGLogic:    GroupText := 'логические операции';
     IGBranch:   GroupText := 'команды переходов';
   end;
-  //Result := 'Команда: ' + Mnemonic + ' - ' + Description;
   Result := System.SysUtils.Format(F_SUMMARY, [Mnemonic, Description, GroupText, Size]);
 end;
 

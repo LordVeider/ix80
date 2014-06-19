@@ -12,11 +12,8 @@ uses
 
 type
   TMemory = class
-  private
-    Vis: TVisualizer;
   public
     Cells: TMemoryCells;                                                        //Массив данных
-    constructor Create(Vis: TVisualizer);
     procedure Write(Address: Word; Value: Int8);                          //Записать в память цифровое значение
     function Read(Address: Word): Int8;                                   //Считать из памяти цифровое значение
   end;
@@ -90,11 +87,6 @@ implementation
 
 { TMemory }
 
-constructor TMemory.Create(Vis: TVisualizer);
-begin
-  Self.Vis := Vis;
-end;
-
 function TMemory.Read;
 begin
   Result := Cells[Address];
@@ -113,8 +105,10 @@ begin
   Self.Memory := Memory;
   Self.Vis := Vis;
   InitDataRegisters;                //Инициализируем регистры данных
+  InitFlags;                        //Инициализируем флаги
   Registers.PC := EntryPoint;       //Инициализируем счетчик команд на указанную точку входа
   HltState := False;
+  FreeOnTerminate := True;
 end;
 
 procedure TProcessor.CmdInit;
@@ -165,8 +159,8 @@ begin
   if StopFlag then
     if Assigned(StopStep) then
       StopStep.WaitFor(INFINITE);
-  Vis.CleanSelection;
-  Vis.CleanSelectionMem;
+  Vis.UnhighlightScheme;
+  Vis.UnhighlightMemory;
 end;
 
 procedure TProcessor.StepDone;
@@ -202,8 +196,14 @@ procedure TProcessor.InitDataRegisters;
 var
   CurReg: TDataReg;
 begin
+  //Обнуляем содержимое регистров
   for CurReg := Low(TDataReg) to High(TDataReg) do
     Registers.DataRegisters[CurReg] := 0;
+end;
+
+procedure TProcessor.InitFlags;
+begin
+  Registers.DataRegisters[RF] := 2; //00000010
 end;
 
 procedure TProcessor.PerformALU;
@@ -212,9 +212,11 @@ var
   NewBit: Byte;
   Carry, Parity: Byte;
 begin
+  //Инициализируем переменные
   Op3 := '';
   Carry := Flags[FCY];
   Parity := 0;
+  //Выполняем операции поразрядно
   for Digit := Size downto 1 do
   begin
     case OpCode of
@@ -250,7 +252,7 @@ var
   Op1, Op2, Op3: String;
   Flags: TFlagArray;
 begin
-  Vis.ShowALU;
+  Vis.HighlightALU;
   Vis.AddLog('Выполнение операции на АЛУ');
   //Инициализируем переменные
   Op1 := IntToNumStr(GetRegAddrValue(Reg), SBIN, 8);
@@ -272,20 +274,20 @@ procedure TProcessor.PerformRotate;
 var
   TempStr: String;
 begin
-  Vis.ShowALU;
+  Vis.HighlightALU;
   TempStr := IntToNumStr(GetDataReg(RA), SBIN, 8);
-  if Right then
+  if Right then               //Правый сдвиг
   begin
-    if ThroughCarry then
+    if ThroughCarry then      //Сдвиг через флаг переноса
       TempStr := IntToStr(GetFlag(FCY)) + TempStr
     else
       TempStr := TempStr[8] + TempStr;
     SetFlag(FCY, StrToInt(TempStr[9]));
     Delete(TempStr, 9, 1);
   end
-  else
+  else                        //Левый сдвиг
   begin
-    if ThroughCarry then
+    if ThroughCarry then      //Сдвиг через флаг переноса
       TempStr := TempStr + IntToStr(GetFlag(FCY))
     else
       TempStr := TempStr + TempStr[8];
@@ -299,8 +301,8 @@ function TProcessor.GetMemory(Address: Word): Int8;
 begin
   StepWait;
   Result := Memory.Read(Address);
-  Vis.ShowAddrBuf(Address);
-  Vis.ShowMemoryCell(Address);
+  Vis.HighlightDataBus(Address);
+  Vis.HighlightMemoryCell(Address);
   Vis.AddLog(Format('Чтение памяти; Адрес: %sH; Значение: %sH;', [IntToNumStr(Address, SHEX, 4), IntToNumStr(Result, SHEX, 2)]));
   StepDone;
 end;
@@ -309,8 +311,9 @@ procedure TProcessor.SetMemory(Address: Word; Value: Int8);
 begin
   StepWait;
   Memory.Write(Address, Value);
-  Vis.ShowAddrBuf(Address);
-  Vis.ShowMemoryCell(Address);
+  Vis.UpdateMemory(Memory.Cells);
+  Vis.HighlightDataBus(Address);
+  Vis.HighlightMemoryCell(Address);
   Vis.AddLog(Format('Запись в память; Адрес: %sH; Значение: %sH;', [IntToNumStr(Address, SHEX, 4), IntToNumStr(Value, SHEX, 2)]));
   StepDone;
 end;
@@ -319,7 +322,7 @@ function TProcessor.GetDataReg;
 begin
   StepWait;
   Result := Registers.DataRegisters[DataReg];
-  Vis.ShowDataReg(DataReg);
+  Vis.HighlightDataReg(DataReg);
   Vis.AddLog(Format('Чтение регистра; Регистр: %s; Значение: %sH;',
     [Copy(GetEnumName(TypeInfo(TDataReg), Ord(DataReg)), 2, 1), IntToNumStr(Result, SHEX, 2)]));
   StepDone;
@@ -345,7 +348,7 @@ begin
       RPDE: Result := MakeWordHL(Registers.DataRegisters[RD], Registers.DataRegisters[RE]);
       RPHL: Result := MakeWordHL(Registers.DataRegisters[RH], Registers.DataRegisters[RL]);
     end;
-    Vis.ShowRegPair(RegPair);
+    Vis.HighlightRegPair(RegPair);
     Vis.AddLog(Format('Чтение регистровой пары; Регистры: %s; Значение: %sH;',
       [Copy(GetEnumName(TypeInfo(TRegPair), Ord(RegPair)), 3, 2), IntToNumStr(Result, SHEX, 2)]));
   end;
@@ -356,8 +359,8 @@ procedure TProcessor.SetDataReg;
 begin
   StepWait;
   Registers.DataRegisters[DataReg] := Value;
-  Vis.OnlyUpdate(Registers);
-  Vis.ShowDataReg(DataReg);
+  Vis.UpdateScheme(Registers);
+  Vis.HighlightDataReg(DataReg);
   Vis.AddLog(Format('Запись в регистр; Регистр: %s; Значение: %sH;',
     [Copy(GetEnumName(TypeInfo(TDataReg), Ord(DataReg)), 2, 1), IntToNumStr(Value, SHEX, 2)]));
   StepDone;
@@ -387,8 +390,8 @@ begin
     end;
     Registers.DataRegisters[HiReg] := Hi(Value);
     Registers.DataRegisters[LoReg] := Lo(Value);
-    Vis.OnlyUpdate(Registers);
-    Vis.ShowRegPair(RegPair);
+    Vis.UpdateScheme(Registers);
+    Vis.HighlightRegPair(RegPair);
     Vis.AddLog(Format('Запись в регистровую пару; Регистры: %s; Значение: %sH;',
       [Copy(GetEnumName(TypeInfo(TRegPair), Ord(RegPair)), 3, 2), IntToNumStr(Value, SHEX, 2)]));
   end;
@@ -399,7 +402,7 @@ function TProcessor.GetStackPointer;
 begin
   StepWait;
   Result := Registers.SP;
-  Vis.ShowStackPointer;
+  Vis.HighlightStackPointer;
   Vis.AddLog(Format('Чтение указателя стека; Значение: %sH;', [IntToNumStr(Result, SHEX, 4)]));
   StepDone;
 end;
@@ -408,7 +411,7 @@ function TProcessor.GetProgramCounter;
 begin
   StepWait;
   Result := Registers.PC;
-  Vis.ShowProgramCounter;
+  Vis.HighlightProgramCounter;
   Vis.AddLog(Format('Чтение счетчика команд; Значение: %sH;', [IntToNumStr(Result, SHEX, 4)]));
   StepDone;
 end;
@@ -422,8 +425,8 @@ procedure TProcessor.SetStackPointer;
 begin
   StepWait;
   Registers.SP := Value;
-  Vis.OnlyUpdate(Registers);
-  Vis.ShowStackPointer;
+  Vis.UpdateScheme(Registers);
+  Vis.HighlightStackPointer;
   Vis.AddLog(Format('Установка указателя стека; Значение: %sH;', [IntToNumStr(Value, SHEX, 4)]));
   StepDone;
 end;
@@ -432,8 +435,8 @@ procedure TProcessor.SetProgramCounter;
 begin
   StepWait;
   Registers.PC := Value;
-  Vis.OnlyUpdate(Registers);
-  Vis.ShowProgramCounter;
+  Vis.UpdateScheme(Registers);
+  Vis.HighlightProgramCounter;
   Vis.AddLog(Format('Установка счетчика команд; Значение: %sH;', [IntToNumStr(Value, SHEX, 4)]));
   StepDone;
 end;
@@ -442,15 +445,10 @@ procedure TProcessor.SetInstRegister;
 begin
   StepWait;
   Registers.IR := Value;
-  Vis.OnlyUpdate(Registers);
-  Vis.ShowInstrRegister;
+  Vis.UpdateScheme(Registers);
+  Vis.HighlightInstrRegister;
   Vis.AddLog(Format('Установка регистра команд; Значение: %sH;', [IntToNumStr(Value, SHEX, 2)]));
   StepDone;
-end;
-
-procedure TProcessor.InitFlags;
-begin
-  Registers.DataRegisters[RF] := 2; //00000010
 end;
 
 function TProcessor.GetFlag;
@@ -469,8 +467,8 @@ begin
   //Считываем бит
   with Registers do
     Result := (DataRegisters[RF] shr Shift) and 1;
-  Vis.OnlyUpdate(Registers);
-  Vis.ShowFlag(FlagName);
+  Vis.UpdateScheme(Registers);
+  Vis.HighlightFlag(FlagName);
   Vis.AddLog(Format('Проверка флага; Флаг: %s; Состояние: %s;',
     [Copy(GetEnumName(TypeInfo(TFlag), Ord(FlagName)), 3, 2), IntToStr(Result)]));
   StepDone;
@@ -495,8 +493,8 @@ begin
       DataRegisters[RF] := DataRegisters[RF] or (1 shl Shift)
     else
       DataRegisters[RF] := DataRegisters[RF] and not (1 shl Shift);
-  Vis.OnlyUpdate(Registers);
-  Vis.ShowFlag(FlagName);
+  Vis.UpdateScheme(Registers);
+  Vis.HighlightFlag(FlagName);
   Vis.AddLog(Format('Установка флага; Флаг: %s; Состояние: %s;',
     [Copy(GetEnumName(TypeInfo(TFlag), Ord(FlagName)), 2, 2), IntToStr(Value)]));
   StepDone;
@@ -523,88 +521,65 @@ var
   B1, B2, B3: Byte;
 begin
   inherited;
-  FreeOnTerminate := True;
-  //with Processor do
-  begin
-    Vis.CleanLog;
-    Vis.OnlyUpdate(Registers);
-    //Пока не получили HLT или команду на уничтожение потока - читаем команды
-    repeat
-      Vis.CleanSelection;
-      Vis.CleanSelectionMem;
-
-      Vis.AddLog('ВЫБОРКА КОМАНДЫ:');
-
-      //Если есть объект синхронизации потока - ждём его
-      CmdWait;
-
-      //Читаем первый байт инструкции
-      CurrentAddr := GetProgramCounter;
-      B1 := GetMemory(CurrentAddr);
-
-      //Ищем инструкцию в матрице
-      CurrentInstr := InstrSet.FindByCode(B1);
-      if not Assigned(CurrentInstr) then
-        CurrentInstr := InstrSet.FindByCode(B1, True);
-
-      //Инструкция найдена
-      if Assigned(CurrentInstr) then
+  //Очищаем лог и показываем начальные значения регистров
+  Vis.ClearLog;
+  Vis.UpdateScheme(Registers);
+  //Пока не получили HLT или команду на уничтожение потока - читаем команды
+  repeat
+    //Очищаем хайлайты на схеме и памяти
+    Vis.UnhighlightScheme;
+    Vis.UnhighlightMemory;
+    //Обновляем лог
+    Vis.AddLog('ВЫБОРКА КОМАНДЫ:');
+    //Если есть объект синхронизации потока - ждём его
+    CmdWait;
+    //Читаем первый байт инструкции
+    CurrentAddr := GetProgramCounter;
+    B1 := GetMemory(CurrentAddr);
+    //Ищем инструкцию в матрице
+    CurrentInstr := InstrSet.FindByCode(B1);
+    if not Assigned(CurrentInstr) then
+      CurrentInstr := InstrSet.FindByCode(B1, True);
+    //Инструкция найдена
+    if Assigned(CurrentInstr) then
+    begin
+      //Устанавливаем регистр команд
+      SetInstRegister(B1);
+      //Пишем в лог информацию о команде
+      Vis.AddLog(CurrentInstr.Summary);
+      //Читаем второй и третий байт инструкции (если есть)
+      if CurrentInstr.Size > 1 then
       begin
-        //Устанавливаем регистр команд
-        SetInstRegister(B1);
-
-        Vis.AddLog(CurrentInstr.Summary);
-
-        //Читаем второй и третий байт инструкции (если есть)
-        if CurrentInstr.Size > 1 then
+        B2 := GetMemory(CurrentAddr + 1);
+        SetDataReg(RW, B2);
+        if CurrentInstr.Size > 2 then
         begin
-          B2 := GetMemory(CurrentAddr + 1);
-          SetDataReg(RW, B2);
-          if CurrentInstr.Size > 2 then
-          begin
-            B3 := GetMemory(CurrentAddr + 2);
-            SetDataReg(RZ, B3);
-          end
-        end;
-
-        //Устанавливаем счетчик команд
-        SetProgramCounter(CurrentAddr + CurrentInstr.Size);
-
-        //Обновляем вывод данных
-        //ShowRegisters;
-        Vis.OnlyUpdate(Registers);
-        //Memory.ShowNewMem;
-        Vis.OnlyUpdateMem(Memory.Cells);
-
-
-        //Исполняем команду
-        ExecuteCommand(CurrentInstr, B1, B2, B3);
-        Vis.AddLog(LOG_LINE);
-
-        //Сбрасываем объект синхронизации потока
-        CmdDone;
-
+          B3 := GetMemory(CurrentAddr + 2);
+          SetDataReg(RZ, B3);
+        end
       end;
-    until HltState or Terminated;
-
-    //Уничтожаем объект синхронизации
-    if Assigned(StopCmd) then
-      FreeAndNil(StopCmd);
-
-    //TODO: вынести в отдельный метод
-    SendMessage(Application.MainForm.Handle, WM_CONTROLS, 1, 0);
-  end;
+      //Устанавливаем счетчик команд
+      SetProgramCounter(CurrentAddr + CurrentInstr.Size);
+      //Исполняем команду
+      ExecuteCommand(CurrentInstr, B1, B2, B3);
+      //Разделитель в лог
+      Vis.AddLog(LOG_LINE);
+      //Сбрасываем объект синхронизации потока
+      CmdDone;
+    end;
+  until HltState or Terminated;
+  //Посылаем главной форме сообщение для разблокировки контролов
+  SendMessage(Application.MainForm.Handle, WM_CONTROLS, 1, 0);
 end;
 
 procedure TProcessor.ExecuteCommand;
 begin
-  //Выбор типа команды
   StepWait;
-  Vis.ShowInstrRegister;
-  Vis.ShowDecoder;
+  Vis.HighlightInstrRegister;
+  Vis.HighlightDecoder;
   Vis.AddLog('ИСПОЛНЕНИЕ КОМАНДЫ:');
   StepDone;
-  //StepDone;
+  //Выбор типа команды
   case Instr.Group of
     IGSystem:   ExecuteSystemCommand(Instr, B1, B2, B3);
     IGData:     ExecuteDataCommand(Instr, B1, B2, B3);
@@ -813,7 +788,6 @@ procedure TProcessor.ExecuteBranchCommand;
 var
   CurrentSP: Word;
   CurrentPC: Word;
-  ConditionChecked: Boolean;
 begin
   with Instr do
     if (Format <> IFCondition) or CheckCondition(ExCond(B1)) then
@@ -824,8 +798,8 @@ begin
       $CD, $C4: {CALL} begin
                         CurrentSP := GetStackPointer;
                         CurrentPC := GetProgramCounter;
-                        SetMemory(CurrentSP - 1, GetDataReg(RA));
-                        SetMemory(CurrentSP - 2, GetDataReg(RF));
+                        SetMemory(CurrentSP - 1, Hi(CurrentPC));
+                        SetMemory(CurrentSP - 2, Lo(CurrentPC));
                         SetStackPointer(CurrentSP - 2);
                         SetProgramCounter(MakeWordHL(B3, B2));
                       end;
