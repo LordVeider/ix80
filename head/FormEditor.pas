@@ -109,10 +109,11 @@ end;
 procedure TfrmEditor.btn9Click(Sender: TObject);
 begin
   //vis := TVisualizer.Create;
-  vis.ShowDataReg(RA);
+  //vis.ShowDataReg(RA);
   //ShowMessage(IntToNumStr(ExtractReg($58), SBIN, 8));
   //ShowMessage(InstrSet.FindByMnemonic('LXI').FullCode('D', '256'));
   //frmMemory.SwitchMode(not frmMemory.CompactMode);
+  vis.CleanSelection;
 end;
 
 procedure TfrmEditor.btnMemClearClick(Sender: TObject);

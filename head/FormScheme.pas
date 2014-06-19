@@ -13,7 +13,17 @@ uses
 
 type
   TfrmScheme = class(TForm)
+    pnlScheme: TPanel;
     grScheme: TGroupBox;
+    imgIR: TImage;
+    imgCD: TImage;
+    imgBCD: TImage;
+    imgALU: TImage;
+    imgAcc: TImage;
+    imgFlags: TImage;
+    imgReg: TImage;
+    imgData: TImage;
+    imgSchemeBackground: TImage;
     edtA: TEdit;
     edtB: TEdit;
     edtBuf: TEdit;
@@ -27,15 +37,14 @@ type
     edtSP: TEdit;
     edtW: TEdit;
     edtZ: TEdit;
-    imgSchemeBackground: TImage;
-    grLog: TGroupBox;
-    redtLog: TRichEdit;
     edtFP: TEdit;
     edtFAC: TEdit;
     edtFCY: TEdit;
     edtFS: TEdit;
     edtFZ: TEdit;
-    imgALU: TImage;
+    pnlDown: TPanel;
+    grLog: TGroupBox;
+    redtLog: TRichEdit;
     procedure redtLogChange(Sender: TObject);
   private
     { Private declarations }

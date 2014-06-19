@@ -146,6 +146,7 @@ procedure TProcessor.PerformRotate;
 var
   TempStr: String;
 begin
+  Vis.ShowALU;
   TempStr := IntToNumStr(GetDataReg(RA), SBIN, 8);
   if Right then
   begin
@@ -171,7 +172,6 @@ end;
 function TProcessor.GetDataReg;
 begin
   Result := Registers.DataRegisters[DataReg];
-  Vis.OnlyUpdate(Registers);
   Vis.ShowDataReg(DataReg);
   Vis.AddLog(Format('ЧТЕНИЕ РЕГИСТРА; Регистр: %s; Значение: %sH;',
     [Copy(GetEnumName(TypeInfo(TDataReg), Ord(DataReg)), 2, 1), IntToNumStr(Result, SHEX, 2)]));
@@ -196,7 +196,6 @@ begin
       RPDE: Result := MakeWordHL(Registers.DataRegisters[RD], Registers.DataRegisters[RE]);
       RPHL: Result := MakeWordHL(Registers.DataRegisters[RH], Registers.DataRegisters[RL]);
     end;
-    Vis.OnlyUpdate(Registers);
     Vis.ShowRegPair(RegPair);
     Vis.AddLog(Format('ЧТЕНИЕ РЕГИСТРОВОЙ ПАРЫ; Регистры: %s; Значение: %sH;',
       [Copy(GetEnumName(TypeInfo(TRegPair), Ord(RegPair)), 3, 2), IntToNumStr(Result, SHEX, 2)]));
@@ -245,7 +244,6 @@ end;
 function TProcessor.GetStackPointer;
 begin
   Result := Registers.SP;
-  Vis.OnlyUpdate(Registers);
   Vis.ShowStackPointer;
   Vis.AddLog(Format('ЧТЕНИЕ УКАЗАТЕЛЯ СТЕКА; Значение: %sH;', [IntToNumStr(Result, SHEX, 4)]));
 end;
@@ -253,7 +251,6 @@ end;
 function TProcessor.GetProgramCounter;
 begin
   Result := Registers.PC;
-  Vis.OnlyUpdate(Registers);
   Vis.ShowProgramCounter;
   Vis.AddLog(Format('ЧТЕНИЕ СЧЕТЧИКА КОМАНД; Значение: %sH;', [IntToNumStr(Result, SHEX, 4)]));
 end;
@@ -268,7 +265,7 @@ begin
   Registers.SP := Value;
   Vis.OnlyUpdate(Registers);
   Vis.ShowStackPointer;
-  Vis.AddLog(Format('ЗАПИСЬ УКАЗАТЕЛЯ СТЕКА; Значение: %sH;', [IntToNumStr(Value, SHEX, 4)]));
+  Vis.AddLog(Format('УСТАНОВКА УКАЗАТЕЛЯ СТЕКА; Значение: %sH;', [IntToNumStr(Value, SHEX, 4)]));
 end;
 
 procedure TProcessor.SetProgramCounter;
@@ -276,7 +273,7 @@ begin
   Registers.PC := Value;
   Vis.OnlyUpdate(Registers);
   Vis.ShowStackPointer;
-  Vis.AddLog(Format('ЗАПИСЬ СЧЕТЧИКА КОМАНД; Значение: %sH;', [IntToNumStr(Value, SHEX, 4)]));
+  Vis.AddLog(Format('УСТАНОВКА СЧЕТЧИКА КОМАНД; Значение: %sH;', [IntToNumStr(Value, SHEX, 4)]));
 end;
 
 procedure TProcessor.SetInstRegister;
@@ -353,8 +350,18 @@ begin
   FreeOnTerminate := True;
   //with Processor do
   begin
+    Vis.CleanLog;
     //Пока не получили HLT или команду на уничтожение потока - читаем команды
     repeat
+      Vis.CleanSelection;
+      Vis.CleanSelectionMem;
+      Vis.AddLog('ВЫБОРКА КОМАНДЫ;');
+
+
+      //Если есть объект синхронизации потока - ждём его
+      if Assigned(StopCmd) then
+        StopCmd.WaitFor(INFINITE);
+
       //Читаем первый байт инструкции
       CurrentAddr := GetProgramCounter;
       B1 := Memory.ReadMemory(CurrentAddr);
@@ -367,9 +374,7 @@ begin
       //Инструкция найдена
       if Assigned(CurrentInstr) then
       begin
-        //Если есть объект синхронизации потока - ждём его
-        if Assigned(StopCmd) then
-          StopCmd.WaitFor(INFINITE);
+        Vis.AddLog(CurrentInstr.Summary);
 
         //Устанавливаем регистр команд
         SetInstRegister(B1);
@@ -400,9 +405,14 @@ begin
           StopCmd.ResetEvent;
 
         //Исполняем команду
+        Vis.ShowDecoder;
+        Vis.AddLog('ИСПОЛНЕНИЕ КОМАНДЫ;');
         ExecuteCommand(CurrentInstr, B1, B2, B3);
+        Vis.AddLog(LOG_LINE);
       end;
     until HltState or Terminated;
+
+    Vis.AddLog('ПОЛУЧЕН СИГНАЛ ОСТАНОВА;');
 
     //Уничтожаем объект синхронизации
     if Assigned(StopCmd) then
