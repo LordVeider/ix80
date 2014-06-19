@@ -6,8 +6,9 @@ unit FormValue;
 interface
 
 uses
+  Common,
   Winapi.Windows, Winapi.Messages, System.SysUtils, System.Variants, System.Classes, Vcl.Graphics,
-  Vcl.Controls, Vcl.Forms, Vcl.Dialogs, Vcl.StdCtrls, Vcl.ExtCtrls, Vcl.ImgList, Logic, Common;
+  Vcl.Controls, Vcl.Forms, Vcl.Dialogs, Vcl.StdCtrls, Vcl.ExtCtrls, Vcl.ImgList;
 
 type
   TfrmValue = class(TForm)
@@ -66,21 +67,21 @@ end;
 
 procedure TfrmValue.LoadValue;
 begin
-  if Assigned(FMemory) then
+  {if Assigned(FMemory) then
     with TfrmMemory(FMemory) do
     begin
       Address := grdNewMem.Row - 1;
       edtValue.Text := IntToStr(Memory.ReadMemory(Address));
-    end;
+    end;}
 end;
 
 procedure TfrmValue.UnloadValue;
 begin
-  if Assigned(FMemory) then
+  {if Assigned(FMemory) then
     with TfrmMemory(FMemory) do
     begin
       Memory.WriteMemory(Address, NumStrToIntAuto(edtValue.Text));
-    end;
+    end;}
 end;
 
 procedure TfrmValue.UpdateValue;
@@ -105,14 +106,14 @@ end;
 
 procedure TfrmValue.btnApplyClick(Sender: TObject);
 begin
-  if Verified then
+  {if Verified then
   begin
     UnloadValue;
     Close;
     if Assigned(FMemory) then
       with TfrmMemory(FMemory) do
           DrawMemory;
-  end;
+  end;}
 end;
 
 end.

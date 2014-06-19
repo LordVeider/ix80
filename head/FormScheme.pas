@@ -6,7 +6,7 @@ unit FormScheme;
 interface
 
 uses
-  Common, Logic, Instructions,
+  Common, Instructions,
   Winapi.Windows, Winapi.Messages, System.SysUtils, System.Variants, System.Classes, Vcl.Graphics,
   Vcl.Controls, Vcl.Forms, Vcl.Dialogs, Vcl.Imaging.pngimage, Vcl.ExtCtrls,
   Vcl.Grids, Vcl.StdCtrls, Vcl.ComCtrls, Vcl.ImgList;
@@ -36,7 +36,6 @@ type
     { Private declarations }
   public
     { Public declarations }
-    procedure DrawProcessor(Processor: TProcessor);
   end;
 
 var
@@ -50,40 +49,6 @@ uses
   FormEditor;
 
 { TfrmScheme }
-
-procedure TfrmScheme.DrawProcessor(Processor: TProcessor);
-begin
-  with Processor do
-  begin
-    edtA.Text := GetDataReg(RA).ToString;
-    edtB.Text := GetDataReg(RB).ToString;
-    edtC.Text := GetDataReg(RC).ToString;
-    edtD.Text := GetDataReg(RD).ToString;
-    edtE.Text := GetDataReg(RE).ToString;
-    edtH.Text := GetDataReg(RH).ToString;
-    edtL.Text := GetDataReg(RL).ToString;
-    edtW.Text := GetDataReg(RW).ToString;
-    edtZ.Text := GetDataReg(RZ).ToString;
-    edtSP.Text := IntToNumStr(GetStackPointer, SHEX, 4) + 'H';
-    edtPC.Text := IntToNumStr(GetProgramCounter, SHEX, 4) + 'H';
-    edtIR.Text := IntToNumStr(GetInstRegister, SHEX, 2) + 'H';
-    with grdPSW do
-    begin
-      ColWidths[3] := 26;
-      ColWidths[4] := 26;
-      Cells[0,0] := 'S';
-      Cells[1,0] := 'Z';
-      Cells[2,0] := 'P';
-      Cells[3,0] := 'AC';
-      Cells[4,0] := 'CY';
-      Cells[0,1] := GetFlag(FS).ToString;
-      Cells[1,1] := GetFlag(FZ).ToString;
-      Cells[2,1] := GetFlag(FP).ToString;
-      Cells[3,1] := GetFlag(FAC).ToString;
-      Cells[4,1] := GetFlag(FCY).ToString;
-    end;
-  end;
-end;
 
 procedure TfrmScheme.redtLogChange(Sender: TObject);
 begin

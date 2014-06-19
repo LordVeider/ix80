@@ -6,8 +6,9 @@ unit FormMemory;
 interface
 
 uses
+  Common,
   Winapi.Windows, Winapi.Messages, System.SysUtils, System.Variants, System.Classes, Vcl.Graphics,
-  Vcl.Controls, Vcl.Forms, Vcl.Dialogs, Vcl.Grids, Common, Logic;
+  Vcl.Controls, Vcl.Forms, Vcl.Dialogs, Vcl.Grids;
 
 type
   TfrmMemory = class(TForm)
@@ -19,7 +20,7 @@ type
     { Private declarations }
   public
     { Public declarations }
-    Memory: TMemory;
+    //Memory: TMemory;
     TrueMem: Boolean;
     procedure DrawMemory;
   end;
@@ -38,7 +39,7 @@ procedure TfrmMemory.DrawMemory;
 var
   i, j: Integer;
 begin
-  if TrueMem then
+  {if TrueMem then
   begin
     Width := 294;
     Height := 900;
@@ -116,7 +117,7 @@ begin
         for j := 1 to 25 do
           Cells[i, j] := '00';
     end;
-  end;
+  end;}
 end;
 
 procedure TfrmMemory.FormShow(Sender: TObject);
@@ -126,7 +127,7 @@ end;
 
 procedure TfrmMemory.grdNewMemDblClick(Sender: TObject);
 begin
-  if Assigned(Memory) then
+  {if Assigned(Memory) then
     if grdNewMem.Row > 0 then
     begin
       frmValue.FMemory := Self;
@@ -134,7 +135,7 @@ begin
       frmValue.Left := Mouse.CursorPos.X;
       frmValue.Top := Mouse.CursorPos.Y;
       frmValue.ShowModal;
-    end;
+    end;}
 end;
 
 end.

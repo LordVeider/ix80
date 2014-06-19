@@ -18,6 +18,14 @@ type
   TFlagSet = set of TFlag;
   TFlagArray = array [TFlag] of Byte;
 
+  TDataRegisters = array [TDataReg] of Int8;
+  TRegisters = record
+    DataRegisters: TDataRegisters;          //Регистры данных (8 bit)
+    SP: Word;                               //Указатель стека (16 bit)
+    PC: Word;                               //Счетчик команд  (16 bit)
+    IR: Byte;                               //Регистр команд  (8 bit)
+  end;
+
   TOpCode = (OCSumm, OCAnd, OCLor, OCXor);
 
   TInstrGroup = (IGSystem, IGData, IGArithm, IGLogic, IGBranch);                        //Группы инструкций

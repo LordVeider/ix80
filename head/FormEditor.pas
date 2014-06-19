@@ -6,7 +6,7 @@ unit FormEditor;
 interface
 
 uses
-  FormMemory, FormScheme, Common, Logic, Instructions, Parser, Visualizer,
+  Common, Logic, Instructions, Parser, Visualizer,
   Winapi.Windows, Winapi.Messages, System.SysUtils, System.Variants, System.Classes, Vcl.Graphics,
   Vcl.Controls, Vcl.Forms, Vcl.Dialogs, Vcl.Menus, Vcl.ToolWin, Vcl.ComCtrls,
   Vcl.ImgList, Vcl.StdCtrls, SyncObjs, Vcl.Grids;
@@ -81,6 +81,8 @@ type
     procedure btn9Click(Sender: TObject);
   private
     { Private declarations }
+    procedure EnableButtons(var Message: TMessage); message WM_BUT_EN;
+    procedure DisableButtons(var Message: TMessage); message WM_BUT_DIS;
   public
     { Public declarations }
     procedure OnTerm(Sender: TObject);
@@ -90,12 +92,14 @@ var
   frmEditor: TfrmEditor;
   CPU: TProcessor;
   MEM: TMemory;
+  VIS: TVisualizer;
 
 implementation
 
 {$R *.dfm}
 
-uses FormAbout, FormValue;
+uses
+  FormScheme, FormMemory, FormAbout, FormValue;
 
 procedure TfrmEditor.btn8Click(Sender: TObject);
 begin
@@ -103,23 +107,21 @@ begin
 end;
 
 procedure TfrmEditor.btn9Click(Sender: TObject);
-var
-  vis: TVisualizer;
 begin
-  vis := TVisualizer.Create;
-  vis.ShowReg(RA);
+  //vis := TVisualizer.Create;
+  //vis.ShowReg(RA);
   //ShowMessage(IntToNumStr(ExtractReg($58), SBIN, 8));
   //ShowMessage(InstrSet.FindByMnemonic('LXI').FullCode('D', '256'));
 end;
 
 procedure TfrmEditor.btnMemClearClick(Sender: TObject);
 begin
-  if Assigned(MEM) then
+  {if Assigned(MEM) then
   begin
     FreeAndNil(MEM);
     frmMemory.Memory := MEM;
     frmMemory.DrawMemory;
-  end;
+  end;}
 end;
 
 procedure TfrmEditor.btnMemUnloadClick(Sender: TObject);
@@ -168,8 +170,10 @@ procedure TfrmEditor.btnRunRealClick(Sender: TObject);
 begin
   if Assigned(MEM) then
   begin
+    if not Assigned(VIS) then
+      VIS := TVisualizer.Create;
     if not Assigned(CPU) then
-      CPU := TProcessor.Create(MEM, 5);
+      CPU := TProcessor.Create(MEM, 5, VIS);
     CPU.OnTerminate := OnTerm;
     //CPU.StopSection := TEvent.Create(nil, False, False, '');
     //CPU.StopSection.Enter;
@@ -198,7 +202,7 @@ begin
   if Assigned(MEM) then
   begin
     if not Assigned(CPU) then
-      CPU := TProcessor.Create(MEM, 5);
+      CPU := TProcessor.Create(MEM, 5, nil);
     CPU.OnTerminate := OnTerm;
     CPU.StopCmd := TEvent.Create(nil, False, False, '');
       btnRunReal.Enabled := False;
@@ -271,6 +275,21 @@ end;
 procedure TfrmEditor.OnTerm(Sender: TObject);
 begin
   CPU := nil;
+end;
+
+procedure TfrmEditor.EnableButtons(var Message: TMessage);
+begin
+      btnRunReal.Enabled := True;
+      btnRunStep.Enabled := True;
+      btnStop. Enabled := False;
+      btnNextCommand.Enabled := False;
+      btnMemClear.Enabled := True;
+      btnMemUnload.Enabled := True;
+end;
+
+procedure TfrmEditor.DisableButtons(var Message: TMessage);
+begin
+
 end;
 
 end.
