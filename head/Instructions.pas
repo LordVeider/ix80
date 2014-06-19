@@ -26,6 +26,8 @@ type
     IR: Byte;                               //Регистр команд  (8 bit)
   end;
 
+  TMemoryCells = array [Word] of Int8;
+
   TOpCode = (OCSumm, OCAnd, OCLor, OCXor);
 
   TInstrGroup = (IGSystem, IGData, IGArithm, IGLogic, IGBranch);                        //Группы инструкций

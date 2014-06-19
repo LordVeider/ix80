@@ -2,11 +2,16 @@ unit Memory;
 
 interface
 
+uses
+  Instructions, Visualizer;
+
 type
   TMemory = class
   private
-    Cells: array [Word] of Int8;            //Массив данных
+    Vis: TVisualizer;
   public
+    Cells: TMemoryCells;                                                        //Массив данных
+    constructor Create(Vis: TVisualizer);
     procedure WriteMemory(Address: Word; Value: Int8);                          //Записать в память цифровое значение
     function ReadMemory(Address: Word): Int8;                                   //Считать из памяти цифровое значение
   end;
@@ -14,6 +19,11 @@ type
 implementation
 
 { TMemory }
+
+constructor TMemory.Create(Vis: TVisualizer);
+begin
+  Self.Vis := Vis;
+end;
 
 function TMemory.ReadMemory;
 begin

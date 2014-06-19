@@ -78,6 +78,7 @@ type
     procedure btnRunStepClick(Sender: TObject);
     procedure btnStopClick(Sender: TObject);
     procedure btn9Click(Sender: TObject);
+    procedure FormCreate(Sender: TObject);
   private
     { Private declarations }
     procedure EnableButtons(var Message: TMessage); message WM_BUT_EN;
@@ -132,7 +133,7 @@ var
   Success: Boolean;
 begin
   if not Assigned(MEM) then
-    MEM := TMemory.Create;
+    MEM := TMemory.Create(VIS);
   redtMsg.Lines.Clear;
   Parser := TCommandParser.Create;
   Success := True;
@@ -155,6 +156,7 @@ begin
   if Success then
     redtMsg.Lines.Add('Программа успешно транслирована в память');
   //MEM.ShowNewMem;
+  Vis.OnlyUpdateMem(MEM.Cells);
 end;
 
 procedure TfrmEditor.btnTextOpenClick(Sender: TObject);
@@ -169,10 +171,10 @@ procedure TfrmEditor.btnRunRealClick(Sender: TObject);
 begin
   if Assigned(MEM) then
   begin
-    if not Assigned(VIS) then
-      VIS := TVisualizer.Create;
+    //if not Assigned(VIS) then
+    //  VIS := TVisualizer.Create;
     if not Assigned(CPU) then
-      CPU := TProcessor.Create(MEM, 5, VIS);
+      CPU := TProcessor.Create(VIS, MEM, 5);
     CPU.OnTerminate := OnTerm;
     //CPU.StopSection := TEvent.Create(nil, False, False, '');
     //CPU.StopSection.Enter;
@@ -201,7 +203,7 @@ begin
   if Assigned(MEM) then
   begin
     if not Assigned(CPU) then
-      CPU := TProcessor.Create(MEM, 5, nil);
+      CPU := TProcessor.Create(VIS, MEM, 5);
     CPU.OnTerminate := OnTerm;
     CPU.StopCmd := TEvent.Create(nil, False, False, '');
       btnRunReal.Enabled := False;
@@ -250,6 +252,11 @@ end;
 procedure TfrmEditor.btnShowSchemeClick(Sender: TObject);
 begin
   frmScheme.Show;
+end;
+
+procedure TfrmEditor.FormCreate(Sender: TObject);
+begin
+  VIS := TVisualizer.Create;
 end;
 
 procedure TfrmEditor.FormShow(Sender: TObject);
