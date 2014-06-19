@@ -32,7 +32,7 @@ function IntToNumStr
   (Value: Integer; Base: TNumSys; Digits: Integer = 0): String;                 //Преобразование к строке
 
 function SwapBytes(Value: String): String;                                      //Поменять местами два байта в строке
-function MakeWord(HiByte, LoByte: Byte): Word;                                  //Преобразовать два байта в Word
+function MakeWordHL(HiByte, LoByte: Byte): Word;                                  //Преобразовать два байта в Word
 
 function InvertBits(Value: String): String;                                  //Инвертировать двоичный код числа
 
@@ -114,7 +114,7 @@ begin
   Result := Copy(Value, 9, 8) + Copy(Value, 1, 8);
 end;
 
-function MakeWord;
+function MakeWordHL;
 begin
   Result := LoByte + (HiByte shl 8);
 end;

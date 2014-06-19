@@ -24,9 +24,10 @@ object frmMemory: TfrmMemory
     ColCount = 17
     DefaultColWidth = 32
     DefaultRowHeight = 16
-    RowCount = 100
+    RowCount = 65537
     ScrollBars = ssVertical
     TabOrder = 0
+    Visible = False
   end
   object grdNewMem: TStringGrid
     Left = 0
@@ -38,10 +39,26 @@ object frmMemory: TfrmMemory
     DefaultColWidth = 85
     DefaultRowHeight = 18
     FixedCols = 0
-    RowCount = 100
+    RowCount = 65537
     FixedRows = 0
     ScrollBars = ssVertical
     TabOrder = 1
+    Visible = False
     OnDblClick = grdNewMemDblClick
+  end
+  object grdVisMem: TStringGrid
+    Left = 0
+    Top = 0
+    Width = 278
+    Height = 861
+    Align = alClient
+    ColCount = 3
+    DefaultColWidth = 85
+    DefaultRowHeight = 18
+    FixedCols = 0
+    RowCount = 65537
+    ScrollBars = ssVertical
+    TabOrder = 2
+    OnDrawCell = grdVisMemDrawCell
   end
 end

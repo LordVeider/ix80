@@ -23,7 +23,7 @@ type
     StopCmd, StopStep: TEvent;              //Объекты синхронизации потоков
     SkipToNext: Boolean;                    //Флаг пропуска визуализации шагов до следующей команды
 
-    constructor Create(Memory: TMemory; EntryPoint: Word; Vis: TVisualizer);
+    constructor Create(Vis: TVisualizer; Memory: TMemory; EntryPoint: Word; FullVisMode: Boolean = False);
     procedure Execute; override;
 
     procedure PerformALU(OpCode: TOpCode; Size: Byte; Op1, Op2: String;
@@ -188,9 +188,9 @@ begin
   else
   begin
     case RegPair of
-      RPBC: Result := MakeWord(Registers.DataRegisters[RB], Registers.DataRegisters[RC]);
-      RPDE: Result := MakeWord(Registers.DataRegisters[RD], Registers.DataRegisters[RE]);
-      RPHL: Result := MakeWord(Registers.DataRegisters[RH], Registers.DataRegisters[RL]);
+      RPBC: Result := MakeWordHL(Registers.DataRegisters[RB], Registers.DataRegisters[RC]);
+      RPDE: Result := MakeWordHL(Registers.DataRegisters[RD], Registers.DataRegisters[RE]);
+      RPHL: Result := MakeWordHL(Registers.DataRegisters[RH], Registers.DataRegisters[RL]);
     end;
   end;
 end;
@@ -362,6 +362,7 @@ begin
         //ShowRegisters;
         Vis.OnlyUpdate(Registers);
         //Memory.ShowNewMem;
+        Vis.OnlyUpdateMem(Memory.Cells);
 
         //Сбрасываем объект синхронизации потока
         if Assigned(StopCmd) then
@@ -434,13 +435,13 @@ begin
                   SetRegAddrValue(ExReg(B1), B2);
                 end;
     $01: {LXI}  begin
-                  SetRegPair(ExPair(B1), MakeWord(B3, B2));
+                  SetRegPair(ExPair(B1), MakeWordHL(B3, B2));
                 end;
     $3A: {LDA}  begin
-                  SetDataReg(RA, ReadMemory(MakeWord(B3, B2)));
+                  SetDataReg(RA, ReadMemory(MakeWordHL(B3, B2)));
                 end;
     $32: {STA}  begin
-                  WriteMemory(MakeWord(B3, B2), GetDataReg(RA));
+                  WriteMemory(MakeWordHL(B3, B2), GetDataReg(RA));
                 end;
     $0A: {LDAX} begin
                   SetDataReg(RA, ReadMemory(GetRegPair(RPHL)));
@@ -450,12 +451,12 @@ begin
                 end;
     //Обмены
     $2A: {LHLD} begin
-                  SetDataReg(RL, ReadMemory(MakeWord(B3, B2)));
-                  SetDataReg(RH, ReadMemory(MakeWord(B3, B2) + 1));
+                  SetDataReg(RL, ReadMemory(MakeWordHL(B3, B2)));
+                  SetDataReg(RH, ReadMemory(MakeWordHL(B3, B2) + 1));
                 end;
     $22: {SHLD} begin
-                  WriteMemory(MakeWord(B3, B2), GetDataReg(RL));
-                  WriteMemory(MakeWord(B3, B2) + 1, GetDataReg(RH));
+                  WriteMemory(MakeWordHL(B3, B2), GetDataReg(RL));
+                  WriteMemory(MakeWordHL(B3, B2) + 1, GetDataReg(RH));
                 end;
     $EB: {XCHG} begin
                   Temp16 := GetRegPair(RPHL);
@@ -488,7 +489,7 @@ begin
                   end
                   else                        //POP RP
                   begin
-                    SetRegPair(ExPair(B1), MakeWord(ReadMemory(CurrentSP + 1), ReadMemory(CurrentSP)));
+                    SetRegPair(ExPair(B1), MakeWordHL(ReadMemory(CurrentSP + 1), ReadMemory(CurrentSP)));
                   end;
                   SetStackPointer(CurrentSP + 2);
                 end;
@@ -608,7 +609,7 @@ begin
     if (Format <> IFCondition) or CheckCondition(ExCond(B1)) then
     case Code of
       $C3, $C2: {JMP} begin
-                        SetProgramCounter(MakeWord(B3, B2));
+                        SetProgramCounter(MakeWordHL(B3, B2));
                       end;
       $CD, $C4: {CALL} begin
                         CurrentSP := GetStackPointer;
@@ -616,11 +617,11 @@ begin
                         WriteMemory(CurrentSP - 1, GetDataReg(RA));
                         WriteMemory(CurrentSP - 2, GetDataReg(RF));
                         SetStackPointer(CurrentSP - 2);
-                        SetProgramCounter(MakeWord(B3, B2));
+                        SetProgramCounter(MakeWordHL(B3, B2));
                       end;
       $C9, $C0: {RET} begin
                         CurrentSP := GetStackPointer;
-                        SetProgramCounter(MakeWord(ReadMemory(CurrentSP + 1), ReadMemory(CurrentSP)));
+                        SetProgramCounter(MakeWordHL(ReadMemory(CurrentSP + 1), ReadMemory(CurrentSP)));
                         SetStackPointer(CurrentSP + 2);
                       end;
     end;

@@ -11,24 +11,16 @@ uses
 
 type
   TVisualizer = class
-  private
-    FullVisMode: Boolean;
   public
-    constructor Create(FullVisMode: Boolean = False);
     procedure CleanSelection;
     procedure OnlyUpdate(Regs: TRegisters);
-    //procedure OnlyUpdateMem(Memory: TMemoryStream)
+    procedure OnlyUpdateMem(Cells: TMemoryCells);
     procedure ShowReg(Reg: TDataReg);
   end;
 
 implementation
 
 { TVisualizer }
-
-constructor TVisualizer.Create;
-begin
-  Self.FullVisMode := FullVisMode;
-end;
 
 procedure TVisualizer.OnlyUpdate(Regs: TRegisters);
 begin
@@ -61,6 +53,15 @@ begin
       Cells[3,1] := IntToStr((DataRegisters[RF] shr 4) and 1);
       Cells[4,1] := IntToStr((DataRegisters[RF] shr 0) and 1);
     end;
+  end;
+end;
+
+procedure TVisualizer.OnlyUpdateMem(Cells: TMemoryCells);
+begin
+  with frmMemory do
+  begin
+    MemoryCells := Cells;
+    grdVisMem.Repaint;
   end;
 end;
 

@@ -6,7 +6,7 @@ unit FormMemory;
 interface
 
 uses
-  Common,
+  Common, Instructions,
   Winapi.Windows, Winapi.Messages, System.SysUtils, System.Variants, System.Classes, Vcl.Graphics,
   Vcl.Controls, Vcl.Forms, Vcl.Dialogs, Vcl.Grids;
 
@@ -14,14 +14,18 @@ type
   TfrmMemory = class(TForm)
     grdMemory: TStringGrid;
     grdNewMem: TStringGrid;
+    grdVisMem: TStringGrid;
     procedure FormShow(Sender: TObject);
     procedure grdNewMemDblClick(Sender: TObject);
+    procedure grdVisMemDrawCell(Sender: TObject; ACol, ARow: Integer;
+      Rect: TRect; State: TGridDrawState);
   private
     { Private declarations }
   public
     { Public declarations }
     //Memory: TMemory;
     TrueMem: Boolean;
+    MemoryCells: TMemoryCells;
     procedure DrawMemory;
   end;
 
@@ -123,6 +127,9 @@ end;
 procedure TfrmMemory.FormShow(Sender: TObject);
 begin
   DrawMemory;
+    grdVisMem.Cells[0, 0] := 'Address';
+    grdVisMem.Cells[1, 0] := 'HEX';
+    grdVisMem.Cells[2, 0] := 'BIN';
 end;
 
 procedure TfrmMemory.grdNewMemDblClick(Sender: TObject);
@@ -138,4 +145,21 @@ begin
     end;}
 end;
 
+procedure TfrmMemory.grdVisMemDrawCell(Sender: TObject; ACol, ARow: Integer;
+  Rect: TRect; State: TGridDrawState);
+var
+  OutValue: String;
+begin
+  if ARow > 0 then
+    with grdVisMem, Canvas do
+    begin
+      case ACol of
+        0: OutValue := IntToNumStr(ARow-1, SHEX, 4) + 'H';
+        1: OutValue := IntToNumStr(MemoryCells[ARow-1], SHEX, 2);
+        2: OutValue := IntToNumStr(MemoryCells[ARow-1], SBIN, 8);
+      end;
+      FillRect(Rect);
+      TextOut(Rect.Left+2, Rect.Top+2, OutValue);
+    end;
+end;
 end.
