@@ -232,14 +232,14 @@ object frmEditor: TfrmEditor
       ImageIndex = 21
       OnClick = btnNextStepClick
     end
-    object btnNextCommand: TToolButton
+    object btnNextCmd: TToolButton
       Left = 462
       Top = 0
       Hint = #1057#1083#1077#1076#1091#1102#1097#1072#1103' '#1082#1086#1084#1072#1085#1076#1072
-      Caption = 'btnNextCommand'
+      Caption = 'btnNextCmd'
       Enabled = False
       ImageIndex = 20
-      OnClick = btnNextCommandClick
+      OnClick = btnNextCmdClick
     end
     object btnStop: TToolButton
       Left = 485
@@ -390,7 +390,14 @@ object frmEditor: TfrmEditor
     end
     object miView: TMenuItem
       Caption = #1042#1080#1076
-      Enabled = False
+      object miViewArrangeHD: TMenuItem
+        Caption = 'HD'
+        OnClick = miViewArrangeHDClick
+      end
+      object miViewArrangeFHD: TMenuItem
+        Caption = 'FullHD'
+        OnClick = miViewArrangeFHDClick
+      end
     end
     object miHelp: TMenuItem
       Caption = #1057#1087#1088#1072#1074#1082#1072

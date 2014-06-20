@@ -49,6 +49,8 @@ begin
   with frmValue do
   begin
     edtValue.Text := IntToStr(MemoryCells[Addr]);
+    Left := Mouse.CursorPos.X;
+    Top := Mouse.CursorPos.Y;
     if ShowModal = mrOk then
       SendMessage(Application.MainForm.Handle, WM_VALUE, MakeWParam(NumStrToIntAuto(edtValue.Text), 6), MakeLParam(Addr, 0));
   end;

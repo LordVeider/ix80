@@ -60,10 +60,12 @@ type
     grdLines: TStringGrid;
     btn6: TToolButton;
     btnNextStep: TToolButton;
-    btnNextCommand: TToolButton;
+    btnNextCmd: TToolButton;
     btn8: TToolButton;
     btnTextSaveAs: TToolButton;
     btn9: TToolButton;
+    miViewArrangeHD: TMenuItem;
+    miViewArrangeFHD: TMenuItem;
     procedure btnShowMemoryClick(Sender: TObject);
     procedure btnShowSchemeClick(Sender: TObject);
     procedure btnTextOpenClick(Sender: TObject);
@@ -74,14 +76,17 @@ type
     procedure btnMemUnloadClick(Sender: TObject);
     procedure btn8Click(Sender: TObject);
     procedure btnNextStepClick(Sender: TObject);
-    procedure btnNextCommandClick(Sender: TObject);
+    procedure btnNextCmdClick(Sender: TObject);
     procedure btnRunStepClick(Sender: TObject);
     procedure btnStopClick(Sender: TObject);
     procedure btn9Click(Sender: TObject);
     procedure FormCreate(Sender: TObject);
+    procedure miViewArrangeFHDClick(Sender: TObject);
+    procedure miViewArrangeHDClick(Sender: TObject);
   private
     { Private declarations }
     procedure ManageControls(var Message: TMessage); message WM_CONTROLS;
+    procedure RemoteControl(var Message: TMessage); message WM_REMCTRL;
     procedure UpdateValue(var Message: TMessage); message WM_VALUE;
   public
     { Public declarations }
@@ -196,7 +201,7 @@ begin
   end;
 end;
 
-procedure TfrmEditor.btnNextCommandClick(Sender: TObject);
+procedure TfrmEditor.btnNextCmdClick(Sender: TObject);
 begin
   CPU.CmdSkip;
 end;
@@ -249,6 +254,26 @@ begin
   frmAbout.ShowModal;
 end;
 
+procedure TfrmEditor.miViewArrangeFHDClick(Sender: TObject);
+begin
+  frmEditor.Left := 10;
+  frmEditor.Top := 10;
+  frmScheme.Left := frmEditor.Left + frmEditor.Width + 10;
+  frmScheme.Top := 10;
+  frmMemory.Left := frmScheme.Left + frmScheme.Width + 10;
+  frmMemory.Top := 10;
+end;
+
+procedure TfrmEditor.miViewArrangeHDClick(Sender: TObject);
+begin
+  frmEditor.Left := 10;
+  frmEditor.Top := 10;
+  frmScheme.Left := 10;
+  frmScheme.Top := 260;
+  frmMemory.Left := frmScheme.Left + frmScheme.Width + 10;
+  frmMemory.Top := 260;
+end;
+
 procedure TfrmEditor.OnTerm(Sender: TObject);
 begin
   CPU := nil;
@@ -258,17 +283,31 @@ procedure TfrmEditor.ManageControls;
 var
   NewState: Boolean;
 begin
+  //Свои контролы
   NewState := Boolean(Message.WParam);
   btnRunReal.Enabled := NewState;
   btnRunStep.Enabled := NewState;
   btnStop. Enabled := not NewState;
-  btnNextCommand.Enabled := not NewState;
+  btnNextCmd.Enabled := not NewState;
   btnNextStep.Enabled := not NewState;
   btnMemClear.Enabled := NewState;
   btnMemUnload.Enabled := NewState;
+  //Удаленные контролы
+  frmScheme.btnNextStep.Visible := btnNextStep.Enabled;
+  frmScheme.btnNextCmd.Visible := btnNextCmd.Enabled;
+  frmScheme.btnStop.Visible := btnStop.Enabled;
 end;
 
-procedure TfrmEditor.UpdateValue(var Message: TMessage);
+procedure TfrmEditor.RemoteControl(var Message: TMessage);
+begin
+  case Message.WParam of
+    1: btnNextStep.Click;
+    2: btnNextCmd.Click;
+    3: btnStop.Click;
+  end;
+end;
+
+procedure TfrmEditor.UpdateValue;
 begin
   //WParamHi - код
   //WParamLo - значение

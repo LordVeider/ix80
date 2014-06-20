@@ -45,8 +45,15 @@ type
     pnlDown: TPanel;
     grLog: TGroupBox;
     redtLog: TRichEdit;
+    btnNextStep: TButton;
+    ilButtons: TImageList;
+    btnNextCmd: TButton;
+    btnStop: TButton;
     procedure redtLogChange(Sender: TObject);
     procedure RegDblClick(Sender: TObject);
+    procedure btnNextStepClick(Sender: TObject);
+    procedure btnNextCmdClick(Sender: TObject);
+    procedure btnStopClick(Sender: TObject);
   private
     { Private declarations }
   public
@@ -72,6 +79,8 @@ begin
   with frmValue do
   begin
     edtValue.Text := TEdit(Sender).Text;
+    Left := Mouse.CursorPos.X;
+    Top := Mouse.CursorPos.Y;
     if ShowModal = mrOk then
     begin
       if TEdit(Sender) = edtA then Code := 7;
@@ -88,6 +97,21 @@ begin
       SendMessage(Application.MainForm.Handle, WM_VALUE, MakeWParam(NumStrToIntAuto(edtValue.Text), Code), 0);
     end;
   end;
+end;
+
+procedure TfrmScheme.btnNextStepClick(Sender: TObject);
+begin
+  SendMessage(Application.MainForm.Handle, WM_REMCTRL, 1, 0);
+end;
+
+procedure TfrmScheme.btnNextCmdClick(Sender: TObject);
+begin
+  SendMessage(Application.MainForm.Handle, WM_REMCTRL, 2, 0);
+end;
+
+procedure TfrmScheme.btnStopClick(Sender: TObject);
+begin
+  SendMessage(Application.MainForm.Handle, WM_REMCTRL, 3, 0);
 end;
 
 procedure TfrmScheme.redtLogChange(Sender: TObject);

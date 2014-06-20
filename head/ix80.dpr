@@ -18,7 +18,7 @@ uses
 
 begin
   Application.Initialize;
-  Application.MainFormOnTaskbar := True;
+  //Application.MainFormOnTaskbar := True;
   Application.Title := 'ix80';
   Application.CreateForm(TfrmEditor, frmEditor);
   Application.CreateForm(TfrmMemory, frmMemory);
