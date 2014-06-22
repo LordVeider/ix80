@@ -32,7 +32,7 @@ object frmEditor: TfrmEditor
     object btnTextNew: TToolButton
       Left = 0
       Top = 0
-      Hint = #1054#1095#1080#1089#1090#1080#1090#1100' '#1080#1089#1093#1086#1076#1085#1099#1081' '#1082#1086#1076
+      Hint = #1053#1086#1074#1099#1081
       Caption = 'btnTextNew'
       ImageIndex = 0
       OnClick = btnTextNewClick
@@ -182,13 +182,13 @@ object frmEditor: TfrmEditor
       ImageIndex = 17
       OnClick = btnMemClearClick
     end
-    object btnMemUnload: TToolButton
+    object btnMemAssembly: TToolButton
       Left = 354
       Top = 0
-      Hint = #1042#1099#1075#1088#1091#1079#1080#1090#1100' '#1087#1088#1086#1075#1088#1072#1084#1084#1091' '#1074' '#1087#1072#1084#1103#1090#1100
-      Caption = 'btnMemUnload'
+      Hint = #1058#1088#1072#1085#1089#1083#1080#1088#1086#1074#1072#1090#1100' '#1087#1088#1086#1075#1088#1072#1084#1084#1091' '#1074' '#1087#1072#1084#1103#1090#1100
+      Caption = 'btnMemAssembly'
       ImageIndex = 16
-      OnClick = btnMemUnloadClick
+      OnClick = btnMemAssemblyClick
     end
     object btn7: TToolButton
       Left = 377
@@ -278,14 +278,14 @@ object frmEditor: TfrmEditor
       Top = 0
       Caption = 'btn8'
       ImageIndex = 22
-      OnClick = btn8Click
+      Visible = False
     end
     object btn9: TToolButton
       Left = 585
       Top = 0
       Caption = 'btn9'
       ImageIndex = 23
-      OnClick = btn9Click
+      Visible = False
     end
   end
   object redtCode: TRichEdit
@@ -368,35 +368,106 @@ object frmEditor: TfrmEditor
   object menuMain: TMainMenu
     Left = 8
     Top = 32
-    object miFile: TMenuItem
-      Caption = #1060#1072#1081#1083
-      Enabled = False
-      object miFileNew: TMenuItem
+    object miSource: TMenuItem
+      Caption = #1040#1089#1089#1077#1084#1073#1083#1077#1088
+      object miSourceNew: TMenuItem
         Caption = #1053#1086#1074#1099#1081
+        OnClick = btnTextNewClick
       end
-      object miFileOpen: TMenuItem
+      object miSourceOpen: TMenuItem
         Caption = #1054#1090#1082#1088#1099#1090#1100
+        OnClick = btnTextOpenClick
+      end
+      object miN3: TMenuItem
+        Caption = '-'
+      end
+      object miSourceSave: TMenuItem
+        Caption = #1057#1086#1093#1088#1072#1085#1080#1090#1100
+        OnClick = btnTextSaveClick
+      end
+      object miSourceSaveAs: TMenuItem
+        Caption = #1057#1086#1093#1088#1072#1085#1080#1090#1100' '#1082#1072#1082
+        OnClick = btnTextSaveClick
       end
       object miN1: TMenuItem
         Caption = '-'
       end
       object miFileExit: TMenuItem
         Caption = #1042#1099#1093#1086#1076
+        OnClick = miFileExitClick
       end
     end
-    object miEdit: TMenuItem
-      Caption = #1055#1088#1072#1074#1082#1072
-      Enabled = False
+    object miMem: TMenuItem
+      Caption = #1055#1072#1084#1103#1090#1100
+      object miMemLoad: TMenuItem
+        Caption = #1047#1072#1075#1088#1091#1079#1080#1090#1100' '#1080#1079' '#1092#1072#1081#1083#1072
+        OnClick = btnDumpLoadClick
+      end
+      object miMemSave: TMenuItem
+        Caption = #1057#1086#1093#1088#1072#1085#1080#1090#1100' '#1074' '#1092#1072#1081#1083
+        OnClick = btnDumpSaveClick
+      end
+      object miN4: TMenuItem
+        Caption = '-'
+      end
+      object miMemClear: TMenuItem
+        Caption = #1054#1095#1080#1089#1090#1080#1090#1100
+        OnClick = btnMemClearClick
+      end
+      object miMemAssembly: TMenuItem
+        Caption = #1058#1088#1072#1085#1089#1083#1080#1088#1086#1074#1072#1090#1100' '#1074' '#1087#1072#1084#1103#1090#1100
+        OnClick = btnMemAssemblyClick
+      end
+    end
+    object miRun: TMenuItem
+      Caption = #1042#1099#1087#1086#1083#1085#1077#1085#1080#1077
+      object miRunReal: TMenuItem
+        Caption = #1042#1099#1087#1086#1083#1085#1080#1090#1100' '#1074' '#1088#1077#1072#1083#1100#1085#1086#1084' '#1074#1088#1077#1084#1077#1085#1080
+        OnClick = btnRunRealClick
+      end
+      object miRunStep: TMenuItem
+        Caption = #1042#1099#1087#1086#1083#1085#1080#1090#1100' '#1087#1086#1096#1072#1075#1086#1074#1086
+        OnClick = btnRunStepClick
+      end
+      object miN5: TMenuItem
+        Caption = '-'
+      end
+      object miNextStep: TMenuItem
+        Caption = #1057#1083#1077#1076#1091#1102#1097#1080#1081' '#1096#1072#1075
+        Enabled = False
+        OnClick = btnNextStepClick
+      end
+      object miNextCmd: TMenuItem
+        Caption = #1057#1083#1077#1076#1091#1102#1097#1072#1103' '#1082#1086#1084#1072#1085#1076#1072
+        Enabled = False
+        OnClick = btnNextCmdClick
+      end
+      object miStop: TMenuItem
+        Caption = #1054#1089#1090#1072#1085#1086#1074#1080#1090#1100' '#1074#1099#1087#1086#1083#1085#1077#1085#1080#1077
+        Enabled = False
+        OnClick = btnStopClick
+      end
     end
     object miView: TMenuItem
       Caption = #1042#1080#1076
-      object miViewArrangeHD: TMenuItem
-        Caption = 'HD'
-        OnClick = miViewArrangeHDClick
+      object miViewArrange: TMenuItem
+        Caption = #1056#1072#1089#1082#1083#1072#1076#1082#1072' '#1086#1082#1086#1085
+        object miViewArrangeHD: TMenuItem
+          Caption = 'HD'
+          OnClick = miViewArrangeHDClick
+        end
+        object miViewArrangeFHD: TMenuItem
+          Caption = 'FullHD'
+          OnClick = miViewArrangeFHDClick
+        end
       end
-      object miViewArrangeFHD: TMenuItem
-        Caption = 'FullHD'
-        OnClick = miViewArrangeFHDClick
+      object miViewScheme: TMenuItem
+        Caption = #1057#1093#1077#1084#1072' '#1087#1088#1086#1094#1077#1089#1089#1086#1088#1072
+        OnClick = btnShowSchemeClick
+      end
+      object miViewMem: TMenuItem
+        Caption = #1055#1072#1084#1103#1090#1100
+        OnClick = btnShowMemoryClick
       end
     end
     object miHelp: TMenuItem
