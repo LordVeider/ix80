@@ -25,7 +25,7 @@ type
       Mnemonic: String; Description: String = '');
     function MainCode(Op1: String = ''; Op2: String = ''): String;              //Двоичный код первого байта
     function FullCode(Op1: String = ''; Op2: String = ''): String;              //Двоичный код всей команды
-    function Summary: String;                                                   //Сводная информация
+    function Summary(Code: Byte = 0): String;                                 //Сводная информация
     function ExReg(Code: Byte; Second: Boolean = False): TDataReg;              //Извлечь двоичный код регистра
     function ExPair(Code: Byte): TRegPair;                                      //Извлечь двоичный код регистровой пары
     function ExCond(Code: Byte): TCondition;                                    //Извлечь двоичный код состояния
@@ -50,6 +50,7 @@ implementation
 
 function FormatRegister(Value: String): String;                                 //Двоичный код регистра из мнемоники
 begin
+  Value := UpperCase(Value);
   Result := '';
   case Value[1] of
     'B': Result := '000';
@@ -65,6 +66,7 @@ end;
 
 function FormatPair(Value: String): String;                                     //Двоичный код регистровой пары из мнемоники
 begin
+  Value := UpperCase(Value);
   Result := '';
   case Value[1] of
     'B': Result := '00';
@@ -79,6 +81,7 @@ function FormatCondition(Value: String): String;                                
 var
   CurCond: TCondition;
 begin
+  Value := UpperCase(Value);
   Result := '';
   for CurCond := Low(TCondition) to High(TCondition) do
     if 'FC' + Value = GetEnumName(TypeInfo(TCondition), Ord(CurCond)) then
@@ -92,6 +95,7 @@ function MaskCompare(Value, Mask: String): Boolean;                             
 var
   Index: Byte;
 begin
+  Value := UpperCase(Value);
   Result := True;
   for Index := 1 to 8 do
     if Value[Index] <> Mask[Index] then
@@ -101,6 +105,7 @@ end;
 
 function ConditionCompare(Value, Mask: String): Boolean;                        //Сравнение мнемоники по маске состояний
 begin
+  Value := UpperCase(Value);
   Result := False;
   if Value[1] = Mask[1] then
     if FormatCondition(Copy(Value, 2, Value.Length - 1)) <> '' then
@@ -165,7 +170,7 @@ function TInstruction.Summary;
 const
   F_SUMMARY = 'КОМАНДА %s: %s (группа: %s, размер: %d байт)';
 var
-  GroupText: String;
+  GroupText, MnemText: String;
 begin
   case Group of
     IGSystem:   GroupText := 'системные команды';
@@ -174,7 +179,13 @@ begin
     IGLogic:    GroupText := 'логические операции';
     IGBranch:   GroupText := 'команды переходов';
   end;
-  Result := System.SysUtils.Format(F_SUMMARY, [Mnemonic, Description, GroupText, Size]);
+  //Формируем мнемонику
+  if (Format = IFCondition) and (Code <> 0) then
+    MnemText := Copy(Mnemonic, 1, 1) + Copy(GetEnumName(TypeInfo(TCondition), Ord(ExCond(Code))), 3, 2)
+  else
+    MnemText := Mnemonic;
+  //Формируем окончательно строку
+  Result := System.SysUtils.Format(F_SUMMARY, [MnemText, Description, GroupText, Size]);
 end;
 
 function TInstruction.ExReg;
@@ -232,6 +243,7 @@ function TInstructionSet.FindByMnemonic;
 var
   CurrentInstr: TInstruction;
 begin
+  Mnemonic := UpperCase(Mnemonic);
   Result := nil;
   for CurrentInstr in List do
     if (CurrentInstr.Mnemonic = Mnemonic)

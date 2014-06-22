@@ -87,9 +87,9 @@ end;
 
 function ConvertNumStrAuto;
 begin
-  if Value[Value.Length] = 'B' then
+  if Value[Value.Length] in ['B', 'b'] then
     Result := ConvertNumStr(Copy(Value, 1, Value.Length-1), SBIN, Base, Digits)
-  else if Value[Value.Length] = 'H' then
+  else if Value[Value.Length] in ['H', 'h'] then
     Result := ConvertNumStr(Copy(Value, 1, Value.Length-1), SHEX, Base, Digits)
   else
     Result := ConvertNumStr(Value, SDEC, Base, Digits);

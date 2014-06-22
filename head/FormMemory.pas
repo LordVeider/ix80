@@ -48,7 +48,7 @@ begin
       Addr := Row-1;
   with frmValue do
   begin
-    edtValue.Text := IntToStr(MemoryCells[Addr]);
+    edtValue.Text := IntToNumStr(MemoryCells[Addr], SHEX, 2) + 'H';
     Left := Mouse.CursorPos.X;
     Top := Mouse.CursorPos.Y;
     if ShowModal = mrOk then
