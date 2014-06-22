@@ -294,9 +294,11 @@ var
   Op1, Op2, Op3: String;
   Flags: TFlagArray;
 begin
+  //Инициализируем переменные
+  StepWait;
   Vis.HighlightALU;
   Vis.AddLog('Выполнение операции на АЛУ');
-  //Инициализируем переменные
+  StepDone;
   Op1 := IntToNumStr(GetRegAddrValue(Reg), SBIN, 8);
   Op2 := IntToNumStr(Value, SBIN, 8);
   Flags[FCY] := IfThen(UseCarry, GetFlag(FCY), 0);
@@ -310,13 +312,17 @@ begin
   if FP   in AffectedFlags then SetFlag(FP,   Flags[FP]);
   if FAC  in AffectedFlags then SetFlag(FAC,  Flags[FAC]);
   if FCY  in AffectedFlags then SetFlag(FCY,  Flags[FCY]);
+  Vis.UnhighlightALU;
 end;
 
 procedure TProcessor.PerformRotate;
 var
   TempStr: String;
 begin
+  StepWait;
   Vis.HighlightALU;
+  Vis.AddLog('Выполнение операции на АЛУ');
+  StepDone;
   TempStr := IntToNumStr(GetDataReg(RA), SBIN, 8);
   if Right then               //Правый сдвиг
   begin
@@ -337,6 +343,7 @@ begin
     Delete(TempStr, 1, 1);
   end;
   SetDataReg(RA, NumStrToInt(TempStr, SBIN));
+  Vis.UnhighlightALU;
 end;
 
 function TProcessor.GetMemory(Address: Word): Int8;
@@ -392,7 +399,7 @@ begin
     end;
     Vis.HighlightRegPair(RegPair);
     Vis.AddLog(Format('Чтение регистровой пары %s; Значение: %sH;',
-      [Copy(GetEnumName(TypeInfo(TRegPair), Ord(RegPair)), 3, 2), IntToNumStr(Result, SHEX, 2)]));
+      [Copy(GetEnumName(TypeInfo(TRegPair), Ord(RegPair)), 3, 2), IntToNumStr(Result, SHEX, 4)]));
   end;
   StepDone;
 end;
@@ -435,7 +442,7 @@ begin
     Vis.UpdateScheme(Registers);
     Vis.HighlightRegPair(RegPair);
     Vis.AddLog(Format('Запись в регистровую пару %s; Значение: %sH;',
-      [Copy(GetEnumName(TypeInfo(TRegPair), Ord(RegPair)), 3, 2), IntToNumStr(Value, SHEX, 2)]));
+      [Copy(GetEnumName(TypeInfo(TRegPair), Ord(RegPair)), 3, 2), IntToNumStr(Value, SHEX, 4)]));
   end;
   StepDone;
 end;
@@ -610,6 +617,10 @@ begin
       CmdDone;
     end;
   until HltState or Terminated;
+  //Сбрасываем хайлайты
+  Vis.UnhighlightScheme;
+  Vis.UnhighlightALU;
+  Vis.UnhighlightMemory;
   //Посылаем главной форме сообщение для разблокировки контролов
   SendMessage(Application.MainForm.Handle, WM_CONTROLS, 1, 0);
 end;

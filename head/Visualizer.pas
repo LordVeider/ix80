@@ -25,6 +25,9 @@ type
     procedure UpdateScheme(Regs: TRegisters);
     procedure UpdateMemory(Cells: TMemoryCells);
 
+    procedure HighlightALU;
+    procedure UnhighlightALU;
+
     procedure HighlightDataReg(DataReg: TDataReg);
     procedure HighlightRegPair(RegPair: TRegPair);
     procedure HighlightFlag(Flag: TFlag);
@@ -32,7 +35,6 @@ type
     procedure HighlightProgramCounter;
     procedure HighlightInstrRegister;
 
-    procedure HighlightALU;
     procedure HighlightDecoder;
 
     procedure HighlightDataBus(Addr: Word);
@@ -71,8 +73,11 @@ begin
       if Components[Cnt] is TEdit then
         TEdit(Components[Cnt]).Color := clWindow
       else if Components[Cnt] is TImage then
-        if TImage(Components[Cnt]) <> imgSchemeBackground then
-          TImage(Components[Cnt]).Hide;
+        if (TImage(Components[Cnt]) <> imgSchemeBackground) then
+          if (TImage(Components[Cnt]) <> imgALU) then
+            TImage(Components[Cnt]).Hide
+          else if imgALU.Tag = 0 then
+            imgALU.Hide;
   end;
 end;
 
@@ -119,6 +124,22 @@ begin
     MemoryCells := Cells;
     grdMemory.Repaint;
   end;
+end;
+
+procedure TVisualizer.HighlightALU;
+begin
+  if VisLevel > 1 then
+    with frmScheme do
+    begin
+      imgALU.Show;
+      imgALU.Tag := 100;
+    end;
+end;
+
+procedure TVisualizer.UnhighlightALU;
+begin
+  with frmScheme do
+    imgALU.Tag := 0;
 end;
 
 procedure TVisualizer.HighlightDataReg;
@@ -214,12 +235,6 @@ begin
       edtIR.Color := COLOR_HL;
       imgIR.Show;
     end;
-end;
-
-procedure TVisualizer.HighlightALU;
-begin
-  if VisLevel > 1 then
-    frmScheme.imgALU.Show;
 end;
 
 procedure TVisualizer.HighlightDecoder;
