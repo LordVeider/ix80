@@ -551,11 +551,11 @@ begin
       if CurrentInstr.Size > 1 then
       begin
         B2 := GetMemory(CurrentAddr + 1);
-        SetDataReg(RW, B2);
+        SetDataReg(RZ, B2);
         if CurrentInstr.Size > 2 then
         begin
           B3 := GetMemory(CurrentAddr + 2);
-          SetDataReg(RZ, B3);
+          SetDataReg(RW, B3);
         end
       end;
       //Устанавливаем счетчик команд
