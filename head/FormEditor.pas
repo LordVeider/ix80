@@ -14,12 +14,12 @@ type
   TfrmEditor = class(TForm)
     tlbMain: TToolBar;
     menuMain: TMainMenu;
-    miFile: TMenuItem;
-    miEdit: TMenuItem;
+    miSource: TMenuItem;
+    miMem: TMenuItem;
     miHelp: TMenuItem;
     miView: TMenuItem;
-    miFileNew: TMenuItem;
-    miFileOpen: TMenuItem;
+    miSourceNew: TMenuItem;
+    miSourceOpen: TMenuItem;
     miN1: TMenuItem;
     miFileExit: TMenuItem;
     btnTextNew: TToolButton;
@@ -48,7 +48,7 @@ type
     dlgSaveMain: TSaveDialog;
     dlgOpenMain: TOpenDialog;
     sbarMain: TStatusBar;
-    btnMemUnload: TToolButton;
+    btnMemAssembly: TToolButton;
     btnMemClear: TToolButton;
     btn7: TToolButton;
     miHelpAbout: TMenuItem;
@@ -66,6 +66,24 @@ type
     btn9: TToolButton;
     miViewArrangeHD: TMenuItem;
     miViewArrangeFHD: TMenuItem;
+    miSourceSave: TMenuItem;
+    miSourceSaveAs: TMenuItem;
+    miN3: TMenuItem;
+    miMemLoad: TMenuItem;
+    miMemSave: TMenuItem;
+    miMemClear: TMenuItem;
+    miMemAssembly: TMenuItem;
+    miN4: TMenuItem;
+    miRun: TMenuItem;
+    miRunReal: TMenuItem;
+    miRunStep: TMenuItem;
+    miNextStep: TMenuItem;
+    miNextCmd: TMenuItem;
+    miStop: TMenuItem;
+    miN5: TMenuItem;
+    miViewArrange: TMenuItem;
+    miViewScheme: TMenuItem;
+    miViewMem: TMenuItem;
     procedure btnShowMemoryClick(Sender: TObject);
     procedure btnShowSchemeClick(Sender: TObject);
     procedure btnTextOpenClick(Sender: TObject);
@@ -73,13 +91,11 @@ type
     procedure FormShow(Sender: TObject);
     procedure miHelpAboutClick(Sender: TObject);
     procedure btnMemClearClick(Sender: TObject);
-    procedure btnMemUnloadClick(Sender: TObject);
-    procedure btn8Click(Sender: TObject);
+    procedure btnMemAssemblyClick(Sender: TObject);
     procedure btnNextStepClick(Sender: TObject);
     procedure btnNextCmdClick(Sender: TObject);
     procedure btnRunStepClick(Sender: TObject);
     procedure btnStopClick(Sender: TObject);
-    procedure btn9Click(Sender: TObject);
     procedure FormCreate(Sender: TObject);
     procedure miViewArrangeFHDClick(Sender: TObject);
     procedure miViewArrangeHDClick(Sender: TObject);
@@ -88,6 +104,7 @@ type
     procedure btnTextNewClick(Sender: TObject);
     procedure btnTextSaveClick(Sender: TObject);
     procedure btnTextSaveAsClick(Sender: TObject);
+    procedure miFileExitClick(Sender: TObject);
   private
     { Private declarations }
     CurrentTextFile: String;
@@ -111,22 +128,6 @@ implementation
 
 uses
   FormScheme, FormMemory, FormAbout, FormValue;
-
-procedure TfrmEditor.btn8Click(Sender: TObject);
-begin
-  //frmValue.Show;
-end;
-
-procedure TfrmEditor.btn9Click(Sender: TObject);
-begin
-  //vis := TVisualizer.Create;
-  //vis.ShowDataReg(RA);
-  //ShowMessage(IntToNumStr(ExtractReg($58), SBIN, 8));
-  //ShowMessage(InstrSet.FindByMnemonic('LXI').FullCode('D', '256'));
-  //frmMemory.SwitchMode(not frmMemory.CompactMode);
-  //vis.CleanSelection;
-  vis.HighlightMemoryCell(5);
-end;
 
 procedure TfrmEditor.btnTextNewClick(Sender: TObject);
 begin
@@ -205,7 +206,7 @@ begin
   end;
 end;
 
-procedure TfrmEditor.btnMemUnloadClick(Sender: TObject);
+procedure TfrmEditor.btnMemAssemblyClick(Sender: TObject);
 var
   LineIndex: Integer;
   CommandCode: String;
@@ -329,6 +330,11 @@ begin
   frmMemory.Show;
 end;
 
+procedure TfrmEditor.miFileExitClick(Sender: TObject);
+begin
+  Close;
+end;
+
 procedure TfrmEditor.miHelpAboutClick(Sender: TObject);
 begin
   frmAbout.ShowModal;
@@ -348,10 +354,10 @@ procedure TfrmEditor.miViewArrangeHDClick(Sender: TObject);
 begin
   frmEditor.Left := 10;
   frmEditor.Top := 10;
-  frmScheme.Left := 10;
-  frmScheme.Top := 260;
+  frmScheme.Left := 40;
+  frmScheme.Top := 40;
   frmMemory.Left := frmScheme.Left + frmScheme.Width + 10;
-  frmMemory.Top := 260;
+  frmMemory.Top := 40;
 end;
 
 procedure TfrmEditor.OnTerm(Sender: TObject);
@@ -363,19 +369,38 @@ procedure TfrmEditor.ManageControls;
 var
   NewState: Boolean;
 begin
-  //Свои контролы
   NewState := Boolean(Message.WParam);
-  btnRunReal.Enabled := NewState;
-  btnRunStep.Enabled := NewState;
-  btnStop. Enabled := not NewState;
-  btnNextCmd.Enabled := not NewState;
-  btnNextStep.Enabled := not NewState;
-  btnMemClear.Enabled := NewState;
-  btnMemUnload.Enabled := NewState;
+  //Свои контролы
+  btnRunReal.Enabled              := NewState;
+  btnRunStep.Enabled              := NewState;
+  btnStop.Enabled                 := not NewState;
+  btnNextCmd.Enabled              := not NewState;
+  btnNextStep.Enabled             := not NewState;
+  btnMemClear.Enabled             := NewState;
+  btnMemAssembly.Enabled          := NewState;
+  //
+  btnTextNew.Enabled              := NewState;
+  btnTextOpen.Enabled             := NewState;
+  btnTextSave.Enabled             := NewState;
+  btnTextSaveAs.Enabled           := NewState;
+  btnDumpLoad.Enabled             := NewState;
+  //Меню
+  miSourceNew.Enabled             := btnTextNew.Enabled;
+  miSourceOpen.Enabled            := btnTextOpen.Enabled;
+  miSourceSave.Enabled            := btnTextSave.Enabled;
+  miSourceSaveAs.Enabled          := btnTextSaveAs.Enabled;
+  miMemLoad.Enabled               := btnDumpLoad.Enabled;
+  miMemClear.Enabled              := btnMemClear.Enabled;
+  miMemAssembly.Enabled           := btnMemAssembly.Enabled;
+  miRunReal.Enabled               := btnRunReal.Enabled;
+  miRunStep.Enabled               := btnRunStep.Enabled;
+  miStop. Enabled                 := btnStop.Enabled;
+  miNextCmd.Enabled               := btnNextCmd.Enabled;
+  miNextStep.Enabled              := btnNextStep.Enabled;
   //Удаленные контролы
-  frmScheme.btnNextStep.Visible := btnNextStep.Enabled;
-  frmScheme.btnNextCmd.Visible := btnNextCmd.Enabled;
-  frmScheme.btnStop.Visible := btnStop.Enabled;
+  frmScheme.btnNextStep.Visible   := btnNextStep.Enabled;
+  frmScheme.btnNextCmd.Visible    := btnNextCmd.Enabled;
+  frmScheme.btnStop.Visible       := btnStop.Enabled;
 end;
 
 procedure TfrmEditor.RemoteControl(var Message: TMessage);
