@@ -303,7 +303,7 @@ begin
   Result := Memory.Read(Address);
   Vis.HighlightDataBus(Address);
   Vis.HighlightMemoryCell(Address);
-  Vis.AddLog(Format('Чтение памяти; Адрес: %sH; Значение: %sH;', [IntToNumStr(Address, SHEX, 4), IntToNumStr(Result, SHEX, 2)]));
+  Vis.AddLog(Format('Чтение памяти по адресу %sH; Значение: %sH;', [IntToNumStr(Address, SHEX, 4), IntToNumStr(Result, SHEX, 2)]));
   StepDone;
 end;
 
@@ -314,7 +314,7 @@ begin
   Vis.UpdateMemory(Memory.Cells);
   Vis.HighlightDataBus(Address);
   Vis.HighlightMemoryCell(Address);
-  Vis.AddLog(Format('Запись в память; Адрес: %sH; Значение: %sH;', [IntToNumStr(Address, SHEX, 4), IntToNumStr(Value, SHEX, 2)]));
+  Vis.AddLog(Format('Запись в память по адресу %sH; Значение: %sH;', [IntToNumStr(Address, SHEX, 4), IntToNumStr(Value, SHEX, 2)]));
   StepDone;
 end;
 
@@ -323,7 +323,7 @@ begin
   StepWait;
   Result := Registers.DataRegisters[DataReg];
   Vis.HighlightDataReg(DataReg);
-  Vis.AddLog(Format('Чтение регистра; Регистр: %s; Значение: %sH;',
+  Vis.AddLog(Format('Чтение регистра %s; Значение: %sH;',
     [Copy(GetEnumName(TypeInfo(TDataReg), Ord(DataReg)), 2, 1), IntToNumStr(Result, SHEX, 2)]));
   StepDone;
 end;
@@ -349,7 +349,7 @@ begin
       RPHL: Result := MakeWordHL(Registers.DataRegisters[RH], Registers.DataRegisters[RL]);
     end;
     Vis.HighlightRegPair(RegPair);
-    Vis.AddLog(Format('Чтение регистровой пары; Регистры: %s; Значение: %sH;',
+    Vis.AddLog(Format('Чтение регистровой пары %s; Значение: %sH;',
       [Copy(GetEnumName(TypeInfo(TRegPair), Ord(RegPair)), 3, 2), IntToNumStr(Result, SHEX, 2)]));
   end;
   StepDone;
@@ -361,7 +361,7 @@ begin
   Registers.DataRegisters[DataReg] := Value;
   Vis.UpdateScheme(Registers);
   Vis.HighlightDataReg(DataReg);
-  Vis.AddLog(Format('Запись в регистр; Регистр: %s; Значение: %sH;',
+  Vis.AddLog(Format('Запись в регистр %s; Значение: %sH;',
     [Copy(GetEnumName(TypeInfo(TDataReg), Ord(DataReg)), 2, 1), IntToNumStr(Value, SHEX, 2)]));
   StepDone;
 end;
@@ -392,7 +392,7 @@ begin
     Registers.DataRegisters[LoReg] := Lo(Value);
     Vis.UpdateScheme(Registers);
     Vis.HighlightRegPair(RegPair);
-    Vis.AddLog(Format('Запись в регистровую пару; Регистры: %s; Значение: %sH;',
+    Vis.AddLog(Format('Запись в регистровую пару %s; Значение: %sH;',
       [Copy(GetEnumName(TypeInfo(TRegPair), Ord(RegPair)), 3, 2), IntToNumStr(Value, SHEX, 2)]));
   end;
   StepDone;
@@ -469,8 +469,8 @@ begin
     Result := (DataRegisters[RF] shr Shift) and 1;
   Vis.UpdateScheme(Registers);
   Vis.HighlightFlag(FlagName);
-  Vis.AddLog(Format('Проверка флага; Флаг: %s; Состояние: %s;',
-    [Copy(GetEnumName(TypeInfo(TFlag), Ord(FlagName)), 3, 2), IntToStr(Result)]));
+  Vis.AddLog(Format('Проверка флага %s; Состояние: %s;',
+    [Copy(GetEnumName(TypeInfo(TFlag), Ord(FlagName)), 2, 2), IntToStr(Result)]));
   StepDone;
 end;
 
@@ -495,7 +495,7 @@ begin
       DataRegisters[RF] := DataRegisters[RF] and not (1 shl Shift);
   Vis.UpdateScheme(Registers);
   Vis.HighlightFlag(FlagName);
-  Vis.AddLog(Format('Установка флага; Флаг: %s; Состояние: %s;',
+  Vis.AddLog(Format('Установка флага %s; Состояние: %s;',
     [Copy(GetEnumName(TypeInfo(TFlag), Ord(FlagName)), 2, 2), IntToStr(Value)]));
   StepDone;
 end;
@@ -546,7 +546,7 @@ begin
       //Устанавливаем регистр команд
       SetInstRegister(B1);
       //Пишем в лог информацию о команде
-      Vis.AddLog(CurrentInstr.Summary);
+      Vis.AddLog(CurrentInstr.Summary(B1));
       //Читаем второй и третий байт инструкции (если есть)
       if CurrentInstr.Size > 1 then
       begin

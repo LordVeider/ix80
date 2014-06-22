@@ -225,6 +225,7 @@ end;
 
 procedure TfrmEditor.btnStopClick(Sender: TObject);
 begin
+  VIS.SetVisLevel(0);
   CPU.Terminate;
   CPU.CmdSkip;
 end;
