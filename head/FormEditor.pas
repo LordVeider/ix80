@@ -229,15 +229,9 @@ begin
         Inc(CmdCnt);
         if ParseCommand(Strings[LineIndex], CommandCode) then
         begin
-          if WriteCode(CommandCode, MEM, Address) then
-          begin
-            //Ничего не делаем
-          end
-          else
-          begin
-            Inc(ErrCnt);
-            redtMsg.Lines.Add('Ошибка записи команды в память (строка: ' + IntToStr(LineIndex + 1) + ')');
-          end;
+          if ErrCnt = 0 then
+            if not WriteCode(CommandCode, MEM, Address) then
+              redtMsg.Lines.Add('Ошибка записи команды в память (строка: ' + IntToStr(LineIndex + 1) + ')');
         end
         else
         begin

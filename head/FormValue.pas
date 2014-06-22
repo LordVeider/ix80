@@ -22,6 +22,8 @@ type
     lblBinValue: TLabel;
     lblDecValue: TLabel;
     btnApply: TButton;
+    lblUns: TLabel;
+    lblUnsValue: TLabel;
     procedure edtValueChange(Sender: TObject);
     procedure btnCancelClick(Sender: TObject);
     procedure btnApplyClick(Sender: TObject);
@@ -53,12 +55,14 @@ begin
   try
     lblHexValue.Caption := ConvertNumStrAuto(edtValue.Text, SHEX);
     lblBinValue.Caption := ConvertNumStrAuto(edtValue.Text, SBIN, 16);
-    lblDecValue.Caption := ConvertNumStrAuto(edtValue.Text, SDEC);
+    lblDecValue.Caption := IntToStr(Int8(NumStrToIntAuto(edtValue.Text)));
+    lblUnsValue.Caption := IntToStr(Byte(NumStrToIntAuto(edtValue.Text)));
     Verified := True;
   except
     lblHexValue.Caption := 'Ошибка ввода';
     lblBinValue.Caption := 'Ошибка ввода';
     lblDecValue.Caption := 'Ошибка ввода';
+    lblUnsValue.Caption := 'Ошибка ввода';
     Verified := False;
   end;
 end;

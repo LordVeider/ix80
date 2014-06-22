@@ -3,8 +3,8 @@ object frmValue: TfrmValue
   Top = 0
   BorderStyle = bsToolWindow
   Caption = #1047#1085#1072#1095#1077#1085#1080#1077
-  ClientHeight = 130
-  ClientWidth = 185
+  ClientHeight = 150
+  ClientWidth = 184
   Color = clWindow
   Font.Charset = DEFAULT_CHARSET
   Font.Color = clWindowText
@@ -14,8 +14,8 @@ object frmValue: TfrmValue
   OldCreateOrder = False
   OnShow = edtValueChange
   DesignSize = (
-    185
-    130)
+    184
+    150)
   PixelsPerInch = 96
   TextHeight = 13
   object lblHex: TLabel
@@ -52,7 +52,7 @@ object frmValue: TfrmValue
     Width = 169
     Height = 13
     AutoSize = False
-    Caption = 'DEC:'
+    Caption = 'Signed:'
     Font.Charset = DEFAULT_CHARSET
     Font.Color = clWindowText
     Font.Height = -11
@@ -61,7 +61,7 @@ object frmValue: TfrmValue
     ParentFont = False
   end
   object lblHexValue: TLabel
-    Left = 40
+    Left = 72
     Top = 11
     Width = 169
     Height = 13
@@ -69,24 +69,46 @@ object frmValue: TfrmValue
     Caption = 'lblHex'
   end
   object lblBinValue: TLabel
-    Left = 40
+    Left = 72
     Top = 30
     Width = 169
     Height = 13
     AutoSize = False
-    Caption = 'lblHex'
+    Caption = '3333666688889999'
   end
   object lblDecValue: TLabel
-    Left = 40
+    Left = 72
     Top = 49
     Width = 169
     Height = 13
     AutoSize = False
     Caption = 'lblHex'
   end
+  object lblUns: TLabel
+    Left = 8
+    Top = 68
+    Width = 169
+    Height = 13
+    AutoSize = False
+    Caption = 'Unsigned:'
+    Font.Charset = DEFAULT_CHARSET
+    Font.Color = clWindowText
+    Font.Height = -11
+    Font.Name = 'Tahoma'
+    Font.Style = [fsBold]
+    ParentFont = False
+  end
+  object lblUnsValue: TLabel
+    Left = 72
+    Top = 68
+    Width = 169
+    Height = 13
+    AutoSize = False
+    Caption = 'lblHex'
+  end
   object btnCancel: TButton
-    Left = 95
-    Top = 97
+    Left = 94
+    Top = 117
     Width = 81
     Height = 25
     Anchors = [akRight, akBottom]
@@ -95,19 +117,23 @@ object frmValue: TfrmValue
     Images = ilButtons
     TabOrder = 0
     OnClick = btnCancelClick
+    ExplicitLeft = 95
+    ExplicitTop = 97
   end
   object edtValue: TEdit
     Left = 8
-    Top = 68
-    Width = 169
+    Top = 88
+    Width = 166
     Height = 21
+    Anchors = [akLeft, akRight, akBottom]
     TabOrder = 1
     Text = '0'
     OnChange = edtValueChange
+    ExplicitTop = 68
   end
   object btnApply: TButton
-    Left = 8
-    Top = 97
+    Left = 7
+    Top = 117
     Width = 81
     Height = 25
     Anchors = [akRight, akBottom]
@@ -116,13 +142,14 @@ object frmValue: TfrmValue
     Images = ilButtons
     TabOrder = 2
     OnClick = btnApplyClick
+    ExplicitTop = 136
   end
   object ilButtons: TImageList
     ColorDepth = cd32Bit
     Left = 440
     Top = 200
     Bitmap = {
-      494C010102000800280010001000FFFFFFFF2110FFFFFFFFFFFFFFFF424D3600
+      494C0101020008002C0010001000FFFFFFFF2110FFFFFFFFFFFFFFFF424D3600
       0000000000003600000028000000400000001000000001002000000000000010
       00000000000000000000000000000000000000000000000000020000000C0000
       00160000001A0000001A0000001A0000001A0000001A0000001A0000001A0000

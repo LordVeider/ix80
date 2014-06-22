@@ -27,13 +27,13 @@ type
     IR: Byte;                                                                   //Регистр команд  (8 bit)
   end;
 
-  TFlag = (FS, FZ, FAC, FP, FCY);                                               //Флаги
+  TFlag = (FS, FZ, FP, FAC, FCY);                                               //Флаги
   TFlagSet = set of TFlag;                                                      //Набор флагов
   TFlagArray = array [TFlag] of Byte;                                           //Массив флагов
 
   TMemoryCells = array [Word] of Int8;                                          //Массив ячеек памяти
 
-  TOpCode = (OCSumm, OCAnd, OCLor, OCXor);
+  TOpCode = (OCAdd, OCSub, OCAnd, OCLor, OCXor);
 
   TCondition = (FCNZ, FCZ, FCNC, FCC, FCPO, FCPE, FCP, FCM);                    //Состояния
 
