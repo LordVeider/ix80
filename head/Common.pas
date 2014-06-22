@@ -75,6 +75,9 @@ begin
     SHEX: Result := IntToHex(Temp, Digits);
     SDEC: Result := IntToStr(Temp);
   end;
+  //Фикс выхода за длину строки
+  if Digits > 0 then
+    Delete(Result, 1, Result.Length - Digits);
 end;
 
 function NumStrToInt;
