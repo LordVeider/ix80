@@ -1,17 +1,20 @@
 unit Parser;
 
 //ix80 Intel 8080 CPU Emulator & Demonstration Model
-//Парсер команд
+//Парсер команд (на основе регулярных выражений)
 
 interface
 
 uses
   Logic, Instructions, Common, Typelib,
-  Classes, SysUtils;
+  Classes, SysUtils, RegularExpressions;
 
 type
-  TCommandParser = class
+  TRegularParser = class
+  private
+    RegEx: TRegEx;
   public
+    constructor Create;
     function ParseCommand(TextLine: String; var CommandCode: String): Boolean;  //Разбор текста команды
     function WriteCode
       (CommandCode: String; Memory: TMemory; var Address: Word): Boolean;       //Загрузка команды в память
@@ -19,55 +22,50 @@ type
 
 implementation
 
-{ TCommandParser }
+{ TRegularParser }
 
-function TCommandParser.ParseCommand;
+constructor TRegularParser.Create;
+begin
+  RegEx := TRegEx.Create('^([A-Za-z]{2,4})((\s)+([bcdehlmaBCDEHLMA0-9]*)(\s*,\s*([bcdehlmaBCDEHLMA0-9]*))?)?(\s*;.*)?$');
+end;
+
+function TRegularParser.ParseCommand;
 var
   Cmd, Op1, Op2: String;
-  NextDelimeter: Integer;
   Command: TInstruction;
+  Match: TMatch;
 begin
-  try
+  //Синтаксический анализ
+  Match := RegEx.Match(TextLine);                                               //Сравниваем с регуляркой
+  if Match.Success then                                                         //Синтаксис верный
+  begin
     Result := True;
-    //Синтаксический анализ
-    NextDelimeter := Pos(#59, TextLine);    //Ищем точку с запятой в строке
-    if NextDelimeter > 0 then               //Есть комментарий
-      Delete(TextLine, Pos(#59, TextLine) - 1, TextLine.Length - Pos(#59, TextLine) + 2);
-    NextDelimeter := Pos(#32, TextLine);    //Ищем пробел в строке
-    if NextDelimeter = 0 then               //Операндов нет
-      Cmd := TextLine
-    else                                    //Операнды есть
+    //Разбор команды
+    with Match.Groups do
     begin
-      Cmd := Copy(TextLine, 1, NextDelimeter - 1);
-      Delete(TextLine, 1, NextDelimeter);
-      NextDelimeter := Pos(#44, TextLine);  //Ищем запятую в строке
-      if NextDelimeter = 0 then             //Операнд один
-        Op1 := TextLine
-      else                                  //Операндов два
-      begin
-        Op1 := Copy(TextLine, 1, NextDelimeter - 1);
-        Delete(TextLine, 1, NextDelimeter + 1);
-        Op2 := TextLine;
-      end;
+      Cmd := Item[1].Value;                                                     //Оператор
+      if Count > 4 then Op1 := Item[4].Value;                                   //Первый операнд (если есть)
+      if Count > 6 then Op2 := Item[6].Value;                                   //Второй операнд (если есть)
     end;
-    //Семантический анализ
+    CommandCode := Cmd + '#' + Op1 + '#' + Op2;
+    //Поиск команды в матрице
     Command := InstrSet.FindByMnemonic(Cmd);
-    if Assigned(Command) then               //Команда найдена
+    if Assigned(Command) then                                                   //Команда найдена
       CommandCode := Command.FullCode(Op1, Op2)
     else
     begin
       Command := InstrSet.FindByMnemonic(Cmd, True);
-      if Assigned(Command) then             //Команды условного перехода обрабатываем особым способом
+      if Assigned(Command) then                                                 //Команды условного перехода обрабатываем особым способом
         CommandCode := Command.FullCode(Copy(Cmd, 2, Cmd.Length - 1), Op1)
       else
-      Result := False;                      //Семантическая ошибка
+        Result := False;                                                        //Неизвестная команда
     end;
-  except
-    Result := False;                        //Синтаксическая ошибка
-  end;
+  end
+  else
+    Result := False;                                                            //Синтаксическая ошибка
 end;
 
-function TCommandParser.WriteCode;
+function TRegularParser.WriteCode;
 var
   Bits: Byte;
 begin
