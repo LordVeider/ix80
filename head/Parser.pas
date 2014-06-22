@@ -25,8 +25,10 @@ implementation
 { TRegularParser }
 
 constructor TRegularParser.Create;
+const
+  F_REGEX = '^([A-Za-z]{2,4})((\s)+(\-?[abcdefhlmABCDEHLMpswPSW0-9]*)(\s*,\s*(\-?[abcdefhlmABCDEHLMpswPSW0-9]*))?)?(\s*;.*)?$';
 begin
-  RegEx := TRegEx.Create('^([A-Za-z]{2,4})((\s)+([bcdehlmaBCDEHLMA0-9]*)(\s*,\s*([bcdehlmaBCDEHLMA0-9]*))?)?(\s*;.*)?$');
+  RegEx := TRegEx.Create(F_REGEX);
 end;
 
 function TRegularParser.ParseCommand;

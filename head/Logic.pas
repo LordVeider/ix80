@@ -253,25 +253,27 @@ var
   Digit: Byte;
   NewBit: Byte;
   Carry, Parity: Byte;
+  OpCarry: String;
 begin
   //Инициализируем переменные
   Op3 := '';
-  Carry := Flags[FCY];
+  Carry := 0;
   Parity := 0;
+  OpCarry := IntToNumStr(IfThen(OpCode = OCSub, -Flags[FCY], Flags[FCY]), SBIN, 8);
   //Выполняем операции поразрядно
   for Digit := Size downto 1 do
   begin
     case OpCode of
-      OCSumm: begin
-                //Считаем сумму
-                NewBit := StrToInt(Op1[Digit]) + (StrToInt(Op2[Digit]) + Carry);
-                //Считаем перенос и пересчитываем бит
-                Carry := IfThen(NewBit > 1, 1, 0);
-                NewBit := NewBit mod 2;
-                //Выставляем флаг вспомогательного переноса из 3 в 4 разряд
-                if Digit = 5 then
-                  Flags[FAC] := Carry;
-              end;
+      OCAdd, OCSub: begin
+                      //Считаем сумму
+                      NewBit := StrToInt(Op1[Digit]) + StrToInt(Op2[Digit]) + StrToInt(OpCarry[Digit]) + Carry;
+                      //Считаем перенос и пересчитываем бит
+                      Carry := NewBit div 2;
+                      NewBit := NewBit mod 2;
+                      //Выставляем флаг вспомогательного переноса из 3 в 4 разряд
+                      if Digit = 5 then //8-3=5
+                        Flags[FAC] := IfThen(OpCode = OCAdd, Carry mod 2, NewBit);
+                    end;
       OCAnd: NewBit := StrToInt(Op1[Digit]) and StrToInt(Op2[Digit]);
       OCLor: NewBit := StrToInt(Op1[Digit]) or  StrToInt(Op2[Digit]);
       OCXor: NewBit := StrToInt(Op1[Digit]) xor StrToInt(Op2[Digit]);
@@ -285,8 +287,8 @@ begin
   Flags[FS]   := NewBit;
   Flags[FZ]   := IfThen(Parity = 0, 1, 0);
   Flags[FP]   := IfThen(Parity mod 2 = 0, 1, 0);
-  Flags[FAC]  := IfThen(OpCode = OCSumm, Flags[FAC], 0);
-  Flags[FCY]  := IfThen(OpCode = OCSumm, Carry, 0);
+  Flags[FAC]  := IfThen(OpCode in [OCAdd, OCSub], Flags[FAC], 0);
+  Flags[FCY]  := IfThen(OpCode = OCAdd, Carry mod 2, IfThen(OpCode = OCSub, NewBit, 0));
 end;
 
 procedure TProcessor.PerformALUOnReg;
@@ -299,9 +301,14 @@ begin
   Vis.HighlightALU;
   Vis.AddLog('Выполнение операции на АЛУ');
   StepDone;
+  //Используем ли значение флага переноса
+  if UseCarry then Flags[FCY] := GetFlag(FCY)
+  else Flags[FCY] := 0;
+  //Инвертируем второй операнд, если нужно
+  if OpCode = OCSub then Value := -Value;
+  //Инициализируем операнды
   Op1 := IntToNumStr(GetRegAddrValue(Reg), SBIN, 8);
   Op2 := IntToNumStr(Value, SBIN, 8);
-  Flags[FCY] := IfThen(UseCarry, GetFlag(FCY), 0);
   //Выполняем операцию на сумматоре
   PerformALU(OpCode, 8, Op1, Op2, Op3, Flags);
   //Обновляем аккумулятор
@@ -754,36 +761,36 @@ begin
   case Code of
     //Сложение
     $80: {ADD}  begin
-                  PerformALUOnReg(OCSumm, RA, GetRegAddrValue(ExReg(B1)));
+                  PerformALUOnReg(OCAdd, RA, GetRegAddrValue(ExReg(B1)));
                 end;
     $88: {ADC}  begin
-                  PerformALUOnReg(OCSumm, RA, GetRegAddrValue(ExReg(B1)), True);
+                  PerformALUOnReg(OCAdd, RA, GetRegAddrValue(ExReg(B1)), True);
                 end;
     $C6: {ADI}  begin
-                  PerformALUOnReg(OCSumm, RA, B2);
+                  PerformALUOnReg(OCAdd, RA, B2);
                 end;
     $CE: {ACI}  begin
-                  PerformALUOnReg(OCSumm, RA, B2, True);
+                  PerformALUOnReg(OCAdd, RA, B2, True);
                 end;
     //Вычитание
     $90: {SUB}  begin
-                  PerformALUOnReg(OCSumm, RA, -GetRegAddrValue(ExReg(B1)));
+                  PerformALUOnReg(OCSub, RA, GetRegAddrValue(ExReg(B1)));
                 end;
     $98: {SBB}  begin
-                  PerformALUOnReg(OCSumm, RA, -GetRegAddrValue(ExReg(B1)), True);
+                  PerformALUOnReg(OCSub, RA, GetRegAddrValue(ExReg(B1)), True);
                 end;
     $D6: {SUI}  begin
-                  PerformALUOnReg(OCSumm, RA, -B2);
+                  PerformALUOnReg(OCSub, RA, B2);
                 end;
     $DE: {SBI}  begin
-                  PerformALUOnReg(OCSumm, RA, -B2, True);
+                  PerformALUOnReg(OCSub, RA, B2, True);
                 end;
     //Инкремент/декремент
     $04: {INR}  begin
-                  PerformALUOnReg(OCSumm, ExReg(B1), 1, False, [FZ, FS, FP, FAC]);
+                  PerformALUOnReg(OCAdd, ExReg(B1), 1, False, [FZ, FS, FP, FAC]);
                 end;
     $05: {DCR}  begin
-                  PerformALUOnReg(OCSumm, ExReg(B1), -1, False, [FZ, FS, FP, FAC]);
+                  PerformALUOnReg(OCSub, ExReg(B1), 1, False, [FZ, FS, FP, FAC]);
                 end;
   end;
 end;
