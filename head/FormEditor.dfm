@@ -29,20 +29,19 @@ object frmEditor: TfrmEditor
     ParentShowHint = False
     ShowHint = True
     TabOrder = 0
-    object btnNew: TToolButton
+    object btnTextNew: TToolButton
       Left = 0
       Top = 0
       Hint = #1054#1095#1080#1089#1090#1080#1090#1100' '#1080#1089#1093#1086#1076#1085#1099#1081' '#1082#1086#1076
-      Caption = 'btnNew'
-      Enabled = False
+      Caption = 'btnTextNew'
       ImageIndex = 0
+      OnClick = btnTextNewClick
     end
     object btnTextOpen: TToolButton
       Left = 23
       Top = 0
       Hint = #1054#1090#1082#1088#1099#1090#1100' '#1092#1072#1081#1083' '#1089' '#1080#1089#1093#1086#1076#1085#1099#1084' '#1082#1086#1076#1086#1084
       Caption = 'btnTextOpen'
-      Enabled = False
       ImageIndex = 1
       OnClick = btnTextOpenClick
     end
@@ -51,15 +50,15 @@ object frmEditor: TfrmEditor
       Top = 0
       Hint = #1057#1086#1093#1088#1072#1085#1080#1090#1100' '#1080#1089#1093#1086#1076#1085#1099#1081' '#1082#1086#1076' '#1074' '#1092#1072#1081#1083
       Caption = 'btnTextSave'
-      Enabled = False
       ImageIndex = 2
+      OnClick = btnTextSaveClick
     end
     object btnTextSaveAs: TToolButton
       Left = 69
       Top = 0
       Caption = 'btnTextSaveAs'
-      Enabled = False
       ImageIndex = 3
+      OnClick = btnTextSaveAsClick
     end
     object btn1: TToolButton
       Left = 92
@@ -164,16 +163,16 @@ object frmEditor: TfrmEditor
       Top = 0
       Hint = #1047#1072#1075#1088#1091#1079#1080#1090#1100' '#1076#1072#1084#1087' '#1087#1072#1084#1103#1090#1080' '#1080#1079' '#1092#1072#1081#1083#1072
       Caption = 'btnDumpLoad'
-      Enabled = False
       ImageIndex = 1
+      OnClick = btnDumpLoadClick
     end
     object btnDumpSave: TToolButton
       Left = 308
       Top = 0
       Hint = #1057#1086#1093#1088#1072#1085#1080#1090#1100' '#1076#1072#1084#1087' '#1087#1072#1084#1103#1090#1080' '#1074' '#1092#1072#1081#1083
       Caption = 'btnDumpSave'
-      Enabled = False
       ImageIndex = 2
+      OnClick = btnDumpSaveClick
     end
     object btnMemClear: TToolButton
       Left = 331
@@ -312,6 +311,7 @@ object frmEditor: TfrmEditor
       'STA 1CH'
       'HLT')
     ParentFont = False
+    PlainText = True
     ScrollBars = ssVertical
     TabOrder = 1
     WordWrap = False
@@ -423,7 +423,7 @@ object frmEditor: TfrmEditor
     Left = 8
     Top = 80
     Bitmap = {
-      494C01011800F000980010001000FFFFFFFF2110FFFFFFFFFFFFFFFF424D3600
+      494C01011800F000A00010001000FFFFFFFF2110FFFFFFFFFFFFFFFF424D3600
       0000000000003600000028000000400000007000000001002000000000000070
       0000000000000000000000000000000000000000000000000000000000000000
       0000000000000000000000000000000000000000000000000000000000000000
@@ -1360,6 +1360,7 @@ object frmEditor: TfrmEditor
     Top = 128
   end
   object dlgOpenMain: TOpenDialog
+    Filter = #1048#1089#1093#1086#1076#1085#1099#1077' '#1082#1086#1076#1099' '#1085#1072' Assembler (*.asm)|*.asm|'#1042#1089#1077' '#1092#1072#1081#1083#1099' (*.*)|*.*'
     Options = [ofHideReadOnly, ofPathMustExist, ofFileMustExist, ofEnableSizing]
     Left = 8
     Top = 128

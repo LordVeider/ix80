@@ -14,8 +14,10 @@ type
   TMemory = class
   public
     Cells: TMemoryCells;                                                        //Массив данных
-    procedure Write(Address: Word; Value: Int8);                          //Записать в память цифровое значение
-    function Read(Address: Word): Int8;                                   //Считать из памяти цифровое значение
+    function Read(Address: Word): Int8;                                         //Считать из памяти цифровое значение
+    procedure Write(Address: Word; Value: Int8);                                //Записать в память цифровое значение
+    function LoadFromFile(FileName: String): Boolean;
+    function SaveToFile(FileName: String): Boolean;
   end;
 
   TProcessor = class(TThread)
@@ -95,6 +97,46 @@ end;
 procedure TMemory.Write;
 begin
   Cells[Address] := Value;
+end;
+
+function TMemory.LoadFromFile;
+var
+  F: TextFile;
+  I: Word;
+begin
+  AssignFile(F, FileName);
+  Reset(F);
+  try
+    try
+      for I := 0 to 65535 do
+        ReadLn(F, Cells[I]);
+      Result := True;
+    except
+      Result := False;
+    end;
+  finally
+    CloseFile(F);
+  end;
+end;
+
+function TMemory.SaveToFile;
+var
+  F: TextFile;
+  I: Word;
+begin
+  AssignFile(F, FileName);
+  Rewrite(F);
+  try
+    try
+      for I := 0 to 65535 do
+        WriteLn(F, Cells[I]);
+      Result := True;
+    except
+      Result := False;
+    end;
+  finally
+    CloseFile(F);
+  end;
 end;
 
 { TProcessor }

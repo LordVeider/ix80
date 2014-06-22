@@ -9,7 +9,7 @@ uses
   Common, Logic, Instructions, Parser, Visualizer, Typelib,
   Winapi.Windows, Winapi.Messages, System.SysUtils, System.Variants, System.Classes, Vcl.Graphics,
   Vcl.Controls, Vcl.Forms, Vcl.Dialogs, Vcl.Menus, Vcl.ToolWin, Vcl.ComCtrls,
-  Vcl.ImgList, Vcl.StdCtrls, SyncObjs, Vcl.Grids;
+  Vcl.ImgList, Vcl.StdCtrls, SyncObjs, Vcl.Grids, Vcl.ExtDlgs;
 type
   TfrmEditor = class(TForm)
     tlbMain: TToolBar;
@@ -22,7 +22,7 @@ type
     miFileOpen: TMenuItem;
     miN1: TMenuItem;
     miFileExit: TMenuItem;
-    btnNew: TToolButton;
+    btnTextNew: TToolButton;
     btnTextOpen: TToolButton;
     btnTextSave: TToolButton;
     btn1: TToolButton;
@@ -83,8 +83,14 @@ type
     procedure FormCreate(Sender: TObject);
     procedure miViewArrangeFHDClick(Sender: TObject);
     procedure miViewArrangeHDClick(Sender: TObject);
+    procedure btnDumpLoadClick(Sender: TObject);
+    procedure btnDumpSaveClick(Sender: TObject);
+    procedure btnTextNewClick(Sender: TObject);
+    procedure btnTextSaveClick(Sender: TObject);
+    procedure btnTextSaveAsClick(Sender: TObject);
   private
     { Private declarations }
+    CurrentTextFile: String;
     procedure ManageControls(var Message: TMessage); message WM_CONTROLS;
     procedure RemoteControl(var Message: TMessage); message WM_REMCTRL;
     procedure UpdateValue(var Message: TMessage); message WM_VALUE;
@@ -122,12 +128,81 @@ begin
   vis.HighlightMemoryCell(5);
 end;
 
+procedure TfrmEditor.btnTextNewClick(Sender: TObject);
+begin
+  redtMsg.Lines.Clear;
+  redtCode.Lines.Clear;
+  CurrentTextFile := '';
+end;
+
+procedure TfrmEditor.btnTextOpenClick(Sender: TObject);
+begin
+  dlgOpenMain.Title := 'Загрузить исходный код из файла';
+  dlgOpenMain.Filter := 'Файлы исходного кода (*.asm)|*.asm|Все файлы (*.*)|*.*';
+  dlgOpenMain.InitialDir := GetCurrentDir;
+  if dlgOpenMain.Execute then
+  begin
+    redtMsg.Lines.Clear;
+    redtCode.Lines.Clear;
+    redtCode.Lines.LoadFromFile(dlgOpenMain.FileName);
+    CurrentTextFile := dlgOpenMain.FileName;
+  end;
+end;
+
+procedure TfrmEditor.btnTextSaveClick(Sender: TObject);
+begin
+  if CurrentTextFile <> '' then
+    redtCode.Lines.SaveToFile(CurrentTextFile)
+  else
+    btnTextSaveAsClick(Sender);
+end;
+
+procedure TfrmEditor.btnTextSaveAsClick(Sender: TObject);
+begin
+  dlgSaveMain.Title := 'Сохранить исходный код в файл';
+  dlgSaveMain.Filter := 'Файлы исходного кода (*.asm)|*.asm|Все файлы (*.*)|*.*';
+  dlgSaveMain.DefaultExt := 'asm';
+  dlgSaveMain.InitialDir := GetCurrentDir;
+  if dlgSaveMain.Execute then
+  begin
+    redtCode.Lines.SaveToFile(dlgSaveMain.FileName);
+    CurrentTextFile := dlgSaveMain.FileName;
+  end;
+end;
+
+procedure TfrmEditor.btnDumpLoadClick(Sender: TObject);
+begin
+  dlgOpenMain.Title := 'Загрузить дамп памяти из файла';
+  dlgOpenMain.Filter := 'Файлы дампов памяти (*.dmp)|*.dmp|Все файлы (*.*)|*.*';
+  dlgOpenMain.InitialDir := GetCurrentDir;
+  if dlgOpenMain.Execute then
+  begin
+    if not Assigned(MEM) then
+      MEM := TMemory.Create;
+    MEM.LoadFromFile(dlgOpenMain.FileName);
+    VIS.UpdateMemory(MEM.Cells);
+  end;
+end;
+
+procedure TfrmEditor.btnDumpSaveClick(Sender: TObject);
+begin
+  dlgSaveMain.Title := 'Сохранить дамп памяти в файл';
+  dlgSaveMain.Filter := 'Файлы дампов памяти (*.dmp)|*.dmp|Все файлы (*.*)|*.*';
+  dlgSaveMain.DefaultExt := 'dmp';
+  dlgSaveMain.InitialDir := GetCurrentDir;
+  if Assigned(MEM) then
+    if dlgSaveMain.Execute then
+      MEM.SaveToFile(dlgSaveMain.FileName);
+end;
+
 procedure TfrmEditor.btnMemClearClick(Sender: TObject);
 begin
   if Assigned(MEM) then
+  begin
     FreeAndNil(MEM);
-  MEM := TMemory.Create;
-  VIS.UpdateMemory(MEM.Cells);
+    MEM := TMemory.Create;
+    VIS.UpdateMemory(MEM.Cells);
+  end;
 end;
 
 procedure TfrmEditor.btnMemUnloadClick(Sender: TObject);
@@ -175,14 +250,6 @@ begin
     redtMsg.Lines.Add('Программа успешно транслирована в память');
   redtMsg.Lines.Add(Format('Ошибок: %d%sВсего обработано команд: %d', [ErrCnt, #13#10, CmdCnt]));
   Vis.UpdateMemory(MEM.Cells);
-end;
-
-procedure TfrmEditor.btnTextOpenClick(Sender: TObject);
-begin
-  if dlgOpenMain.Execute() then
-  begin
-    //
-  end;
 end;
 
 procedure TfrmEditor.btnRunRealClick(Sender: TObject);
