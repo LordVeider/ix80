@@ -56,9 +56,11 @@ type
     procedure PerformALU(OpCode: TOpCode; Size: Byte; Op1, Op2: String;
       var Op3: String; var Flags: TFlagArray);                                  //Выполнить операцию двоичной арифметики-логики
     procedure PerformALUOnReg
-      (OpCode: TOpCode; Reg: TDataReg; Value: Int8; UseCarry: Boolean = False;
+      (OpCode: TOpCode; Reg: TDataReg; Value: Int8;
+      UseCarry: Boolean = False; ChangeReg: Boolean = True;
       AffectedFlags: TFlagSet = [FS, FZ, FAC, FP, FCY]);                        //Выполнить операцию на АЛУ над регистром
     procedure PerformRotate(Right, ThroughCarry: Boolean);                      //Выполнить сдвиг аккумулятора
+    procedure PerformCorrection;                                                //Выполнить BCD коррекцию
 
     function GetMemory(Address: Word): Int8;                                    //Считать из памяти цифровое значение
     procedure SetMemory(Address: Word; Value: Int8);                            //Записать в память цифровое значение
@@ -259,7 +261,7 @@ begin
   Op3 := '';
   Carry := 0;
   Parity := 0;
-  OpCarry := IntToNumStr(IfThen(OpCode = OCSub, -Flags[FCY], Flags[FCY]), SBIN, 8);
+  OpCarry := IntToNumStr(IfThen(OpCode = OCSub, -Flags[FCY], Flags[FCY]), SBIN, Size);
   //Выполняем операции поразрядно
   for Digit := Size downto 1 do
   begin
@@ -311,8 +313,9 @@ begin
   Op2 := IntToNumStr(Value, SBIN, 8);
   //Выполняем операцию на сумматоре
   PerformALU(OpCode, 8, Op1, Op2, Op3, Flags);
-  //Обновляем аккумулятор
-  SetRegAddrValue(Reg, NumStrToInt(Op3, SBIN));
+  //Обновляем регистр
+  if ChangeReg then
+    SetRegAddrValue(Reg, NumStrToInt(Op3, SBIN));
   //Выставляем флаги
   if FS   in AffectedFlags then SetFlag(FS,   Flags[FS]);
   if FZ   in AffectedFlags then SetFlag(FZ,   Flags[FZ]);
@@ -351,6 +354,20 @@ begin
   end;
   SetDataReg(RA, NumStrToInt(TempStr, SBIN));
   Vis.UnhighlightALU;
+end;
+
+procedure TProcessor.PerformCorrection;
+var
+  AStr: String;
+  TLo, THi: Byte;
+begin
+  AStr := IntToNumStr(GetDataReg(RA), SBIN, 8);
+  TLo := NumStrToInt(Copy(AStr, 5, 4), SBIN);
+  THi := NumStrToInt(Copy(AStr, 1, 4), SBIN);
+  if (GetFlag(FAC) = 1) or (TLo > 9) then Inc(TLo, 6);
+  if (GetFlag(FCY) = 1) or (THi > 9) then Inc(THi, 6);
+  AStr := IntToNumStr(THi, SBIN, 4) + IntToNumStr(TLo, SBIN, 4);
+  SetDataReg(RA, NumStrToInt(AStr, SBIN));
 end;
 
 function TProcessor.GetMemory(Address: Word): Int8;
@@ -756,6 +773,10 @@ begin
 end;
 
 procedure TProcessor.ExecuteArithmCommand;
+var
+  Flags: TFlagArray;
+  TempStr: String;
+  Temp16: Word;
 begin
   with Instr do
   case Code of
@@ -787,10 +808,29 @@ begin
                 end;
     //Инкремент/декремент
     $04: {INR}  begin
-                  PerformALUOnReg(OCAdd, ExReg(B1), 1, False, [FZ, FS, FP, FAC]);
+                  PerformALUOnReg(OCAdd, ExReg(B1), 1, False, True, [FZ, FS, FP, FAC]);
                 end;
     $05: {DCR}  begin
-                  PerformALUOnReg(OCSub, ExReg(B1), 1, False, [FZ, FS, FP, FAC]);
+                  PerformALUOnReg(OCSub, ExReg(B1), 1, False, True, [FZ, FS, FP, FAC]);
+                end;
+    $03: {INX}  begin
+                  Flags[FCY] := 1;
+                  PerformALU(OCAdd, 16, IntToNumStr(GetRegPair(ExPair(B1)), SBIN, 16), '0000000000000000', TempStr, Flags);
+                  SetRegPair(ExPair(B1), NumStrToInt(TempStr, SBIN));
+                end;
+    $0B: {DCX}  begin
+                  Flags[FCY] := 1;
+                  PerformALU(OCSub, 16, IntToNumStr(GetRegPair(ExPair(B1)), SBIN, 16), '0000000000000000', TempStr, Flags);
+                  SetRegPair(ExPair(B1), NumStrToInt(TempStr, SBIN));
+                end;
+    //Специальные операции
+    $09: {DAD}  begin
+                  Temp16 := GetRegPair(ExPair(B1));
+                  PerformALUOnReg(OCAdd, RL, Lo(Temp16), False, True, [FCY]);
+                  PerformALUOnReg(OCAdd, RH, Hi(Temp16), True, True, [FCY]);
+                end;
+    $27: {DAA}  begin
+                  PerformCorrection;
                 end;
   end;
 end;
@@ -817,6 +857,13 @@ begin
                 end;
     $EE: {XRI}  begin
                   PerformALUOnReg(OCXor, RA, B2);
+                end;
+    //Сравнение
+    $B8: {CMP}  begin
+                  PerformALUOnReg(OCSub, RA, GetRegAddrValue(ExReg(B1)), False, False);
+                end;
+    $FE: {CPI}  begin
+                  PerformALUOnReg(OCSub, RA, B2, False, False);
                 end;
     //Сдвиг
     $07: {RLC}  begin
