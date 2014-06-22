@@ -135,33 +135,45 @@ var
   LineIndex: Integer;
   CommandCode: String;
   Address: Word;
-  Parser: TCommandParser;
-  Success: Boolean;
+  RegParser: TRegularParser;
+  CmdCnt, ErrCnt: Integer;
 begin
   VIS.SetVisLevel(0);
   if not Assigned(MEM) then
     MEM := TMemory.Create;
+  RegParser := TRegularParser.Create;
+  Address := 0;
+  CmdCnt := 0;
+  ErrCnt := 0;
   redtMsg.Lines.Clear;
-  Parser := TCommandParser.Create;
-  Success := True;
-  Address := 5;
   for LineIndex := 0 to redtCode.Lines.Count-1 do
-  begin
-    if Success then
-    begin
-      Success := Parser.ParseCommand(redtCode.Lines.Strings[LineIndex], CommandCode);
-      if Success then
-        Success := Parser.WriteCode(CommandCode, MEM, Address)
-      else
-        redtMsg.Lines.Add('Ошибка записи команды в память (строка: ' + IntToStr(LineIndex + 1) + ')');
-    end
-    else
-    begin
-      redtMsg.Lines.Add('Ошибка трансляции команды (строка: ' + IntToStr(LineIndex + 1) + ')');
-    end;
-  end;
-  if Success then
+    with RegParser, redtCode.Lines do
+      if not Strings[LineIndex].Trim.IsEmpty then
+      begin
+        Inc(CmdCnt);
+        if ParseCommand(Strings[LineIndex], CommandCode) then
+        begin
+          if WriteCode(CommandCode, MEM, Address) then
+          begin
+            //Ничего не делаем
+          end
+          else
+          begin
+            Inc(ErrCnt);
+            redtMsg.Lines.Add('Ошибка записи команды в память (строка: ' + IntToStr(LineIndex + 1) + ')');
+          end;
+        end
+        else
+        begin
+          Inc(ErrCnt);
+          redtMsg.Lines.Add('Ошибка трансляции команды (строка: ' + IntToStr(LineIndex + 1) + ')');
+        end;
+      end;
+  if ErrCnt > 0 then
+    redtMsg.Lines.Add('Трансляция программы не завершена')
+  else
     redtMsg.Lines.Add('Программа успешно транслирована в память');
+  redtMsg.Lines.Add(Format('Ошибок: %d%sВсего обработано команд: %d', [ErrCnt, #13#10, CmdCnt]));
   Vis.UpdateMemory(MEM.Cells);
 end;
 
@@ -180,7 +192,7 @@ begin
   begin
     SendMessage(Application.MainForm.Handle, WM_CONTROLS, 0, 0);
     if not Assigned(CPU) then
-      CPU := TProcessor.Create(VIS, MEM, 5);
+      CPU := TProcessor.Create(VIS, MEM, 0);
     CPU.OnTerminate := OnTerm;
     CPU.Start;
   end;
@@ -193,7 +205,7 @@ begin
   begin
     SendMessage(Application.MainForm.Handle, WM_CONTROLS, 0, 0);
     if not Assigned(CPU) then
-      CPU := TProcessor.Create(VIS, MEM, 5);
+      CPU := TProcessor.Create(VIS, MEM, 0);
     CPU.OnTerminate := OnTerm;
     CPU.CmdInit;
     CPU.StepInit;
