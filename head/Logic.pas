@@ -361,13 +361,20 @@ var
   AStr: String;
   TLo, THi: Byte;
 begin
+  StepWait;
+  Vis.HighlightALU;
+  Vis.AddLog('Выполнение операции на АЛУ');
+  StepDone;
   AStr := IntToNumStr(GetDataReg(RA), SBIN, 8);
   TLo := NumStrToInt(Copy(AStr, 5, 4), SBIN);
   THi := NumStrToInt(Copy(AStr, 1, 4), SBIN);
   if (GetFlag(FAC) = 1) or (TLo > 9) then Inc(TLo, 6);
   if (GetFlag(FCY) = 1) or (THi > 9) then Inc(THi, 6);
+  Vis.HighlightBCD;
+  Vis.AddLog('Выполнение двоично-десятичной (BCD) коррекции');
   AStr := IntToNumStr(THi, SBIN, 4) + IntToNumStr(TLo, SBIN, 4);
   SetDataReg(RA, NumStrToInt(AStr, SBIN));
+  Vis.UnhighlightALU;
 end;
 
 function TProcessor.GetMemory(Address: Word): Int8;
