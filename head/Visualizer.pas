@@ -28,13 +28,15 @@ type
     procedure HighlightALU;
     procedure UnhighlightALU;
 
+    procedure HighlightFlag(Flag: TFlag);
+    procedure HighlightBCD;
+
     procedure HighlightDataReg(DataReg: TDataReg);
     procedure HighlightRegPair(RegPair: TRegPair);
-    procedure HighlightFlag(Flag: TFlag);
     procedure HighlightStackPointer;
     procedure HighlightProgramCounter;
-    procedure HighlightInstrRegister;
 
+    procedure HighlightInstrRegister;
     procedure HighlightDecoder;
 
     procedure HighlightDataBus(Addr: Word);
@@ -205,6 +207,13 @@ begin
       CurrentEdit.Color := COLOR_HL;
       imgFlags.Show;
     end;
+end;
+
+procedure TVisualizer.HighlightBCD;
+begin
+  if VisLevel > 1 then
+    with frmScheme do
+      imgBCD.Show;
 end;
 
 procedure TVisualizer.HighlightStackPointer;
