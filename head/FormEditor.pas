@@ -11,6 +11,26 @@ uses
   Vcl.Controls, Vcl.Forms, Vcl.Dialogs, Vcl.Menus, Vcl.ToolWin, Vcl.ComCtrls,
   Vcl.ImgList, Vcl.StdCtrls, SyncObjs, Vcl.Grids, Vcl.ExtDlgs, Winapi.ShellAPI;
 type
+  TDoubleScrollEvent = procedure(Sender: TObject;           //отправитель
+                                 ScrollCode: TScrollCode;   //тип скроллинга
+                             var ScrollPos: Integer;        //позиция
+                                 Bar: integer               //полоска (верт/гор)
+                                 ) of object;
+
+  TRichEditExt = class(TRichEdit)
+  private
+    FOnScroll: TDoubleScrollEvent;
+    procedure DoScroll(var Message: TMessage; Bar: integer);
+    procedure WMHScroll(var Message: TMessage); message WM_HSCROLL;
+    procedure WMVScroll(var Message: TMessage); message WM_VSCROLL;
+  protected
+    procedure Scroll(ScrollCode: TScrollCode; var ScrollPos: Integer; Bar: integer); dynamic;
+  published
+    property OnScroll: TDoubleScrollEvent read FOnScroll write FOnScroll;
+  end;
+
+  TRichEdit = class(TRichEditExt);
+
   TfrmEditor = class(TForm)
     tlbMain: TToolBar;
     menuMain: TMainMenu;
@@ -107,6 +127,12 @@ type
     procedure miFileExitClick(Sender: TObject);
     procedure miHelpUserGuideClick(Sender: TObject);
     procedure miHelpCommandsClick(Sender: TObject);
+    procedure redtCodeMouseWheelDown(Sender: TObject; Shift: TShiftState;
+      MousePos: TPoint; var Handled: Boolean);
+    procedure redtCodeMouseWheelUp(Sender: TObject; Shift: TShiftState;
+      MousePos: TPoint; var Handled: Boolean);
+    procedure redtCodeScroll(Sender: TObject; ScrollCode: TScrollCode;
+      var ScrollPos: Integer; Bar: Integer);
   private
     { Private declarations }
     CurrentTextFile: String;
@@ -320,9 +346,10 @@ var
 begin
   with grdLines do
   begin
-    for i := 0 to 99 do
+    for i := 0 to 999 do
       Cells[0, i] := IntToStr(i+1);
   end;
+  redtCode.OnScroll := redtCodeScroll;
   frmScheme.Show;
   frmMemory.Show;
 end;
@@ -461,6 +488,68 @@ begin
                     end;
                   end;
     end;
+end;
+
+{ TRichEditExt }
+
+procedure TRichEditExt.Scroll;
+//процедура вызывает обработчик, если таковой имеется
+begin
+  if Assigned(FOnScroll) then FOnScroll(Self, ScrollCode, ScrollPos, Bar);
+end;
+
+procedure TRichEditExt.DoScroll;
+var
+  ScrollPos: Integer;
+  ScrollCode: TScrollCode;
+begin
+  with Message do
+  begin
+    ScrollPos := WParamHi;                         //берём её значение из сообщения
+    ScrollCode := TScrollCode(WParamLo);
+  end;
+  Scroll(ScrollCode, ScrollPos, Bar);
+end;
+
+procedure TRichEditExt.WMHScroll;
+//вызывается при горизонтальном скроллинге
+begin
+  inherited;
+  DoScroll(Message, 0);
+end;
+
+procedure TRichEditExt.WMVScroll;
+//вызывается при вертикальном скроллинге
+begin
+  inherited;
+  DoScroll(Message, 1);
+end;
+
+procedure TfrmEditor.redtCodeMouseWheelDown(Sender: TObject; Shift: TShiftState;
+  MousePos: TPoint; var Handled: Boolean);
+var
+  k: Integer;
+begin
+  Handled := True;
+  for k := 1 to Mouse.WheelScrollLines do
+    redtCode.Perform(WM_VSCROLL, MakeWParam(SB_LINEDOWN, 0), 0);
+end;
+
+procedure TfrmEditor.redtCodeMouseWheelUp(Sender: TObject; Shift: TShiftState;
+  MousePos: TPoint; var Handled: Boolean);
+var
+  k: Integer;
+begin
+  Handled := True;
+  for k := 1 to Mouse.WheelScrollLines do
+    redtCode.Perform(WM_VSCROLL, MakeWParam(SB_LINEUP, 0), 0);
+end;
+
+procedure TfrmEditor.redtCodeScroll(Sender: TObject; ScrollCode: TScrollCode;
+  var ScrollPos: Integer; Bar: Integer);
+begin
+  redtCode.Perform(EM_LINESCROLL, 0, 0);
+  grdLines.TopRow := redtCode.Perform(EM_GETFIRSTVISIBLELINE, 0, 0);
 end;
 
 end.

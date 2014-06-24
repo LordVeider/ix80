@@ -91,8 +91,9 @@
         <DCC_DebugInformation>0</DCC_DebugInformation>
     </PropertyGroup>
     <PropertyGroup Condition="'$(Cfg_2_Win32)'!=''">
-        <VerInfo_Build>84</VerInfo_Build>
-        <VerInfo_Keys>CompanyName=;FileDescription=ix80;FileVersion=1.0.0.84;InternalName=;LegalCopyright=http://code.google.com/p/ix80/;LegalTrademarks=;OriginalFilename=;ProductName=Intel 8080 CPU Emulator &amp; Demonstration Model;ProductVersion=1.0;Comments=</VerInfo_Keys>
+        <VerInfo_Build>85</VerInfo_Build>
+        <VerInfo_Keys>CompanyName=;FileDescription=ix80;FileVersion=1.0.1.85;InternalName=;LegalCopyright=http://code.google.com/p/ix80/;LegalTrademarks=;OriginalFilename=;ProductName=Intel 8080 CPU Emulator &amp; Demonstration Model;ProductVersion=1.0;Comments=</VerInfo_Keys>
+        <VerInfo_Release>1</VerInfo_Release>
     </PropertyGroup>
     <ItemGroup>
         <DelphiCompile Include="$(MainSource)">

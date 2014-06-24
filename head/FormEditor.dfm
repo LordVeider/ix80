@@ -306,6 +306,8 @@ object frmEditor: TfrmEditor
     TabOrder = 1
     WordWrap = False
     Zoom = 100
+    OnMouseWheelDown = redtCodeMouseWheelDown
+    OnMouseWheelUp = redtCodeMouseWheelUp
   end
   object redtMsg: TRichEdit
     Left = 0
@@ -315,8 +317,8 @@ object frmEditor: TfrmEditor
     Align = alBottom
     Font.Charset = RUSSIAN_CHARSET
     Font.Color = clWindowText
-    Font.Height = -11
-    Font.Name = 'Tahoma'
+    Font.Height = -12
+    Font.Name = 'Courier New'
     Font.Style = []
     HideScrollBars = False
     ParentFont = False
@@ -349,7 +351,7 @@ object frmEditor: TfrmEditor
     DefaultRowHeight = 15
     Enabled = False
     FixedCols = 0
-    RowCount = 100
+    RowCount = 1000
     FixedRows = 0
     Options = [goFixedVertLine, goFixedHorzLine, goVertLine, goHorzLine, goRowSelect]
     ScrollBars = ssNone
