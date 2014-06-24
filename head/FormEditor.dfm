@@ -300,14 +300,6 @@ object frmEditor: TfrmEditor
     Font.Name = 'Courier New'
     Font.Style = []
     HideScrollBars = False
-    Lines.Strings = (
-      'mvi a, 2fh'
-      'sui 37h'
-      'mov e, a'
-      'mvi a, 1bh'
-      'sbi 4fh'
-      'mov d, a'
-      'hlt')
     ParentFont = False
     PlainText = True
     ScrollBars = ssVertical
@@ -472,11 +464,11 @@ object frmEditor: TfrmEditor
       Caption = #1057#1087#1088#1072#1074#1082#1072
       object miHelpUserGuide: TMenuItem
         Caption = #1056#1091#1082#1086#1074#1086#1076#1089#1090#1074#1086' '#1087#1086#1083#1100#1079#1086#1074#1072#1090#1077#1083#1103
-        Enabled = False
+        OnClick = miHelpUserGuideClick
       end
       object miHelpCommands: TMenuItem
         Caption = #1057#1080#1089#1090#1077#1084#1072' '#1082#1086#1084#1072#1085#1076
-        Enabled = False
+        OnClick = miHelpCommandsClick
       end
       object miN2: TMenuItem
         Caption = '-'
@@ -492,7 +484,7 @@ object frmEditor: TfrmEditor
     Left = 8
     Top = 80
     Bitmap = {
-      494C01011800F000A00010001000FFFFFFFF2110FFFFFFFFFFFFFFFF424D3600
+      494C01011800F000A40010001000FFFFFFFF2110FFFFFFFFFFFFFFFF424D3600
       0000000000003600000028000000400000007000000001002000000000000070
       0000000000000000000000000000000000000000000000000000000000000000
       0000000000000000000000000000000000000000000000000000000000000000
