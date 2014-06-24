@@ -5,7 +5,7 @@
         <FrameworkType>VCL</FrameworkType>
         <MainSource>ix80.dpr</MainSource>
         <Base>True</Base>
-        <Config Condition="'$(Config)'==''">Debug</Config>
+        <Config Condition="'$(Config)'==''">Release</Config>
         <Platform Condition="'$(Platform)'==''">Win32</Platform>
         <TargetedPlatforms>1</TargetedPlatforms>
         <AppType>Application</AppType>
@@ -39,7 +39,17 @@
         <CfgParent>Base</CfgParent>
         <Base>true</Base>
     </PropertyGroup>
+    <PropertyGroup Condition="('$(Platform)'=='Win32' and '$(Cfg_2)'=='true') or '$(Cfg_2_Win32)'!=''">
+        <Cfg_2_Win32>true</Cfg_2_Win32>
+        <CfgParent>Cfg_2</CfgParent>
+        <Cfg_2>true</Cfg_2>
+        <Base>true</Base>
+    </PropertyGroup>
     <PropertyGroup Condition="'$(Base)'!=''">
+        <VerInfo_Keys>CompanyName=;FileDescription=ix80;FileVersion=1.0.0.0;InternalName=;LegalCopyright=http://code.google.com/p/ix80/;LegalTrademarks=;OriginalFilename=;ProductName=Intel 8080 CPU Emulator &amp; Demonstration Model;ProductVersion=1.0.0.0;Comments=</VerInfo_Keys>
+        <VerInfo_Locale>1049</VerInfo_Locale>
+        <VerInfo_IncludeVerInfo>true</VerInfo_IncludeVerInfo>
+        <Manifest_File>$(BDS)\bin\default_app.manifest</Manifest_File>
         <SanitizedProjectName>ix80</SanitizedProjectName>
         <DCC_Namespace>System;Xml;Data;Datasnap;Web;Soap;Vcl;Vcl.Imaging;Vcl.Touch;Vcl.Samples;Vcl.Shell;$(DCC_Namespace)</DCC_Namespace>
         <Icon_MainIcon>$(BDS)\bin\delphi_PROJECTICON.ico</Icon_MainIcon>
@@ -48,12 +58,9 @@
         <DCC_ExeOutput>.\$(Platform)\$(Config)</DCC_ExeOutput>
     </PropertyGroup>
     <PropertyGroup Condition="'$(Base_Win32)'!=''">
+        <Icon_MainIcon>ix80_Icon.ico</Icon_MainIcon>
         <DCC_UsePackage>vcldbx;inetdbbde;vclib;DBXOdbcDriver;svnui;DBXSybaseASEDriver;ibxpress;vclimg;vclactnband;vcldb;vcldsnap;vclie;DBXDb2Driver;vcltouch;websnap;vclribbon;VclSmp;vcl;DataSnapConnectors;DBXMSSQLDriver;dsnapcon;vclx;webdsnap;svn;bdertl;adortl;$(DCC_UsePackage)</DCC_UsePackage>
-        <VerInfo_IncludeVerInfo>true</VerInfo_IncludeVerInfo>
         <DCC_Namespace>Winapi;System.Win;Data.Win;Datasnap.Win;Web.Win;Soap.Win;Xml.Win;Bde;$(DCC_Namespace)</DCC_Namespace>
-        <VerInfo_Locale>1033</VerInfo_Locale>
-        <Manifest_File>$(BDS)\bin\default_app.manifest</Manifest_File>
-        <VerInfo_Keys>CompanyName=;FileDescription=;FileVersion=1.0.0.0;InternalName=;LegalCopyright=;LegalTrademarks=;OriginalFilename=;ProductName=;ProductVersion=1.0.0.0;Comments=</VerInfo_Keys>
     </PropertyGroup>
     <PropertyGroup Condition="'$(Base_Win64)'!=''">
         <DCC_UsePackage>DBXOdbcDriver;DBXSybaseASEDriver;vclimg;vclactnband;vcldb;vcldsnap;vclie;DBXDb2Driver;vcltouch;websnap;VclSmp;vcl;DBXMSSQLDriver;dsnapcon;vclx;webdsnap;$(DCC_UsePackage)</DCC_UsePackage>
@@ -66,22 +73,26 @@
         <DCC_RemoteDebug>true</DCC_RemoteDebug>
     </PropertyGroup>
     <PropertyGroup Condition="'$(Cfg_1_Win32)'!=''">
+        <VerInfo_Locale>1033</VerInfo_Locale>
         <Icon_MainIcon>ix80_Icon.ico</Icon_MainIcon>
         <VerInfo_PreRelease>true</VerInfo_PreRelease>
         <VerInfo_MajorVer>0</VerInfo_MajorVer>
-        <VerInfo_Build>83</VerInfo_Build>
-        <VerInfo_Locale>1049</VerInfo_Locale>
-        <VerInfo_Keys>CompanyName=;FileDescription=ix80;FileVersion=0.8.0.83;InternalName=;LegalCopyright=http://code.google.com/p/ix80/;LegalTrademarks=;OriginalFilename=;ProductName=Intel 8080 CPU Emulator &amp; Demonstration Model;ProductVersion=1.0.0.0;Comments=</VerInfo_Keys>
-        <VerInfo_IncludeVerInfo>true</VerInfo_IncludeVerInfo>
+        <VerInfo_Build>84</VerInfo_Build>
+        <VerInfo_Keys>CompanyName=;FileDescription=ix80;FileVersion=0.8.0.84;InternalName=;LegalCopyright=http://code.google.com/p/ix80/;LegalTrademarks=;OriginalFilename=;ProductName=Intel 8080 CPU Emulator &amp; Demonstration Model;ProductVersion=1.0.0.0;Comments=</VerInfo_Keys>
         <VerInfo_MinorVer>8</VerInfo_MinorVer>
         <VerInfo_Debug>true</VerInfo_Debug>
         <DCC_RemoteDebug>false</DCC_RemoteDebug>
     </PropertyGroup>
     <PropertyGroup Condition="'$(Cfg_2)'!=''">
+        <Icon_MainIcon>ix80_Icon.ico</Icon_MainIcon>
         <DCC_LocalDebugSymbols>false</DCC_LocalDebugSymbols>
         <DCC_Define>RELEASE;$(DCC_Define)</DCC_Define>
         <DCC_SymbolReferenceInfo>0</DCC_SymbolReferenceInfo>
         <DCC_DebugInformation>0</DCC_DebugInformation>
+    </PropertyGroup>
+    <PropertyGroup Condition="'$(Cfg_2_Win32)'!=''">
+        <VerInfo_Build>84</VerInfo_Build>
+        <VerInfo_Keys>CompanyName=;FileDescription=ix80;FileVersion=1.0.0.84;InternalName=;LegalCopyright=http://code.google.com/p/ix80/;LegalTrademarks=;OriginalFilename=;ProductName=Intel 8080 CPU Emulator &amp; Demonstration Model;ProductVersion=1.0;Comments=</VerInfo_Keys>
     </PropertyGroup>
     <ItemGroup>
         <DelphiCompile Include="$(MainSource)">

@@ -9,7 +9,7 @@ uses
   Common, Logic, Instructions, Parser, Visualizer, Typelib,
   Winapi.Windows, Winapi.Messages, System.SysUtils, System.Variants, System.Classes, Vcl.Graphics,
   Vcl.Controls, Vcl.Forms, Vcl.Dialogs, Vcl.Menus, Vcl.ToolWin, Vcl.ComCtrls,
-  Vcl.ImgList, Vcl.StdCtrls, SyncObjs, Vcl.Grids, Vcl.ExtDlgs;
+  Vcl.ImgList, Vcl.StdCtrls, SyncObjs, Vcl.Grids, Vcl.ExtDlgs, Winapi.ShellAPI;
 type
   TfrmEditor = class(TForm)
     tlbMain: TToolBar;
@@ -105,6 +105,8 @@ type
     procedure btnTextSaveClick(Sender: TObject);
     procedure btnTextSaveAsClick(Sender: TObject);
     procedure miFileExitClick(Sender: TObject);
+    procedure miHelpUserGuideClick(Sender: TObject);
+    procedure miHelpCommandsClick(Sender: TObject);
   private
     { Private declarations }
     CurrentTextFile: String;
@@ -309,6 +311,7 @@ end;
 procedure TfrmEditor.FormCreate(Sender: TObject);
 begin
   VIS := TVisualizer.Create;
+  MEM := TMemory.Create;
 end;
 
 procedure TfrmEditor.FormShow(Sender: TObject);
@@ -332,6 +335,16 @@ end;
 procedure TfrmEditor.miHelpAboutClick(Sender: TObject);
 begin
   frmAbout.ShowModal;
+end;
+
+procedure TfrmEditor.miHelpUserGuideClick(Sender: TObject);
+begin
+  ShellExecute(0, 'Open', PChar(GetCurrentDir + '\Руководство пользователя.pdf'), nil, nil, SW_SHOW);
+end;
+
+procedure TfrmEditor.miHelpCommandsClick(Sender: TObject);
+begin
+  ShellExecute(0, 'Open', PChar(GetCurrentDir + '\Система команд микропроцессора Intel 8080.pdf'), nil, nil, SW_SHOW);
 end;
 
 procedure TfrmEditor.miViewArrangeFHDClick(Sender: TObject);
